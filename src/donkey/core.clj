@@ -1,0 +1,60 @@
+(ns donkey.core
+  (:require [clojure.set]
+            [clojure.spec.alpha :as spec]
+            [donkey.server :as server]
+            [donkey.server-spec :as server-spec])
+  (:import (donkey.server DonkeyServer)
+           (com.appsflyer.donkey.server Server)))
+
+(comment
+  {:port                 8080
+   :compression          false
+   :host                 "0.0.0.0"
+   :metrics-enabled      true
+   :metrics-registry     nil
+   :metrics-prefix       "donkey"
+   :worker-threads       20
+   :debug                false
+   :idle-timeout-seconds 0
+   :routes               []
+   :ssl                  false
+   :ssl-type             :jks | :pem
+   :key-store-path       "/mykeystore.jks"
+   :key-store-password   "foo"
+   :pem-key-path         "/my-key.pem"
+   :pem-cert-path        "/my-cert.pem"
+   :jmx-enabled          false
+   :jmx-domain           "localhost"}
+
+  {:method       [:get :post]
+   :consume      ["application/json" "application/x-www-form-urlencoded" "text/plain"]
+   :produce      ["application/json" "text/plain"]
+   :handler-mode :blocking
+   :path         "/foo"
+   :match-type   :simple}
+
+  )
+
+(defn ^DonkeyServer create-server [opts]
+  (let [normalized-opts (spec/conform ::server-spec/config opts)]
+    (if (= normalized-opts ::spec/invalid)
+      (throw (ex-info "Invalid argument" (spec/explain-data ::server-spec/config opts)))
+      (server/->DonkeyServer
+        (Server. (server/get-server-config opts))))))
+
+(defn new-server []
+  (-> {:port   8080
+       :routes [{:path            "/hello/:greet"
+                 :methods         [:get]
+                 :metrics-enabled true
+                 :consumes        ["text/plain"]
+                 :handler         (fn [req respond _raise]
+                                    (future
+                                      (respond
+                                        {:status  200
+                                         :headers {"content-type" "text/plain"}
+                                         :body    (.getBytes
+                                                    (str "Hello " (-> :path-params req (get "greet"))))})))}]}
+      create-server))
+
+
