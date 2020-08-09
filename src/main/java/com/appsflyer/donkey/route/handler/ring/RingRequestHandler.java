@@ -232,6 +232,7 @@ public class RingRequestHandler implements Handler<RoutingContext>
   private RingRequestHandler addPathParams(RoutingContext ctx, List<Object> values)
   {
     Map<String, String> pathParams = ctx.pathParams();
+    
     if (pathParams.isEmpty()) {
       return this;
     }

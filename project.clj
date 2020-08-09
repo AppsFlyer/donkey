@@ -22,4 +22,3 @@
                                     [org.junit.jupiter/junit-jupiter ~junit-version]]
                    :resource-paths ["test/resources"]}}
   :repl-options {:init-ns donkey.core})
-

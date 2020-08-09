@@ -1,20 +1,19 @@
 package com.appsflyer.donkey.route.ring;
 
-import clojure.lang.IFn;
-import clojure.lang.IPersistentMap;
-import com.appsflyer.donkey.route.handler.ring.RingResponseHandler;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.function.Function;
+
 public class RingHandler implements Handler<RoutingContext>
 {
   private static final Logger logger = LoggerFactory.getLogger(RingHandler.class.getName());
-  private final IFn fun;
+  private final Function<RoutingContext, ?> fun;
   
-  public RingHandler(IFn fun)
+  public RingHandler(Function<RoutingContext, ?> fun)
   {
     this.fun = fun;
   }
@@ -24,7 +23,7 @@ public class RingHandler implements Handler<RoutingContext>
   {
     Future<?> handlerResponse;
     try {
-      handlerResponse = (Future<?>) fun.invoke(ctx);
+      handlerResponse = (Future<?>) fun.apply(ctx);
     } catch (Exception ex) {
       logger.error(String.format("User handler failed: %s", ex.getMessage()), ex);
       ctx.fail(ex);

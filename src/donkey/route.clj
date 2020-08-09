@@ -2,15 +2,16 @@
   (:import (io.vertx.ext.web RoutingContext)
            (io.vertx.core Promise)
            (io.vertx.core.http HttpMethod)
-           (com.appsflyer.donkey.route RouteDescriptor PathDescriptor PathDescriptor$MatchType HandlerMode)
-           (java.util ArrayList)))
+           (com.appsflyer.donkey.route RingRouteDescriptor PathDescriptor PathDescriptor$MatchType HandlerMode)
+           (java.util ArrayList)
+           (java.util.function Function)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
     PathDescriptor$MatchType/REGEX
     PathDescriptor$MatchType/SIMPLE))
 
-(defn- add-path [^RouteDescriptor route route-map]
+(defn- add-path [^RingRouteDescriptor route route-map]
   (when-let [path (:path route-map)]
     (.path route (PathDescriptor. path (keyword->MatchType (:match-type route-map)))))
   route)
@@ -26,43 +27,45 @@
     :blocking HandlerMode/BLOCKING
     :non-blocking HandlerMode/NON_BLOCKING))
 
-(defn- add-methods [^RouteDescriptor route route-map]
+(defn- add-methods [^RingRouteDescriptor route route-map]
   (doseq [method (:method route-map [])]
     (.addMethod route (keyword->HttpMethod method)))
   route)
 
-(defn- add-consumes [^RouteDescriptor route route-map]
+(defn- add-consumes [^RingRouteDescriptor route route-map]
   (doseq [content-type (:consume route-map [])]
     (.addConsumes route content-type))
   route)
 
-(defn- add-produces [^RouteDescriptor route route-map]
+(defn- add-produces [^RingRouteDescriptor route route-map]
   (doseq [content-type (:produce route-map [])]
     (.addProduces route content-type))
   route)
 
 (defn- wrap-blocking-handler [handler]
-  (fn [^RoutingContext ctx]
-    (if-let [request (.get ctx "ring-request")]
-      (handler request)
-      (throw (IllegalStateException. "Routing context is missing 'ring-request'")))))
+  (reify Function
+    (apply [_this ctx]
+      (if-let [request (.get ^RoutingContext ctx "ring-request")]
+        (handler request)
+        (throw (IllegalStateException. "Routing context is missing 'ring-request'"))))))
 
 (defn- wrap-handler [handler]
-  (fn [^RoutingContext ctx]
-    (if-let [request (.get ctx "ring-request")]
-      (let [promise (Promise/promise)
-            respond (fn [res] (.complete promise res))
-            raise (fn [ex] (.fail promise ^Throwable ex))]
-        (handler request respond raise)
-        (.future promise))
-      (throw (IllegalStateException. "Routing context is missing 'ring-request'")))))
+  (reify Function
+    (apply [_this ctx]
+      (if-let [request (.get ^RoutingContext ctx "ring-request")]
+        (let [promise (Promise/promise)
+              respond (fn [res] (.complete promise res))
+              raise (fn [ex] (.fail promise ^Throwable ex))]
+          (handler request respond raise)
+          (.future promise))
+        (throw (IllegalStateException. "Routing context is missing 'ring-request'"))))))
 
-(defn- add-handler-mode [^RouteDescriptor route route-map]
+(defn- add-handler-mode [^RingRouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
     (.handlerMode route (keyword->HandlerMode handler-mode)))
   route)
 
-(defn- add-handler [^RouteDescriptor route route-map]
+(defn- add-handler [^RingRouteDescriptor route route-map]
   (if (= (:handler-mode route-map) :blocking)
     (.handler route (wrap-blocking-handler (:handler route-map)))
     (.handler route (wrap-handler (:handler route-map))))
@@ -71,7 +74,7 @@
 (defn get-route-descriptors [opts]
   (reduce (fn [res route-map]
             (doto res
-              (.add (-> (RouteDescriptor.)
+              (.add (-> (RingRouteDescriptor.)
                         (add-path route-map)
                         (add-methods route-map)
                         (add-consumes route-map)
