@@ -1,105 +1,34 @@
 package com.appsflyer.donkey.route;
 
-import clojure.lang.IFn;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.RoutingContext;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.function.Function;
 
-public class RouteDescriptor
+public interface RouteDescriptor
 {
-  private PathDescriptor path;
-  private final Collection<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
-  private final Collection<String> consumes = new HashSet<>(6);
-  private final Collection<String> produces = new HashSet<>(6);
-  private HandlerMode handlerMode = HandlerMode.NON_BLOCKING;
-  private IFn handler;
+  PathDescriptor path();
   
-  public PathDescriptor path()
-  {
-    return path;
-  }
+  RouteDescriptor path(PathDescriptor path);
   
-  public RouteDescriptor path(PathDescriptor path)
-  {
-    Objects.requireNonNull(path, "path cannot be null");
-    this.path = path;
-    return this;
-  }
+  Collection<HttpMethod> methods();
   
-  public List<HttpMethod> methods()
-  {
-    if (methods.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return List.copyOf(methods);
-  }
+  RouteDescriptor addMethod(HttpMethod method);
   
-  public RouteDescriptor addMethod(HttpMethod method)
-  {
-    Objects.requireNonNull(method, "method cannot be null");
-    methods.add(method);
-    return this;
-  }
+  Collection<String> consumes();
   
-  public List<String> consumes()
-  {
-    if (consumes.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return List.copyOf(consumes);
-  }
+  RouteDescriptor addConsumes(String contentType);
   
-  public RouteDescriptor addConsumes(String contentType)
-  {
-    assertNonEmptyContentType(contentType);
-    consumes.add(contentType);
-    return this;
-  }
+  Collection<String> produces();
   
-  public List<String> produces()
-  {
-    if (produces.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return List.copyOf(produces);
-  }
+  RouteDescriptor addProduces(String contentType);
   
-  public RouteDescriptor addProduces(String contentType)
-  {
-    assertNonEmptyContentType(contentType);
-    produces.add(contentType);
-    return this;
-  }
+  Function<RoutingContext, ?> handler();
   
-  public IFn handler()
-  {
-    return handler;
-  }
+  RouteDescriptor handler(Function<RoutingContext, ?> handler);
   
-  public RouteDescriptor handler(IFn handler)
-  {
-    Objects.requireNonNull(handler, "handler cannot be null");
-    this.handler = handler;
-    return this;
-  }
+  HandlerMode handlerMode();
   
-  public HandlerMode handlerMode()
-  {
-    return handlerMode;
-  }
-  
-  public RouteDescriptor handlerMode(HandlerMode handlerMode)
-  {
-    Objects.requireNonNull(handlerMode, "handler mode cannot be null");
-    this.handlerMode = handlerMode;
-    return this;
-  }
-  
-  private void assertNonEmptyContentType(String val)
-  {
-    Objects.requireNonNull(val, "contentType cannot be null");
-    if (val.isBlank()) {
-      throw new IllegalArgumentException(String.format("Invalid content type: %s", val));
-    }
-  }
+  RouteDescriptor handlerMode(HandlerMode handlerMode);
 }

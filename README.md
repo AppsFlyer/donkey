@@ -32,6 +32,24 @@ Blocking handler mode.
       server/start)
 ```
 
+Non-blocking handler mode.
+```clojure
+(-> {:port   8080
+       :routes [{:path            "/hello/:greet"
+                 :methods         [:get]
+                 :metrics-enabled true
+                 :consumes        ["text/plain"]
+                 :handler         (fn [req respond _raise]
+                                    (future
+                                      (respond
+                                        {:status  200
+                                         :headers {"content-type" "text/plain"}
+                                         :body    (.getBytes
+                                                    (str "Hello " (-> :path-params req (get "greet"))))})))}]}
+      donkey/create-server
+      server/start)
+```
+
 ## License
 
 Copyright © 2020 FIXME
