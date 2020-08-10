@@ -2,8 +2,6 @@ package com.appsflyer.donkey.route.handler.ring;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.HandlerFactory;
-import com.appsflyer.donkey.route.ring.BlockingRingHandler;
-import com.appsflyer.donkey.route.ring.RingHandler;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;

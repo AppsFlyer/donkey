@@ -2,9 +2,10 @@
   (:import (io.vertx.ext.web RoutingContext)
            (io.vertx.core Promise)
            (io.vertx.core.http HttpMethod)
-           (com.appsflyer.donkey.route RingRouteDescriptor PathDescriptor PathDescriptor$MatchType HandlerMode)
            (java.util ArrayList)
-           (java.util.function Function)))
+           (java.util.function Function)
+           (com.appsflyer.donkey.route PathDescriptor PathDescriptor$MatchType HandlerMode)
+           (com.appsflyer.donkey.route.ring RingRouteDescriptor)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)

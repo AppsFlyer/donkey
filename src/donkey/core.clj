@@ -7,6 +7,7 @@
            (com.appsflyer.donkey.server Server)))
 
 (comment
+  ;;; Server API
   {:port                 8080
    :compression          false
    :host                 "0.0.0.0"
@@ -26,10 +27,13 @@
    :jmx-enabled          false
    :jmx-domain           "localhost"}
 
+  ;;; Route API
   {:method       [:get :post]
    :consume      ["application/json" "application/x-www-form-urlencoded" "text/plain"]
    :produce      ["application/json" "text/plain"]
-   :handler-mode :blocking
+   :handler-mode :non-blocking
+   :handler      (fn [req respond raise]
+                   (respond {:status 200}))
    :path         "/foo"
    :match-type   :simple}
 
@@ -46,7 +50,7 @@
 
 (defn new-server []
   (-> {:port   8080
-       :routes [{:path            "/hello/:greet"
+       :routes [{:path            "/greet/:name"
                  :methods         [:get]
                  :metrics-enabled true
                  :consumes        ["text/plain"]
@@ -56,7 +60,7 @@
                                         {:status  200
                                          :headers {"content-type" "text/plain"}
                                          :body    (.getBytes
-                                                    (str "Hello " (-> :path-params req (get "greet"))))})))}]}
+                                                    (str "Hello " (-> :path-params req (get "name"))))})))}]}
       create-server))
 
 

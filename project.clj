@@ -13,12 +13,17 @@
   :target-path "target/%s"
   :global-vars {*warn-on-reflection* true}
   :dependencies [[io.vertx/vertx-web ~vertx-version]
+                 [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]
                  [ch.qos.logback/logback-classic "1.2.3"]
                  [org.clojure/tools.logging "1.1.0"]
                  [org.clojure/spec.alpha "0.2.187"]]
+  :junit ["test"]
   :profiles {:dev {:dependencies   [[org.clojure/clojure "1.10.1"]
                                     [io.vertx/vertx-junit5 ~vertx-version]
-                                    [org.junit.jupiter/junit-jupiter ~junit-version]]
+                                    [org.hamcrest/hamcrest-library "2.2"]
+                                    [org.junit.jupiter/junit-jupiter ~junit-version]
+                                    [org.mockito/mockito-junit-jupiter "3.4.6"]]
+                   :plugins [[lein-junit "1.1.9"]]
                    :resource-paths ["test/resources"]}}
   :repl-options {:init-ns donkey.core})

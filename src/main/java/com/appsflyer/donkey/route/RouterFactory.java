@@ -1,7 +1,7 @@
 package com.appsflyer.donkey.route;
 
-import com.appsflyer.donkey.route.handler.InternalServerErrorHandler;
 import com.appsflyer.donkey.route.handler.HandlerFactory;
+import com.appsflyer.donkey.route.handler.InternalServerErrorHandler;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -9,16 +9,18 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+import static io.vertx.core.http.HttpMethod.*;
 
 public class RouterFactory
 {
   private final Router router;
   private final Vertx vertx;
   private final HandlerFactory handlerFactory;
+  private static final Collection<HttpMethod> METHODS_WITH_BODY = EnumSet.of(POST, PUT, PATCH);
   
   public RouterFactory(Vertx vertx, HandlerFactory handlerFactory)
   {
@@ -26,24 +28,22 @@ public class RouterFactory
     this.handlerFactory = handlerFactory;
     router = Router.router(vertx);
     router.errorHandler(500, new InternalServerErrorHandler(vertx));
-    addBodyAggregator();
-    addRequestBuilder();
+    addContentTypeHandler();
   }
   
-  private void addBodyAggregator()
+  private void addContentTypeHandler()
   {
-    router.route()
-          .method(HttpMethod.POST)
-          .method(HttpMethod.PUT)
-          .method(HttpMethod.PATCH)
-          .handler(BodyHandler.create());
+    router.route().handler(ResponseContentTypeHandler.create());
   }
   
-  private void addRequestBuilder()
+  private boolean hasBody(Route route)
   {
-    router.route().handler(handlerFactory.requestHandler());
+    var methods = route.methods();
+    if (methods == null) {
+      return true;
+    }
+    return route.methods().stream().anyMatch(METHODS_WITH_BODY::contains);
   }
-  
   
   public Router withRoutes(List<RouteDescriptor> routes)
   {
@@ -52,7 +52,16 @@ public class RouterFactory
           .map(rd -> Map.entry(rd, router.route()))
           .peek(this::buildRoute)
           .forEach(this::addHandlers);
+    
     return router;
+  }
+  
+  //This overloaded version is package-private and only used in tests for convenience.
+  @SuppressWarnings("OverloadedVarargsMethod")
+  Router withRoutes(RouteDescriptor... routes)
+  {
+    Objects.requireNonNull(routes, "Cannot create router with null routes");
+    return withRoutes(List.of(routes));
   }
   
   private void buildRoute(Map.Entry<RouteDescriptor, Route> entry)
@@ -77,13 +86,18 @@ public class RouterFactory
   {
     RouteDescriptor rd = entry.getKey();
     Route route = entry.getValue();
+    if (hasBody(route)) {
+      route.handler(BodyHandler.create());
+    }
     
-    Handler<RoutingContext> handler = handlerFactory.handlerFor(rd);
+    route.handler(handlerFactory.requestHandler());
+    
+    Handler<RoutingContext> userHandler = handlerFactory.handlerFor(rd);
     if (rd.handlerMode() == HandlerMode.BLOCKING) {
-      route.blockingHandler(handler);
+      route.blockingHandler(userHandler);
     }
     else {
-      route.handler(handler);
+      route.handler(userHandler);
     }
     route.handler(handlerFactory.responseHandler(vertx));
   }

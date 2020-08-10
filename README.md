@@ -2,15 +2,16 @@
 
 
 ## TODO
-- Path variables are not working - 404
 - Metrics are not working
 - Add support for middleware 
 - Make number of event loops configurable
 - TESTS!
+- Check about using OpenCensus rather than DropWizard for metrics
 
 ========================================
 
 ## DONE
+- Path variables are not working - 404
 
 
 
@@ -35,7 +36,7 @@ Blocking handler mode.
 Non-blocking handler mode.
 ```clojure
 (-> {:port   8080
-       :routes [{:path            "/hello/:greet"
+       :routes [{:path            "/greet/:name"
                  :methods         [:get]
                  :metrics-enabled true
                  :consumes        ["text/plain"]
@@ -45,7 +46,7 @@ Non-blocking handler mode.
                                         {:status  200
                                          :headers {"content-type" "text/plain"}
                                          :body    (.getBytes
-                                                    (str "Hello " (-> :path-params req (get "greet"))))})))}]}
+                                                    (str "Hello " (-> :path-params req (get "name"))))})))}]}
       donkey/create-server
       server/start)
 ```
