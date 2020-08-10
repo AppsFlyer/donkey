@@ -1,4 +1,4 @@
-package com.appsflyer.donkey.route.ring;
+package com.appsflyer.donkey.route.handler.ring;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

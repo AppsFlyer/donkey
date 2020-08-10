@@ -4,6 +4,7 @@ import clojure.lang.*;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
+import static io.vertx.core.http.HttpMethod.*;
+import static io.vertx.core.http.HttpVersion.*;
 
 public class RingRequestHandler implements Handler<RoutingContext>
 {
@@ -41,21 +45,21 @@ public class RingRequestHandler implements Handler<RoutingContext>
       Map.of("http", Keyword.intern("http"),
              "https", Keyword.intern("https"));
   
-  private static final Map<String, Keyword> methodMapping =
-      Map.of("GET", Keyword.intern("get"),
-             "POST", Keyword.intern("post"),
-             "PUT", Keyword.intern("put"),
-             "DELETE", Keyword.intern("delete"),
-             "PATCH", Keyword.intern("patch"),
-             "HEAD", Keyword.intern("head"),
-             "OPTIONS", Keyword.intern("options"),
-             "TRACE", Keyword.intern("trace"),
-             "CONNECT", Keyword.intern("connect"));
+  private static final Map<HttpMethod, Keyword> methodMapping =
+      Map.of(GET, Keyword.intern("get"),
+             POST, Keyword.intern("post"),
+             PUT, Keyword.intern("put"),
+             DELETE, Keyword.intern("delete"),
+             PATCH, Keyword.intern("patch"),
+             HEAD, Keyword.intern("head"),
+             OPTIONS, Keyword.intern("options"),
+             TRACE, Keyword.intern("trace"),
+             CONNECT, Keyword.intern("connect"));
   
   private static final Map<HttpVersion, String> protocolMapping =
-      Map.of(HttpVersion.HTTP_1_0, "HTTP/1.0",
-             HttpVersion.HTTP_1_1, "HTTP/1.1",
-             HttpVersion.HTTP_2, "HTTP/2");
+      Map.of(HTTP_1_0, "HTTP/1.0",
+             HTTP_1_1, "HTTP/1.1",
+             HTTP_2, "HTTP/2");
   
   private static String stringJoiner(List<String> v)
   {
@@ -169,7 +173,7 @@ public class RingRequestHandler implements Handler<RoutingContext>
   {
     return addNameValuePair(
         REQUEST_METHOD,
-        methodMapping.get(ctx.request().method().name()),
+        methodMapping.get(ctx.request().method()),
         values);
   }
   

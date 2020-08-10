@@ -1,6 +1,5 @@
 package com.appsflyer.donkey.route;
 
-
 public class PathDescriptor
 {
   private final String value;
@@ -10,6 +9,11 @@ public class PathDescriptor
   {
     this.value = value;
     this.matchType = matchType;
+  }
+  
+  PathDescriptor(String value)
+  {
+    this(value, MatchType.SIMPLE);
   }
   
   String value()

@@ -1,4 +1,4 @@
-package com.appsflyer.donkey.route.ring;
+package com.appsflyer.donkey.route.handler.ring;
 
 import clojure.lang.IPersistentMap;
 import io.vertx.core.Handler;
