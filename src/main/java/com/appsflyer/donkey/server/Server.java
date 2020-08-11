@@ -85,6 +85,12 @@ public final class Server
   
   public void shutdownSync() throws ServerShutdownException
   {
+    shutdownSync(5, TimeUnit.SECONDS);
+  }
+  
+  public void shutdownSync(int timeout, TimeUnit unit) throws
+                                                       ServerShutdownException
+  {
     var latch = new CountDownLatch(1);
     AtomicReference<Throwable> error = new AtomicReference<>();
     
@@ -96,7 +102,10 @@ public final class Server
     });
     
     try {
-      latch.await();
+      if (!latch.await(timeout, unit)) {
+        logger.warn(String.format("Server shutdown timed out after %d %s",
+                                  timeout, unit.name().toLowerCase(Locale.ENGLISH)));
+      }
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new ServerShutdownException("Thread interrupted during shutdown", ex);
