@@ -19,6 +19,7 @@ public class RingHandlerFactory implements HandlerFactory
   @Override
   public Handler<RoutingContext> responseHandler(Vertx vertx)
   {
+    Objects.requireNonNull(vertx, "Cannot create response handler without Vertx");
     return new RingResponseHandler(vertx);
   }
   
