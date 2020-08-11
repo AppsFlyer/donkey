@@ -8,7 +8,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
@@ -22,6 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.appsflyer.donkey.TestUtil.DEFAULT_PORT;
+import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
 import static com.appsflyer.donkey.route.PathDescriptor.MatchType.REGEX;
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class IntegrationTest
 {
   
-  private static final int port = 16969;
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
   private Function<RoutingContext, ?> getHandler(VertxTestContext testContext)
@@ -57,16 +57,11 @@ public class IntegrationTest
     }
   }
   
-  private SocketAddress getDefaultAddress()
-  {
-    return SocketAddress.inetSocketAddress(port, "localhost");
-  }
-  
   private RequestOptions optionsForUri(String uri)
   {
     return new RequestOptions()
         .setHost(getDefaultAddress().host())
-        .setPort(port)
+        .setPort(DEFAULT_PORT)
         .setURI(uri);
   }
   
@@ -123,7 +118,7 @@ public class IntegrationTest
     Promise<HttpServer> promise = Promise.promise();
     vertx.createHttpServer()
          .requestHandler(router)
-         .listen(port, v -> {
+         .listen(DEFAULT_PORT, v -> {
            if (v.failed()) {
              testContext.failNow(v.cause());
            }

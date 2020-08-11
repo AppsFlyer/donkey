@@ -23,6 +23,6 @@ public class HandlerFactoryStub implements HandlerFactory
   @Override
   public Handler<RoutingContext> handlerFor(RouteDescriptor route)
   {
-    return (ctx) -> route.handler().apply(ctx);
+    return ctx -> route.handler().apply(ctx);
   }
 }
