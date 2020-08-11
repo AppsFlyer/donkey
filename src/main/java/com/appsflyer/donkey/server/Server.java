@@ -6,7 +6,9 @@ import io.vertx.core.*;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class Server
@@ -35,10 +37,10 @@ public final class Server
   public Future<String> start()
   {
     Promise<String> promise = Promise.promise();
-    vertx.deployVerticle(
-        () -> new ServerVerticle(config),
-        new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE),
-        promise);
+    var deploymentOptions =
+        new DeploymentOptions()
+            .setInstances(config.vertxOptions().getEventLoopPoolSize());
+    vertx.deployVerticle(() -> new ServerVerticle(config), deploymentOptions, promise);
     
     return promise.future();
   }
