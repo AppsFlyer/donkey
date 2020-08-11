@@ -15,6 +15,7 @@
    :metrics-registry     nil
    :metrics-prefix       "donkey"
    :worker-threads       20
+   :event-loops          1
    :debug                false
    :idle-timeout-seconds 0
    :routes               []
@@ -62,5 +63,4 @@
                                          :body    (.getBytes
                                                     (str "Hello " (-> :path-params req (get "name"))))})))}]}
       create-server))
-
 
