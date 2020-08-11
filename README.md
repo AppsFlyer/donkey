@@ -4,7 +4,6 @@
 ## TODO
 - Metrics are not working
 - Add support for middleware 
-- Make number of event loops configurable
 - TESTS!
 - Check about using OpenCensus rather than DropWizard for metrics
 
@@ -12,6 +11,7 @@
 
 ## DONE
 - Path variables are not working - 404
+- Make number of event loops configurable
 
 
 
