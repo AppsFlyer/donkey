@@ -11,7 +11,6 @@ import static io.vertx.core.http.HttpMethod.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 class RouteDescriptorTest
 {
