@@ -2,7 +2,10 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.exception.ServerInitializationException;
 import com.appsflyer.donkey.exception.ServerShutdownException;
-import io.vertx.core.*;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -17,6 +20,10 @@ public final class Server
   private final Vertx vertx;
   private final ServerConfig config;
   
+  /**
+   * Create a new instance with the given {@link ServerConfig}
+   * @param config
+   */
   public Server(ServerConfig config)
   {
     vertx = vertx(config);
@@ -27,6 +34,14 @@ public final class Server
   {
     return Vertx.vertx(config.vertxOptions())
                 .exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
+  }
+  
+  /**
+   * @return The Vertx instance associated with the server
+   */
+  public Vertx vertx()
+  {
+    return vertx;
   }
   
   /**
@@ -49,9 +64,25 @@ public final class Server
    * Deploy the server verticle.
    * Blocks the calling thread until the operation succeeds or fails.
    *
-   * @throws ServerInitializationException when server initialization fails.
+   * @throws ServerInitializationException If the thread was interrupted while deploying the verticle,
+   *                                       the operation timed out or failed in some other way.
    */
   public void startSync() throws ServerInitializationException
+  {
+    startSync(5, TimeUnit.SECONDS);
+  }
+  
+  /**
+   * Deploy the server verticle.
+   * Blocks the calling thread until the operation succeeds or fails.
+   *
+   * @param timeout The duration of time to wait for the operation to complete.
+   * @param unit    The duration time unit
+   * @throws ServerInitializationException If the thread was interrupted while deploying the verticle,
+   *                                       the operation timed out or failed in some other way.
+   */
+  public void startSync(int timeout, TimeUnit unit) throws
+                                                    ServerInitializationException
   {
     var latch = new CountDownLatch(1);
     AtomicReference<Throwable> error = new AtomicReference<>();
@@ -64,7 +95,11 @@ public final class Server
     });
     
     try {
-      latch.await();
+      if (!latch.await(timeout, unit)) {
+        throw new ServerInitializationException(
+            String.format("Server start up timed out after %d %s",
+                          timeout, unit.name().toLowerCase(Locale.ENGLISH)));
+      }
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new ServerInitializationException(
@@ -76,6 +111,12 @@ public final class Server
     }
   }
   
+  /**
+   * Stops the server by releasing all resources (threads, connections, etc') associated
+   * with it.
+   *
+   * @return Future result that will contain the Exception in case the operation failed.
+   */
   public Future<Void> shutdown()
   {
     Promise<Void> promise = Promise.promise();
@@ -83,11 +124,27 @@ public final class Server
     return promise.future();
   }
   
+  /**
+   * Stops the server while blocking the calling thread.
+   * Returns when all resources (threads, connections, etc') are released.
+   *
+   * @throws ServerShutdownException If the thread was interrupted while shutting down,
+   *                                 the operation timed out or failed in some other way.
+   */
   public void shutdownSync() throws ServerShutdownException
   {
     shutdownSync(5, TimeUnit.SECONDS);
   }
   
+  /**
+   * Stops the server while blocking the calling thread up to the given timeout duration.
+   * Returns when all resources (threads, connections, etc') are released.
+   *
+   * @param timeout The duration of time to wait for the operation to complete.
+   * @param unit    The duration time unit
+   * @throws ServerShutdownException If the thread was interrupted while shutting down,
+   *                                 the operation timed out or failed in some other way.
+   */
   public void shutdownSync(int timeout, TimeUnit unit) throws
                                                        ServerShutdownException
   {
@@ -103,8 +160,9 @@ public final class Server
     
     try {
       if (!latch.await(timeout, unit)) {
-        logger.warn(String.format("Server shutdown timed out after %d %s",
-                                  timeout, unit.name().toLowerCase(Locale.ENGLISH)));
+        throw new ServerShutdownException(
+            String.format("Server shutdown timed out after %d %s",
+                          timeout, unit.name().toLowerCase(Locale.ENGLISH)));
       }
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
@@ -116,6 +174,11 @@ public final class Server
     }
   }
   
+  /**
+   * Blocks the calling thread until the JVM gets a shutdown signal.
+   * At that point shuts down the server.
+   * @throws InterruptedException
+   */
   public void awaitTermination() throws InterruptedException
   {
     var latch = new CountDownLatch(1);
@@ -123,7 +186,8 @@ public final class Server
       try {
         shutdownSync();
       } catch (ServerShutdownException ex) {
-        logger.warn(ex.getMessage());
+        //noinspection UseOfSystemOutOrSystemErr The JVM is shutting down and the logger may not be available
+        System.err.println(ex.getMessage());
       }
       latch.countDown();
     }));
