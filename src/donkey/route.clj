@@ -5,7 +5,8 @@
            (java.util ArrayList)
            (java.util.function Function)
            (com.appsflyer.donkey.route PathDescriptor PathDescriptor$MatchType HandlerMode)
-           (com.appsflyer.donkey.route.ring RingRouteDescriptor)))
+           (com.appsflyer.donkey.route.ring RingRouteDescriptor)
+           (com.appsflyer.donkey.route.handler.ring Constants)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
@@ -46,20 +47,22 @@
 (defn- wrap-blocking-handler [handler]
   (reify Function
     (apply [_this ctx]
-      (if-let [request (.get ^RoutingContext ctx "ring-request")]
+      (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
         (handler request)
-        (throw (IllegalStateException. "Routing context is missing 'ring-request'"))))))
+        (throw (IllegalStateException.
+                 (format "Routing context is missing '%s'" Constants/RING_REQUEST_FIELD)))))))
 
 (defn- wrap-handler [handler]
   (reify Function
     (apply [_this ctx]
-      (if-let [request (.get ^RoutingContext ctx "ring-request")]
+      (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
         (let [promise (Promise/promise)
               respond (fn [res] (.complete promise res))
               raise (fn [ex] (.fail promise ^Throwable ex))]
           (handler request respond raise)
           (.future promise))
-        (throw (IllegalStateException. "Routing context is missing 'ring-request'"))))))
+        (throw (IllegalStateException.
+                 (format "Routing context is missing '%s'" Constants/RING_REQUEST_FIELD)))))))
 
 (defn- add-handler-mode [^RingRouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]

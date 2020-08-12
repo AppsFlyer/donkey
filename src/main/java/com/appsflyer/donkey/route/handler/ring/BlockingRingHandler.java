@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 
+import static com.appsflyer.donkey.route.handler.ring.Constants.RING_RESPONSE_FIELD;
+
 public class BlockingRingHandler implements Handler<RoutingContext>
 {
   private static final Logger logger = LoggerFactory.getLogger(BlockingRingHandler.class.getName());
@@ -29,7 +31,7 @@ public class BlockingRingHandler implements Handler<RoutingContext>
       ctx.fail(ex);
       return;
     }
-    ctx.put("ring-response", response);
+    ctx.put(RING_RESPONSE_FIELD, response);
     ctx.next();
   }
 }

@@ -11,6 +11,8 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.util.Map;
 
+import static com.appsflyer.donkey.route.handler.ring.Constants.RING_RESPONSE_FIELD;
+
 public class RingResponseHandler extends ResponseBuilder implements Handler<RoutingContext>
 {
   private static final Keyword HEADERS = Keyword.intern("headers");
@@ -25,7 +27,7 @@ public class RingResponseHandler extends ResponseBuilder implements Handler<Rout
   @Override
   public void handle(RoutingContext ctx)
   {
-    IPersistentMap ringResponse = ctx.get("ring-response");
+    IPersistentMap ringResponse = ctx.get(RING_RESPONSE_FIELD);
     HttpServerResponse serverResponse = ctx.response();
     addDefaultHeaders(serverResponse);
     Iterable<?> headers = (Iterable<?>) ringResponse.valAt(HEADERS);
