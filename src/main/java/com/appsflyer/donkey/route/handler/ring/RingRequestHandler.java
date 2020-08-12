@@ -23,6 +23,12 @@ import static com.appsflyer.donkey.route.handler.ring.Constants.RING_REQUEST_FIE
 import static io.vertx.core.http.HttpMethod.*;
 import static io.vertx.core.http.HttpVersion.*;
 
+/**
+ * Handler responsible for converting an {@link io.vertx.core.http.HttpServerRequest}
+ * to a Ring compliant Clojure map.
+ * <p></p>
+ * See the Ring <a href="https://github.com/ring-clojure/ring/blob/master/SPEC">specification</a> for more details.
+ */
 public class RingRequestHandler implements Handler<RoutingContext>
 {
   private static final Logger logger = LoggerFactory.getLogger(RingRequestHandler.class.getName());
@@ -154,7 +160,7 @@ public class RingRequestHandler implements Handler<RoutingContext>
     
     SocketAddress remoteAddress = ctx.request().remoteAddress();
     if (remoteAddress != null) {
-      addNameValuePair(REMOTE_ADDRESS, remoteAddress.port(), values);
+      addNameValuePair(REMOTE_ADDRESS, remoteAddress.toString(), values);
     }
     
     return this;
@@ -162,7 +168,7 @@ public class RingRequestHandler implements Handler<RoutingContext>
   
   private RingRequestHandler addUri(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(URI, ctx.request().uri(), values);
+    return addNameValuePair(URI, ctx.request().path(), values);
   }
   
   private RingRequestHandler addScheme(RoutingContext ctx, List<Object> values)
