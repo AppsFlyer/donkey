@@ -13,6 +13,7 @@
   :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"
                        "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"]
   :global-vars {*warn-on-reflection* true}
+  :javac-options ["-target" "14" "-source" "14"]
   :dependencies [[io.vertx/vertx-web ~vertx-version]
                  [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]
