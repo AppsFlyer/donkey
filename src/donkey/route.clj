@@ -2,7 +2,7 @@
   (:import (io.vertx.ext.web RoutingContext)
            (io.vertx.core Promise)
            (io.vertx.core.http HttpMethod)
-           (java.util ArrayList)
+           (java.util ArrayList List)
            (java.util.function Function)
            (com.appsflyer.donkey.route PathDescriptor PathDescriptor$MatchType HandlerMode)
            (com.appsflyer.donkey.route.ring RingRouteDescriptor)
@@ -24,27 +24,27 @@
       .toUpperCase
       HttpMethod/valueOf))
 
-(defn- keyword->HandlerMode [val]
+(defn- ^HandlerMode keyword->HandlerMode [val]
   (case val
     :blocking HandlerMode/BLOCKING
     :non-blocking HandlerMode/NON_BLOCKING))
 
 (defn- add-methods [^RingRouteDescriptor route route-map]
-  (doseq [method (:method route-map [])]
+  (doseq [method (:methods route-map [])]
     (.addMethod route (keyword->HttpMethod method)))
   route)
 
 (defn- add-consumes [^RingRouteDescriptor route route-map]
-  (doseq [content-type (:consume route-map [])]
+  (doseq [^String content-type (:consumes route-map [])]
     (.addConsumes route content-type))
   route)
 
 (defn- add-produces [^RingRouteDescriptor route route-map]
-  (doseq [content-type (:produce route-map [])]
+  (doseq [^String content-type (:produces route-map [])]
     (.addProduces route content-type))
   route)
 
-(defn- wrap-blocking-handler [handler]
+(defn- ^Function wrap-blocking-handler [handler]
   (reify Function
     (apply [_this ctx]
       (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
@@ -52,7 +52,7 @@
         (throw (IllegalStateException.
                  (format "Routing context is missing '%s'" Constants/RING_REQUEST_FIELD)))))))
 
-(defn- wrap-handler [handler]
+(defn- ^Function wrap-handler [handler]
   (reify Function
     (apply [_this ctx]
       (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
@@ -77,7 +77,7 @@
 
 (defn get-route-descriptors [opts]
   (reduce (fn [res route-map]
-            (doto res
+            (doto ^List res
               (.add (-> (RingRouteDescriptor.)
                         (add-path route-map)
                         (add-methods route-map)

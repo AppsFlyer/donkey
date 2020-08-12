@@ -38,7 +38,7 @@ public class RingResponseHandler extends ResponseBuilder implements Handler<Rout
                                  (CharSequence) pair.getValue());
       }
     }
-    serverResponse.setStatusCode(((Number) ringResponse.valAt(STATUS)).intValue());
+    serverResponse.setStatusCode(((Number) ringResponse.valAt(STATUS, 200)).intValue());
     
     byte[] body = (byte[]) ringResponse.valAt(BODY);
     if (body != null) {
