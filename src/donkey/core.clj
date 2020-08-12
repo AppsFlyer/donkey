@@ -50,19 +50,16 @@
         (Server. (server/get-server-config opts))))))
 
 
-
 (defn new-server []
   (-> {:port   8080
        :routes [{:path            "/greet/:name"
                  :methods         [:get]
                  :metrics-enabled true
-                 :consumes        ["text/plain"]
+                 :produces        ["application/json"]
                  :handler         (fn [req respond _raise]
                                     (future
                                       (respond
-                                        {:status  200
-                                         :headers {"content-type" "text/plain"}
-                                         :body    (.getBytes
-                                                    (str "Hello " (-> :path-params req (get "name"))))})))}]}
+                                        {:body    (.getBytes
+                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))}]}
       create-server))
 
