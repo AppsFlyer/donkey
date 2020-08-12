@@ -29,9 +29,9 @@
    :jmx-domain           "localhost"}
 
   ;;; Route API
-  {:method       [:get :post]
-   :consume      ["application/json" "application/x-www-form-urlencoded" "text/plain"]
-   :produce      ["application/json" "text/plain"]
+  {:methods       [:get :post]
+   :consumes      ["application/json" "application/x-www-form-urlencoded" "text/plain"]
+   :produces      ["application/json" "text/plain"]
    :handler-mode :non-blocking
    :handler      (fn [req respond raise]
                    (respond {:status 200}))
@@ -40,6 +40,8 @@
 
   )
 
+;;todo consider assert instead of conform.
+;;todo consider putting the spec definitions in this namespace
 (defn ^DonkeyServer create-server [opts]
   (let [normalized-opts (spec/conform ::server-spec/config opts)]
     (if (= normalized-opts ::spec/invalid)

@@ -22,12 +22,12 @@
   "docstring"
   [opts]
   (let [server-options (doto (HttpServerOptions.)
-                         (.setPort (:port opts 8080))
-                         (.setHost (:host opts "0.0.0.0"))
-                         (.setLogActivity (:debug opts false))
-                         (.setIdleTimeout (:idle-timeout-seconds opts 0))
-                         (.setCompressionSupported (:compression opts true))
-                         (.setDecompressionSupported (:compression opts true)))]
+                         (.setPort (int (:port opts 8080)))
+                         (.setHost ^String (:host opts "0.0.0.0"))
+                         (.setLogActivity ^boolean (:debug opts false))
+                         (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
+                         (.setCompressionSupported (:compression opts false))
+                         (.setDecompressionSupported (:compression opts false)))]
     (when (:ssl opts)
       (set-ssl-options server-options opts))
     server-options))
@@ -50,7 +50,7 @@
     (get-route-descriptors opts)
     (RingHandlerFactory.)))
 
-(defn- make-handler [fun]
+(defn make-handler [fun]
   (reify Handler
     (handle [_this event]
       (fun event))))

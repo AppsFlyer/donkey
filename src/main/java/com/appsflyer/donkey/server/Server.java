@@ -177,7 +177,7 @@ public final class Server
   /**
    * Blocks the calling thread until the JVM gets a shutdown signal.
    * At that point shuts down the server.
-   * @throws InterruptedException
+   * @throws InterruptedException When the thread is interrupted
    */
   public void awaitTermination() throws InterruptedException
   {
