@@ -2,14 +2,16 @@
 
 
 ## TODO
-- Metrics are not working
 - Add support for middleware 
 - TESTS!
+- Client implementation
 - Check about using OpenCensus rather than DropWizard for metrics
 
 ========================================
 
 ## DONE
+- Metrics are not working
+- Use Spec 'assert' instead of 'conform'.
 - Path variables are not working - 404
 - Make number of event loops configurable
 

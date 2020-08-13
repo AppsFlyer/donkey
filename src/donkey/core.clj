@@ -18,14 +18,12 @@
    :event-loops          1
    :debug                false
    :idle-timeout-seconds 0
-   :routes               []
-   :jmx-enabled          false
-   :jmx-domain           "localhost"}
+   :routes               []}
 
   ;;; Route API
-  {:methods       [:get :post]
-   :consumes      ["application/json" "application/x-www-form-urlencoded" "text/plain"]
-   :produces      ["application/json" "text/plain"]
+  {:methods      [:get :post]
+   :consumes     ["application/json" "application/x-www-form-urlencoded" "text/plain"]
+   :produces     ["application/json" "text/plain"]
    :handler-mode :non-blocking
    :handler      (fn [req respond raise]
                    (respond {:status 200}))
@@ -34,26 +32,25 @@
 
   )
 
-;;todo consider assert instead of conform.
 ;;todo consider putting the spec definitions in this namespace
 (defn ^DonkeyServer create-server [opts]
-  (let [normalized-opts (spec/conform ::server-spec/config opts)]
-    (if (= normalized-opts ::spec/invalid)
-      (throw (ex-info "Invalid argument" (spec/explain-data ::server-spec/config opts)))
-      (server/->DonkeyServer
-        (Server. (server/get-server-config opts))))))
+  (-> (spec/assert ::server-spec/config opts)
+      server/get-server-config
+      Server.
+      server/->DonkeyServer))
 
 
 (defn new-server []
   (-> {:port   8080
        :routes [{:path            "/greet/:name"
                  :methods         [:get]
-                 :metrics-enabled true
                  :produces        ["application/json"]
                  :handler         (fn [req respond _raise]
                                     (future
                                       (respond
-                                        {:body    (.getBytes
-                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))}]}
+                                        {:body (.getBytes
+                                                 (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))}]
+       :metrics-enabled true
+       :metrics-prefix  "donkey"}
       create-server))
 

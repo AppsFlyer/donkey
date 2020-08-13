@@ -7,16 +7,13 @@
   [opts]
   (let [metrics-options (doto (DropwizardMetricsOptions.)
                           (.setEnabled true)
+                          (.setJmxEnabled true)
                           (.setBaseName (:metrics-prefix opts "donkey"))
-                          (.addMonitoredEventBusHandler
-                            (-> (Match.) (.setType MatchType/REGEX) (.setValue "donkey.*")))
                           (.addMonitoredHttpServerUri
-                            (-> (Match.) (.setType MatchType/REGEX) (.setValue "/*") (.setAlias "all"))))]
-
-    (when (:jmx-enabled opts)
-      (-> metrics-options
-          (.setJmxEnabled true)
-          (.setJmxDomain (:jmx-domain opts "localhost"))))
+                            (doto (Match.)
+                              (.setType MatchType/REGEX)
+                              (.setValue "/.*")
+                              (.setAlias "all"))))]
 
     (if (:metrics-registry opts)
       (.setMetricRegistry metrics-options (:metrics-registry opts))

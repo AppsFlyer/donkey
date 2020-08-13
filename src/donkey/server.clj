@@ -21,8 +21,7 @@
 (defn- ^VertxOptions get-vertx-options [opts]
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
-    (when-let [event-loops (:event-loops opts)]
-      (.setEventLoopPoolSize vertx-options (int event-loops)))
+    (.setEventLoopPoolSize vertx-options (int (:event-loops opts 1)))
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
     (when (:metrics-enabled opts)
