@@ -1,6 +1,6 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.HandlerFactoryStub;
+import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.HandlerFactory;
 import io.vertx.core.VertxOptions;
