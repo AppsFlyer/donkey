@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.appsflyer.donkey.exception.ServerInitializationException;
-import com.appsflyer.donkey.route.HandlerFactoryStub;
+import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -70,8 +70,6 @@ class ServerTest
   {
     Server server = new Server(newServerConfig(newRouteDescriptor()));
     server.startSync();
-    
-    var client = WebClient.create(vertx);
     
     WebClient.create(vertx)
              .request(GET, getDefaultAddress(), "/")

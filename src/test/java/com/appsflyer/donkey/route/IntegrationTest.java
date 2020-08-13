@@ -1,5 +1,6 @@
 package com.appsflyer.donkey.route;
 
+import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -35,15 +36,7 @@ public class IntegrationTest
   
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
-  private Function<RoutingContext, ?> getHandler(VertxTestContext testContext)
-  {
-    return ctx -> {
-      testContext.completeNow();
-      return null;
-    };
-  }
-  
-  private RouterFactory newRouterFactory(Vertx vertx, VertxTestContext testContext)
+  private RouterFactory newRouterFactory(Vertx vertx)
   {
     return new RouterFactory(vertx, new HandlerFactoryStub());
   }
@@ -65,7 +58,7 @@ public class IntegrationTest
         .setURI(uri);
   }
   
-  private Router defineRoutes(Vertx vertx, VertxTestContext testContext, Checkpoint requestsServed)
+  private Router defineRoutes(Vertx vertx, Checkpoint requestsServed)
   {
     Function<RoutingContext, ?> handler = ctx -> {
       ctx.response().end(ctx.request().params().toString());
@@ -102,7 +95,7 @@ public class IntegrationTest
         .path(new PathDescriptor("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
         .handler(handler);
     
-    return newRouterFactory(vertx, testContext)
+    return newRouterFactory(vertx)
         .withRoutes(getFoo,
                     postFooBar,
                     postOrPutJson,
@@ -135,7 +128,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
@@ -165,7 +158,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
@@ -197,7 +190,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
@@ -229,7 +222,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(1);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
@@ -255,7 +248,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
@@ -286,7 +279,7 @@ public class IntegrationTest
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(1);
     
-    Router router = defineRoutes(vertx, testContext, requestsServed);
+    Router router = defineRoutes(vertx, requestsServed);
     
     startServer(vertx, testContext, router)
         .onComplete(v -> {
