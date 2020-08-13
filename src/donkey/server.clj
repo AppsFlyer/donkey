@@ -2,35 +2,21 @@
   (:require [donkey.metrics :refer [get-metrics-options]]
             [donkey.route :refer [get-route-descriptors]])
   (:import (io.vertx.core.http HttpServerOptions)
-           (io.vertx.core.net PemKeyCertOptions JksOptions)
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.exception ServerInitializationException ServerShutdownException)
            (io.vertx.core AsyncResult VertxOptions Handler)
            (com.appsflyer.donkey.route.handler.ring RingHandlerFactory)))
 
-(defn- set-ssl-options [^HttpServerOptions server-options opts]
-  (case (:ssl-type opts)
-    :jks (.setKeyStoreOptions server-options (doto (JksOptions.)
-                                               (.setPath (:key-store-path opts))
-                                               (.setPassword (:key-store-password opts))))
-    :pem (.setPemKeyCertOptions server-options (doto (PemKeyCertOptions.)
-                                                 (.setKeyPath (:pem-key-path opts))
-                                                 (.setCertPath (:pem-cert-path opts)))))
-  (.setSsl server-options true))
-
 (defn- ^HttpServerOptions get-server-options
   "docstring"
   [opts]
-  (let [server-options (doto (HttpServerOptions.)
-                         (.setPort (int (:port opts 8080)))
-                         (.setHost ^String (:host opts "0.0.0.0"))
-                         (.setLogActivity ^boolean (:debug opts false))
-                         (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
-                         (.setCompressionSupported (:compression opts false))
-                         (.setDecompressionSupported (:compression opts false)))]
-    (when (:ssl opts)
-      (set-ssl-options server-options opts))
-    server-options))
+  (doto (HttpServerOptions.)
+                       (.setPort (int (:port opts 8080)))
+                       (.setHost ^String (:host opts "0.0.0.0"))
+                       (.setLogActivity ^boolean (:debug opts false))
+                       (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
+                       (.setCompressionSupported (:compression opts false))
+                       (.setDecompressionSupported (:compression opts false))))
 
 (defn- ^VertxOptions get-vertx-options [opts]
   (let [vertx-options (VertxOptions.)]

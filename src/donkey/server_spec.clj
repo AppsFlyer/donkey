@@ -34,12 +34,6 @@
 (s/def ::debug boolean?)
 (s/def ::idle-timeout-seconds (s/and int? #(or (zero? %) (pos? %))))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
-(s/def ::ssl boolean?)
-(s/def ::ssl-type #{:jks :pem})
-(s/def ::key-store-path string?)
-(s/def ::key-store-password string?)
-(s/def ::pem-key-path string?)
-(s/def ::pem-cert-path string?)
 (s/def ::jmx-enabled boolean?)
 (s/def ::jmx-domain string?)
 
@@ -52,12 +46,6 @@
                                  ::worker-threads
                                  ::debug
                                  ::idle-timeout-seconds
-                                 ::ssl
-                                 ::ssl-type
-                                 ::key-store-path
-                                 ::key-store-password
-                                 ::pem-key-path
-                                 ::pem-cert-path
                                  ::jmx-enabled
                                  ::jmx-domain]))
 (comment
@@ -70,12 +58,6 @@
                 :debug                false
                 :idle-timeout-seconds 0
                 :routes               [{:handler identity}]
-                :ssl                  false
-                :ssl-type             :jks
-                :key-store-path       "/mykeystore.jks"
-                :key-store-password   "foo"
-                :pem-key-path         "/my-key.pem"
-                :pem-cert-path        "/my-cert.pem"
                 :jmx-enabled          false
                 :jmx-domain           "localhost"}]
     (s/explain ::config config)

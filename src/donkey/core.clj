@@ -19,12 +19,6 @@
    :debug                false
    :idle-timeout-seconds 0
    :routes               []
-   :ssl                  false
-   :ssl-type             :jks | :pem
-   :key-store-path       "/mykeystore.jks"
-   :key-store-password   "foo"
-   :pem-key-path         "/my-key.pem"
-   :pem-cert-path        "/my-cert.pem"
    :jmx-enabled          false
    :jmx-domain           "localhost"}
 
