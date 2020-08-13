@@ -9,6 +9,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static com.appsflyer.donkey.route.handler.ring.Constants.RING_RESPONSE_FIELD;
@@ -19,7 +20,7 @@ public class RingResponseHandler extends ResponseBuilder implements Handler<Rout
   private static final Keyword BODY = Keyword.intern("body");
   private static final Keyword STATUS = Keyword.intern("status");
   
-  public RingResponseHandler(Vertx vertx)
+  RingResponseHandler(Vertx vertx)
   {
     super(vertx);
   }
@@ -40,12 +41,23 @@ public class RingResponseHandler extends ResponseBuilder implements Handler<Rout
     }
     serverResponse.setStatusCode(((Number) ringResponse.valAt(STATUS, 200)).intValue());
     
-    byte[] body = (byte[]) ringResponse.valAt(BODY);
-    if (body != null) {
-      serverResponse.end(Buffer.buffer(body));
-    }
-    else {
+    Object body = ringResponse.valAt(BODY);
+    if (body == null) {
       serverResponse.end();
     }
+    else {
+      serverResponse.end(Buffer.buffer(coerceToBytes(body)));
+    }
+  }
+  
+  private byte[] coerceToBytes(Object value)
+  {
+    if (value instanceof byte[]) {
+      return (byte[]) value;
+    }
+    if (value instanceof String) {
+      return (((String) value).getBytes(StandardCharsets.UTF_8));
+    }
+    throw new IllegalArgumentException(String.format("Cannot coerce %s into a byte[]", value.getClass().getName()));
   }
 }

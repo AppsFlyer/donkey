@@ -4,7 +4,7 @@
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
            (java.util.function Function)
-           (com.appsflyer.donkey.route PathDescriptor PathDescriptor$MatchType HandlerMode)
+           (com.appsflyer.donkey.route PathDescriptor$MatchType PathDescriptor HandlerMode)
            (com.appsflyer.donkey.route.ring RingRouteDescriptor)
            (com.appsflyer.donkey.route.handler.ring Constants)))
 
