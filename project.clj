@@ -9,7 +9,7 @@
   :java-source-paths ["src/main/java"]
   :resource-paths ["src/main/resources"]
   :target-path "target/%s"
-  :test-paths ["test" "test/java"]
+  :test-paths ["src/test" "src/test/java"]
   :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"
                        "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"]
   :global-vars {*warn-on-reflection* true}
@@ -26,5 +26,5 @@
                                     [org.hamcrest/hamcrest-library "2.2"]
                                     [org.junit.jupiter/junit-jupiter ~junit-version]
                                     [org.mockito/mockito-junit-jupiter "3.4.6"]]
-                   :resource-paths ["test/resources"]}}
+                   :resource-paths ["src/test/resources"]}}
   :repl-options {:init-ns donkey.core})

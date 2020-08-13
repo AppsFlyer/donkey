@@ -1,6 +1,7 @@
 package com.appsflyer.donkey.route;
 
 import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -42,7 +43,7 @@ class RouteDescriptorTest
     assertEquals(Collections.emptySet(), descriptor.methods());
     assertEquals(Collections.emptySet(), descriptor.consumes());
     assertEquals(Collections.emptySet(), descriptor.produces());
-    assertEquals(HandlerMode.NON_BLOCKING, descriptor.handlerMode());
+    Assertions.assertEquals(HandlerMode.NON_BLOCKING, descriptor.handlerMode());
     assertThat(descriptor.handler(), instanceOf(Function.class));
   }
   
