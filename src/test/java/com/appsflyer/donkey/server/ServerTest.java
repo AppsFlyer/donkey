@@ -87,7 +87,7 @@ class ServerTest
   void testAddressAlreadyInUse(Vertx vertx, VertxTestContext testContext) throws
                                                                           Exception
   {
-    //todo: Find out why changing the log level doesn't work.
+    // Because we are testing an exception we turn off the logging so they don't show up in the test output
     LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
     Logger serverLogger = loggerContext.getLogger(ServerVerticle.class.getPackageName());
     Level originalLevel = serverLogger.getLevel();
@@ -102,11 +102,10 @@ class ServerTest
     Server server3 = new Server(newServerConfig(newRouteDescriptor()));
     server3.start().onComplete(testContext.failing(ex -> testContext.verify(() -> {
       assertThat(ex, instanceOf(BindException.class));
+      serverLogger.setLevel(originalLevel);
       server1.shutdownSync();
       testContext.completeNow();
     })));
-    
-    serverLogger.setLevel(originalLevel);
   }
   
   private RouteDescriptor newRouteDescriptor()
