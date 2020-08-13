@@ -14,7 +14,8 @@
 - Make number of event loops configurable
 
 
-
+## Future releases
+- SSL support
 
 ## Usage
 
