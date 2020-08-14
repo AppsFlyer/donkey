@@ -59,6 +59,72 @@ Non-blocking handler mode.
     server/start)
 ```
 
+## Middleware
+
+The term "middleware" is generally used in the context of HTTP frameworks
+as a pluggable unit of functionality that can examine or manipulate the flow of bytes
+between a client and a server. In other words, it allows users to do things such as 
+logging, compression, validation, authorization, and transformation (to name a few) 
+to requests and responses.
+
+### Ring Middleware
+
+When using a routing library (@todo link to section about routing) that follows
+the [Ring middleware](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) concept,
+you supply a [higher-order function](https://clojure.org/guides/higher_order_functions)
+that accepts a `handler`, and zero or more optional arguments. The function should 
+return a function that accepts 1 or 3 arguments, that is responsible calling `handler`.
+
+For example:
+```clojure
+(defn add-timestamp-middleware [handler]
+    (fn [request] (handler (assoc request :timestamp (System/currentTimeMillis)))))
+```
+   
+### Donkey Handlers
+
+The routing API doesn't have the same separation between middleware and handlers. 
+In fact middleware are just handlers. Each handler is called in order with the 
+result emitted by the previous handler.
+
+For example:
+```clojure 
+(defn add-timestamp-middleware [request respond raise]
+    (respond (assoc request :timestamp (System/currentTimeMillis))))
+``` 
+
+Or when `:handler-mode` is `:blocking` then the next handler is called with the 
+value returned by the previous handler.
+```clojure
+(defn add-timestamp-middleware [request]
+    (assoc request :timestamp (System/currentTimeMillis)))
+```
+ 
+Notice that we ran the first handler on the calling thread. That's because there
+would be no benefit in off loading a simple `assoc` to a separate thread.
+But, if for example we have a handler that communicates with a remote database
+then we should run it on a separate thread.
+```clojure
+(defn add-user-id [request respond raise]
+    (future 
+      (respond 
+        (assoc request :user-id (get-id-from-db 
+                                     (-> request :query-params (get "user-email")))))))
+```
+
+Here's an example of a route that uses handlers to modify the request and response.
+```clojure
+{:path     "/timestamp"
+ :methods  [:get]
+ :handlers [(fn [request respond raise]
+              (respond (assoc request :timestamp (System/currentTimeMillis))))
+            (fn [request respond raise]
+              (respond {:status (if (even? (:timestamp request)) 200 400)}))
+           (fn [response respond raise]
+              (respond (assoc response :body (if (= 200 (:status response)) "Timestamp is even!" "Timestamp id odd :("))))]}
+``` 
+
+
 ## License
 
 Copyright © 2020 FIXME
