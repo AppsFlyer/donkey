@@ -25,35 +25,35 @@
 (def root-200 {:path         "/"
                :methods      [:get]
                :handler-mode :non-blocking
-               :handler      (fn [_req respond _raise] (respond {:status 200}))})
+               :handlers     [(fn [_req respond _raise] (respond {:status 200}))]})
 
-(def ring-spec {:path    "/ring-spec"
-                :methods [:get]
-                :handler async-return-request-handler})
+(def ring-spec {:path     "/ring-spec"
+                :methods  [:get]
+                :handlers [async-return-request-handler]})
 
-(def single-path-variable {:path    "/user/:id"
-                           :methods [:post]
-                           :handler async-return-request-handler})
+(def single-path-variable {:path     "/user/:id"
+                           :methods  [:post]
+                           :handlers [async-return-request-handler]})
 
-(def multi-path-variable {:path    "/user/:id/:department"
-                          :methods [:put]
-                          :handler async-return-request-handler})
+(def multi-path-variable {:path     "/user/:id/:department"
+                          :methods  [:put]
+                          :handlers [async-return-request-handler]})
 
 (def regex-path-variable {:path       "/admin/(\\d+)"
                           :methods    [:get]
                           :match-type :regex
-                          :handler    async-return-request-handler})
+                          :handlers   [async-return-request-handler]})
 
 (def multi-regex-path-variable {:path       "/admin/(\\d+)/([x-z]{1}-dept)"
                                 :methods    [:get]
                                 :match-type :regex
-                                :handler    async-return-request-handler})
+                                :handlers   [async-return-request-handler]})
 
 (def blocking-handler {:path         "/blocking-handler"
                        :methods      [:get]
                        :handler-mode :blocking
-                       :handler      (fn [_req]
-                                       {:body "hit /blocking-handler"})})
+                       :handlers     [(fn [_req]
+                                        {:body "hit /blocking-handler"})]})
 
 (def ^{:private true :const true}
   default-options {:port 16969 :event-loops 1})

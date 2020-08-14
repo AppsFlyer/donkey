@@ -41,16 +41,15 @@
 
 
 (defn new-server []
-  (-> {:port   8080
-       :routes [{:path            "/greet/:name"
-                 :methods         [:get]
-                 :produces        ["application/json"]
-                 :handler         (fn [req respond _raise]
-                                    (future
-                                      (respond
-                                        {:body (.getBytes
-                                                 (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))}]
+  (-> {:port            8080
+       :routes          [{:path     "/greet/:name"
+                          :methods  [:get]
+                          :produces ["application/json"]
+                          :handlers [(fn [req respond _raise]
+                                       (future
+                                         (respond
+                                           {:body (.getBytes
+                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))]}]
        :metrics-enabled true
        :metrics-prefix  "donkey"}
       create-server))
-

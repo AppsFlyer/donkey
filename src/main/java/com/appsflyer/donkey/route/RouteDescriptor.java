@@ -1,10 +1,10 @@
 package com.appsflyer.donkey.route;
 
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 public interface RouteDescriptor
 {
@@ -24,9 +24,9 @@ public interface RouteDescriptor
   
   RouteDescriptor addProduces(String contentType);
   
-  Function<RoutingContext, ?> handler();
+  Collection<Handler<RoutingContext>> handlers();
   
-  RouteDescriptor handler(Function<RoutingContext, ?> handler);
+  RouteDescriptor addHandler(Handler<RoutingContext> handler);
   
   HandlerMode handlerMode();
   

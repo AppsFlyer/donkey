@@ -2,12 +2,10 @@ package com.appsflyer.donkey.route;
 
 import com.appsflyer.donkey.route.handler.HandlerFactory;
 import com.appsflyer.donkey.route.handler.InternalServerErrorHandler;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
@@ -92,13 +90,15 @@ public class RouterFactory
     
     route.handler(handlerFactory.requestHandler());
     
-    Handler<RoutingContext> userHandler = handlerFactory.handlerFor(rd);
-    if (rd.handlerMode() == HandlerMode.BLOCKING) {
-      route.blockingHandler(userHandler);
-    }
-    else {
-      route.handler(userHandler);
-    }
+    rd.handlers().forEach(handler -> {
+      if (rd.handlerMode() == HandlerMode.BLOCKING) {
+        route.blockingHandler(handler);
+      }
+      else {
+        route.handler(handler);
+      }
+    });
+    
     route.handler(handlerFactory.responseHandler(vertx));
   }
 }

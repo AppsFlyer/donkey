@@ -2,8 +2,7 @@ package com.appsflyer.donkey.route.handler.ring;
 
 import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
-import com.appsflyer.donkey.route.handler.ResponseBuilder;
-import io.vertx.core.Handler;
+import com.appsflyer.donkey.route.handler.ResponseHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
@@ -12,9 +11,9 @@ import io.vertx.ext.web.RoutingContext;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static com.appsflyer.donkey.route.handler.ring.Constants.RING_RESPONSE_FIELD;
+import static com.appsflyer.donkey.route.handler.ring.Constants.LAST_HANDLER_RESPONSE_FIELD;
 
-public class RingResponseHandler extends ResponseBuilder implements Handler<RoutingContext>
+public class RingResponseHandler extends ResponseHandler
 {
   private static final Keyword HEADERS = Keyword.intern("headers");
   private static final Keyword BODY = Keyword.intern("body");
@@ -28,7 +27,7 @@ public class RingResponseHandler extends ResponseBuilder implements Handler<Rout
   @Override
   public void handle(RoutingContext ctx)
   {
-    IPersistentMap ringResponse = ctx.get(RING_RESPONSE_FIELD);
+    IPersistentMap ringResponse = ctx.get(LAST_HANDLER_RESPONSE_FIELD);
     HttpServerResponse serverResponse = ctx.response();
     addDefaultHeaders(serverResponse);
     Iterable<?> headers = (Iterable<?>) ringResponse.valAt(HEADERS);

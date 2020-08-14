@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import static com.appsflyer.donkey.TestUtil.DEFAULT_PORT;
 import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
@@ -60,19 +59,18 @@ public class IntegrationTest
   
   private Router defineRoutes(Vertx vertx, Checkpoint requestsServed)
   {
-    Function<RoutingContext, ?> handler = ctx -> {
+    Handler<RoutingContext> handler = ctx -> {
       ctx.response().end(ctx.request().params().toString());
       requestsServed.flag();
-      return null;
     };
     
     RouteDescriptor getFoo = new RingRouteDescriptor()
         .addMethod(GET)
-        .path(new PathDescriptor("/foo")).handler(handler);
+        .path(new PathDescriptor("/foo")).addHandler(handler);
     
     RouteDescriptor postFooBar = new RingRouteDescriptor()
         .addMethod(POST)
-        .path(new PathDescriptor("/foo/bar")).handler(handler);
+        .path(new PathDescriptor("/foo/bar")).addHandler(handler);
     
     RouteDescriptor postOrPutJson = new RingRouteDescriptor()
         .addMethod(POST)
@@ -80,20 +78,20 @@ public class IntegrationTest
         .path(new PathDescriptor("/json"))
         .addConsumes("application/json")
         .addProduces("application/json")
-        .handler(handler);
+        .addHandler(handler);
     
     RouteDescriptor getPathVariable = new RingRouteDescriptor()
         .addMethod(GET)
-        .path(new PathDescriptor("/token/:tokenId")).handler(handler);
+        .path(new PathDescriptor("/token/:tokenId")).addHandler(handler);
     
     RouteDescriptor getRegexPath = new RingRouteDescriptor()
         .addMethod(GET)
-        .path(new PathDescriptor("/id/(\\d+)", REGEX)).handler(handler);
+        .path(new PathDescriptor("/id/(\\d+)", REGEX)).addHandler(handler);
     
     RouteDescriptor postComplexRegexPath = new RingRouteDescriptor()
         .addMethod(POST)
         .path(new PathDescriptor("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
-        .handler(handler);
+        .addHandler(handler);
     
     return newRouterFactory(vertx)
         .withRoutes(getFoo,
