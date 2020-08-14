@@ -32,7 +32,7 @@
   (ServerConfig.
     (get-vertx-options opts)
     (get-server-options opts)
-    (get-route-descriptors opts)
+    (get-route-descriptors (:routes opts))
     (RingHandlerFactory.)))
 
 (defn make-handler [fun]

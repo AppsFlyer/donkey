@@ -1,9 +1,8 @@
 (ns donkey.route
   (:import (io.vertx.ext.web RoutingContext)
-           (io.vertx.core Promise)
+           (io.vertx.core Handler)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (java.util.function Function)
            (com.appsflyer.donkey.route PathDescriptor$MatchType PathDescriptor HandlerMode)
            (com.appsflyer.donkey.route.ring RingRouteDescriptor)
            (com.appsflyer.donkey.route.handler.ring Constants)))
@@ -15,7 +14,10 @@
 
 (defn- add-path [^RingRouteDescriptor route route-map]
   (when-let [path (:path route-map)]
-    (.path route (PathDescriptor. path (keyword->MatchType (:match-type route-map)))))
+    (->> (:match-type route-map)
+         keyword->MatchType
+         (PathDescriptor. path)
+         (.path route)))
   route)
 
 (defn- ^HttpMethod keyword->HttpMethod [method]
@@ -44,38 +46,59 @@
     (.addProduces route content-type))
   route)
 
-(defn- ^Function wrap-blocking-handler [handler]
-  (reify Function
-    (apply [_this ctx]
-      (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
-        (handler request)
-        (throw (IllegalStateException.
-                 (format "Routing context is missing '%s'" Constants/RING_REQUEST_FIELD)))))))
+(defn- get-handler-argument [^RoutingContext ctx]
+  (if-let [last-response (.get ctx Constants/LAST_HANDLER_RESPONSE_FIELD)]
+    last-response
+    (throw (IllegalStateException.
+             (format "Could not find '%s' in RoutingContext"
+                     Constants/LAST_HANDLER_RESPONSE_FIELD)))))
 
-(defn- ^Function wrap-handler [handler]
-  (reify Function
-    (apply [_this ctx]
-      (if-let [request (.get ^RoutingContext ctx Constants/RING_REQUEST_FIELD)]
-        (let [promise (Promise/promise)
-              respond (fn [res] (.complete promise res))
-              raise (fn [ex] (.fail promise ^Throwable ex))]
-          (handler request respond raise)
-          (.future promise))
-        (throw (IllegalStateException.
-                 (format "Routing context is missing '%s'" Constants/RING_REQUEST_FIELD)))))))
+(defn- ^Handler wrap-blocking-handler [handler]
+  (reify Handler
+    (handle [_this ctx]
+      (if-let [handler-argument (get-handler-argument ^RoutingContext ctx)]
+        (try
+          (-> ^RoutingContext ctx
+              (.put Constants/LAST_HANDLER_RESPONSE_FIELD (handler handler-argument))
+              .next)
+          (catch Throwable ex
+            (.fail ^RoutingContext ctx ^Throwable ex)))))))
+
+(defn- ^Handler wrap-handler [handler]
+  (reify Handler
+    (handle [_this ctx]
+      (letfn [(respond [res]
+                (-> ^RoutingContext ctx
+                    (.put Constants/LAST_HANDLER_RESPONSE_FIELD res)
+                    .next))
+              (raise [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
+
+        (if-let [handler-argument (get-handler-argument ctx)]
+          (try
+            (handler handler-argument respond raise)
+            (catch Throwable ex
+              (.fail ^RoutingContext ctx ^Throwable ex))))))))
 
 (defn- add-handler-mode [^RingRouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
     (.handlerMode route (keyword->HandlerMode handler-mode)))
   route)
 
-(defn- add-handler [^RingRouteDescriptor route route-map]
+(defn- add-async-handlers [^RingRouteDescriptor route handlers]
+  (doseq [handler handlers]
+    (.addHandler route (wrap-handler handler))))
+
+(defn- add-blocking-handlers [^RingRouteDescriptor route handlers]
+  (doseq [handler handlers]
+    (.addHandler route (wrap-blocking-handler handler))))
+
+(defn- add-handlers [^RingRouteDescriptor route route-map]
   (if (= (:handler-mode route-map) :blocking)
-    (.handler route (wrap-blocking-handler (:handler route-map)))
-    (.handler route (wrap-handler (:handler route-map))))
+    (add-blocking-handlers route (:handlers route-map))
+    (add-async-handlers route (:handlers route-map)))
   route)
 
-(defn get-route-descriptors [opts]
+(defn get-route-descriptors [routes]
   (reduce (fn [res route-map]
             (doto ^List res
               (.add (-> (RingRouteDescriptor.)
@@ -84,6 +107,6 @@
                         (add-consumes route-map)
                         (add-produces route-map)
                         (add-handler-mode route-map)
-                        (add-handler route-map)))))
-          (ArrayList. (count (:routes opts)))
-          (:routes opts)))
+                        (add-handlers route-map)))))
+          (ArrayList. (count routes))
+          routes))

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.appsflyer.donkey.route.handler.ring.Constants.RING_REQUEST_FIELD;
+import static com.appsflyer.donkey.route.handler.ring.Constants.LAST_HANDLER_RESPONSE_FIELD;
 import static io.vertx.core.http.HttpMethod.*;
 import static io.vertx.core.http.HttpVersion.*;
 
@@ -123,7 +123,7 @@ public class RingRequestHandler implements Handler<RoutingContext>
         .addFormParams(ctx, values)
         .addBody(ctx, values);
     
-    ctx.put(RING_REQUEST_FIELD, new PersistentArrayMap(values.toArray()));
+    ctx.put(LAST_HANDLER_RESPONSE_FIELD, new PersistentArrayMap(values.toArray()));
     ctx.next();
   }
   

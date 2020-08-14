@@ -2,14 +2,19 @@
 
 
 ## TODO
-- Add support for middleware 
 - TESTS!
+- Implement debug mode
 - Client implementation
 - Check about using OpenCensus rather than DropWizard for metrics
+- Documentation
+- Examples
+- README
+- Setup CI
 
 ========================================
 
 ## DONE
+- Add support for middleware 
 - Metrics are not working
 - Use Spec 'assert' instead of 'conform'.
 - Path variables are not working - 404
@@ -24,34 +29,34 @@
 Blocking handler mode. 
 ```clojure
 (-> {:port   8080
-       :routes [{:path     "/hello-world"
-                 :methods  [:get]
-                 :handler-mode :blocking
-                 :consumes ["text/plain"]
-                 :handler  (fn [req]
-                             {:status  200
-                              :headers {"content-type" "application/json"}
-                              :body    (.getBytes "{\"greet\":\"Hello world!\"}")})}]}
-      donkey/create-server
-      server/start)
+     :routes [{:path         "/hello-world"
+               :methods      [:get]
+               :handler-mode :blocking
+               :consumes     ["text/plain"]
+               :handlers     [(fn [_req]
+                                {:status  200
+                                 :headers {"content-type" "application/json"}
+                                 :body    (.getBytes "{\"greet\":\"Hello world!\"}")})]}]}
+    donkey/create-server
+    server/start)
 ```
 
 Non-blocking handler mode.
 ```clojure
 (-> {:port   8080
-       :routes [{:path            "/greet/:name"
-                 :methods         [:get]
-                 :metrics-enabled true
-                 :consumes        ["text/plain"]
-                 :handler         (fn [req respond _raise]
-                                    (future
-                                      (respond
-                                        {:status  200
-                                         :headers {"content-type" "text/plain"}
-                                         :body    (.getBytes
-                                                    (str "Hello " (-> :path-params req (get "name"))))})))}]}
-      donkey/create-server
-      server/start)
+     :routes [{:path            "/greet/:name"
+               :methods         [:get]
+               :metrics-enabled true
+               :consumes        ["text/plain"]
+               :handlers        [(fn [req respond _raise]
+                                   (future
+                                     (respond
+                                       {:status  200
+                                        :headers {"content-type" "text/plain"}
+                                        :body    (.getBytes
+                                                   (str "Hello " (-> :path-params req (get "name"))))})))]}]}
+    donkey/create-server
+    server/start)
 ```
 
 ## License

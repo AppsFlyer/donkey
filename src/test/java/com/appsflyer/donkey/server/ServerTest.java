@@ -4,8 +4,9 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.appsflyer.donkey.exception.ServerInitializationException;
-import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
@@ -19,8 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.LoggerFactory;
 
 import java.net.BindException;
+import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -109,11 +110,8 @@ class ServerTest
   private RouteDescriptor newRouteDescriptor()
   {
     RouteDescriptor routeDescriptor = mock(RouteDescriptor.class);
-    Function<RoutingContext, ?> handler = ctx -> {
-      ctx.response().end(responseBody);
-      return null;
-    };
-    doReturn(handler).when(routeDescriptor).handler();
+    Collection<Handler<RoutingContext>> handlers = List.of(ctx -> ctx.response().end(responseBody));
+    doReturn(handlers).when(routeDescriptor).handlers();
     return routeDescriptor;
   }
   

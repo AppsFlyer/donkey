@@ -1,6 +1,5 @@
 package com.appsflyer.donkey.route.handler;
 
-import com.appsflyer.donkey.route.RouteDescriptor;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
@@ -20,9 +19,4 @@ public class HandlerFactoryStub implements HandlerFactory
     return BodyHandler.create();
   }
   
-  @Override
-  public Handler<RoutingContext> handlerFor(RouteDescriptor route)
-  {
-    return ctx -> route.handler().apply(ctx);
-  }
 }

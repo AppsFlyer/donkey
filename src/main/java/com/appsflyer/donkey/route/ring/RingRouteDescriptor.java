@@ -3,20 +3,20 @@ package com.appsflyer.donkey.route.ring;
 import com.appsflyer.donkey.route.HandlerMode;
 import com.appsflyer.donkey.route.PathDescriptor;
 import com.appsflyer.donkey.route.RouteDescriptor;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class RingRouteDescriptor implements RouteDescriptor
 {
-  private PathDescriptor path;
   private final Collection<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
   private final Collection<String> consumes = new HashSet<>(6);
   private final Collection<String> produces = new HashSet<>(6);
+  private final Collection<Handler<RoutingContext>> handlers = new ArrayList<>(10);
+  private PathDescriptor path;
   private HandlerMode handlerMode = HandlerMode.NON_BLOCKING;
-  private Function<RoutingContext, ?> handler;
   
   @Override
   public PathDescriptor path()
@@ -83,19 +83,19 @@ public class RingRouteDescriptor implements RouteDescriptor
   }
   
   @Override
-  public Function<RoutingContext, ?> handler()
+  public Collection<Handler<RoutingContext>> handlers()
   {
-    if (handler == null) {
-      throw new IllegalStateException("Route handler is not set");
+    if (handlers.isEmpty()) {
+      throw new IllegalStateException("No handlers were set");
     }
-    return handler;
+    return List.copyOf(handlers);
   }
   
   @Override
-  public RingRouteDescriptor handler(Function<RoutingContext, ?> handler)
+  public RingRouteDescriptor addHandler(Handler<RoutingContext> handler)
   {
-    Objects.requireNonNull(handler, "handler cannot be null");
-    this.handler = handler;
+    Objects.requireNonNull(handler, "Handler cannot be null");
+    handlers.add(handler);
     return this;
   }
   
