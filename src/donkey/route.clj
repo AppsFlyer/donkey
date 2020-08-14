@@ -56,13 +56,12 @@
 (defn- ^Handler wrap-blocking-handler [handler]
   (reify Handler
     (handle [_this ctx]
-      (if-let [handler-argument (get-handler-argument ^RoutingContext ctx)]
-        (try
-          (-> ^RoutingContext ctx
-              (.put Constants/LAST_HANDLER_RESPONSE_FIELD (handler handler-argument))
-              .next)
-          (catch Throwable ex
-            (.fail ^RoutingContext ctx ^Throwable ex)))))))
+      (try
+        (-> ^RoutingContext ctx
+            (.put Constants/LAST_HANDLER_RESPONSE_FIELD (handler (get-handler-argument ^RoutingContext ctx)))
+            .next)
+        (catch Throwable ex
+          (.fail ^RoutingContext ctx ^Throwable ex))))))
 
 (defn- ^Handler wrap-handler [handler]
   (reify Handler
@@ -72,12 +71,10 @@
                     (.put Constants/LAST_HANDLER_RESPONSE_FIELD res)
                     .next))
               (raise [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
-
-        (if-let [handler-argument (get-handler-argument ctx)]
-          (try
-            (handler handler-argument respond raise)
-            (catch Throwable ex
-              (.fail ^RoutingContext ctx ^Throwable ex))))))))
+        (try
+          (handler (get-handler-argument ctx) respond raise)
+          (catch Throwable ex
+            (.fail ^RoutingContext ctx ^Throwable ex)))))))
 
 (defn- add-handler-mode [^RingRouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]

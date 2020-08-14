@@ -1,8 +1,5 @@
 package com.appsflyer.donkey.server;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
 import com.appsflyer.donkey.exception.ServerInitializationException;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
@@ -17,7 +14,6 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.LoggerFactory;
 
 import java.net.BindException;
 import java.util.Collection;
@@ -86,12 +82,6 @@ class ServerTest
   void testAddressAlreadyInUse(Vertx vertx, VertxTestContext testContext) throws
                                                                           Exception
   {
-    // Because we are testing an exception we turn off the logging so they don't show up in the test output
-    LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-    Logger serverLogger = loggerContext.getLogger(ServerVerticle.class.getPackageName());
-    Level originalLevel = serverLogger.getLevel();
-    serverLogger.setLevel(Level.OFF);
-    
     Server server1 = new Server(newServerConfig(newRouteDescriptor()));
     server1.startSync();
     
@@ -101,7 +91,6 @@ class ServerTest
     Server server3 = new Server(newServerConfig(newRouteDescriptor()));
     server3.start().onComplete(testContext.failing(ex -> testContext.verify(() -> {
       assertThat(ex, instanceOf(BindException.class));
-      serverLogger.setLevel(originalLevel);
       server1.shutdownSync();
       testContext.completeNow();
     })));

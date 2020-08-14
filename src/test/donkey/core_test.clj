@@ -4,10 +4,14 @@
             [donkey.server :as server])
   (:import (io.vertx.ext.web.client WebClient WebClientOptions HttpResponse HttpRequest)
            (io.vertx.core Vertx Handler)
-           (donkey.server DonkeyServer)
            (io.vertx.core Future)
-           (com.appsflyer.donkey.server Server)
-           (clojure.lang ILookup)))
+           (clojure.lang ILookup)
+           (java.nio.charset StandardCharsets)
+           (donkey.server DonkeyServer)
+           (com.appsflyer.donkey.server Server)))
+
+;; ---------- Route Definitions ---------- ;;
+
 
 (defn- return-request [req]
   {:status 200
@@ -20,43 +24,112 @@
   [req respond _raise]
   (-> req return-request respond))
 
-;; ---------- Route Definitions ---------- ;;
+(def ^:private root-200
+  {:path         "/"
+   :methods      [:get]
+   :handler-mode :non-blocking
+   :handlers     [(fn [_req respond _raise] (respond {:status 200}))]})
 
-(def root-200 {:path         "/"
-               :methods      [:get]
-               :handler-mode :non-blocking
-               :handlers     [(fn [_req respond _raise] (respond {:status 200}))]})
+(def ^:private ring-spec
+  {:path     "/ring-spec"
+   :methods  [:get]
+   :handlers [async-return-request-handler]})
 
-(def ring-spec {:path     "/ring-spec"
-                :methods  [:get]
-                :handlers [async-return-request-handler]})
+(def ^:private single-path-variable
+  {:path     "/user/:id"
+   :methods  [:post]
+   :handlers [async-return-request-handler]})
 
-(def single-path-variable {:path     "/user/:id"
-                           :methods  [:post]
-                           :handlers [async-return-request-handler]})
+(def ^:private multi-path-variable
+  {:path     "/user/:id/:department"
+   :methods  [:put]
+   :handlers [async-return-request-handler]})
 
-(def multi-path-variable {:path     "/user/:id/:department"
-                          :methods  [:put]
-                          :handlers [async-return-request-handler]})
+(def ^:private regex-path-variable
+  {:path       "/admin/(\\d+)"
+   :methods    [:get]
+   :match-type :regex
+   :handlers   [async-return-request-handler]})
 
-(def regex-path-variable {:path       "/admin/(\\d+)"
-                          :methods    [:get]
-                          :match-type :regex
-                          :handlers   [async-return-request-handler]})
+(def ^:private multi-regex-path-variable
+  {:path       "/admin/(\\d+)/([x-z]{1}-dept)"
+   :methods    [:get]
+   :match-type :regex
+   :handlers   [async-return-request-handler]})
 
-(def multi-regex-path-variable {:path       "/admin/(\\d+)/([x-z]{1}-dept)"
-                                :methods    [:get]
-                                :match-type :regex
-                                :handlers   [async-return-request-handler]})
+(def ^:private blocking-handler
+  {:path         "/blocking-handler"
+   :methods      [:get]
+   :handler-mode :blocking
+   :handlers     [(fn [_req]
+                    {:body "hit /blocking-handler"})]})
 
-(def blocking-handler {:path         "/blocking-handler"
-                       :methods      [:get]
-                       :handler-mode :blocking
-                       :handlers     [(fn [_req]
-                                        {:body "hit /blocking-handler"})]})
+(def ^:private blocking-middleware-handlers
+  {:path         "/middleware/blocking"
+   :methods      [:get]
+   :handler-mode :blocking
+   :handlers     [(fn [req] (assoc req :counter 1))
+                  (fn [req] (update req :counter inc))
+                  (fn [req] (update req :counter inc))
+                  (fn [req] {:status 200 :body {:counter (:counter req) :success ""}})
+                  (fn [res] (update-in res [:body :success] str "t"))
+                  (fn [res] (update-in res [:body :success] str "r"))
+                  (fn [res] (update-in res [:body :success] str "u"))
+                  (fn [res] (update-in res [:body :success] str "e"))
+                  (fn [res] (update res :body #(.getBytes
+                                                 (str "{\"counter\":" (:counter %)
+                                                      ",\"success\":" (boolean (:success %)) "}")
+                                                 StandardCharsets/UTF_8)))]})
+
+(def ^:private async-middleware-handlers
+  {:path         "/middleware/async"
+   :methods      [:get]
+   :handler-mode :non-blocking
+   :handlers     [(fn [req respond _raise] (future (respond (assoc req :counter 1))))
+                  (fn [req respond _raise] (future (respond (update req :counter inc))))
+                  (fn [req respond _raise] (future (respond (update req :counter inc))))
+                  (fn [req respond _raise] (future (respond {:status 200 :body {:counter (:counter req) :success ""}})))
+                  (fn [res respond _raise] (future (respond (update-in res [:body :success] str "t"))))
+                  (fn [res respond _raise] (future (respond (update-in res [:body :success] str "r"))))
+                  (fn [res respond _raise] (future (respond (update-in res [:body :success] str "u"))))
+                  (fn [res respond _raise] (future (respond (update-in res [:body :success] str "e"))))
+                  (fn [res respond _raise] (future (respond (update res :body #(.getBytes
+                                                                                 (str "{\"counter\":" (:counter %)
+                                                                                      ",\"success\":" (boolean (:success %)) "}")
+                                                                                 StandardCharsets/UTF_8)))))]})
+
+(def ^:private blocking-exceptional-middleware-handlers
+  {:path         "/middleware/blocking/exception"
+   :methods      [:get]
+   :handler-mode :blocking
+   :handlers     [(fn [req] (assoc req :counter 1))
+                  (fn [req] (update req :counter inc))
+                  (fn [req] (update req :counter str))
+                  (fn [req] (update req :counter inc))
+                  ; Should not be called
+                  (fn [_req] {:status 200})]})
+
+(def ^:private async-exceptional-middleware-handlers
+  {:path         "/middleware/async/exception"
+   :methods      [:get]
+   :handler-mode :non-blocking
+   :handlers     [(fn [req respond _raise] (future (respond (assoc req :counter 1))))
+                  (fn [req respond _raise] (future (respond (update req :counter inc))))
+                  (fn [req respond _raise] (future (respond (update req :counter str))))
+                  (fn [req respond raise] (future
+                                            (try
+                                              (respond (update req :counter inc))
+                                              (catch Exception ex
+                                                (raise ex)))))
+                  ; Should not be called
+                  (fn [_req respond _raise] (future (respond {:status 200})))]})
+
+
+;; ---------- Initialization ---------- ;;
+
 
 (def ^{:private true :const true}
-  default-options {:port 16969 :event-loops 1})
+  default-options {:port 16969 :event-loops 1 :worker-threads 4 :metrics-enabled true})
 
 (defn- launch-server [opts]
   (let [instance (donkey/create-server (merge default-options opts))]
@@ -86,13 +159,21 @@
                                       single-path-variable
                                       multi-path-variable
                                       regex-path-variable
-                                      multi-regex-path-variable]})]
+                                      multi-regex-path-variable
+                                      blocking-middleware-handlers
+                                      async-middleware-handlers
+                                      blocking-exceptional-middleware-handlers
+                                      async-exceptional-middleware-handlers]})]
     (binding [client (launch-client (get-vertx-instance donkey-server))]
       (test-fn)
       (.close client)
       (is (nil? (server/stopSync donkey-server))))))
 
 (use-fixtures :once init)
+
+
+;; ---------- Helper Functions ---------- ;;
+
 
 (defn- ^HttpResponse wait-for-response
   "Waits (blocks) until the `response-promise` is resolved.
@@ -113,6 +194,10 @@
   "Create a handler that resolves `response-promise` when the client receives a response"
   [response-promise]
   (server/make-handler (fn [^Future res] (deliver response-promise res))))
+
+
+;; ---------- Tests ---------- ;;
+
 
 (deftest test-basic-functionality
   (testing "the server should return a 200 response"
@@ -228,3 +313,28 @@
       (let [res (wait-for-response response-promise)]
         (is (= 200 (.statusCode res)))
         (is (= "hit /blocking-handler" (.bodyAsString res)))))))
+
+(deftest middleware-test
+  (testing "it should call each middleware with the result of the previous"
+    (doseq [endpoint ["/middleware/blocking" "/middleware/async"]]
+      (let [response-promise (promise)]
+        (-> client
+            ^HttpRequest (.get endpoint)
+            (.send (create-client-handler response-promise)))
+
+        (let [res (wait-for-response response-promise)]
+          (is (= 200 (.statusCode res)))
+          (let [res-json (.bodyAsJsonObject res)]
+            (is (= true (.getBoolean res-json "success")))
+            (is (= 3 (.getInteger res-json "counter")))))))))
+
+(deftest middleware-exception-test
+  (testing "it should return an internal server error when an exception is thrown"
+    (doseq [endpoint ["/middleware/blocking/exception" "/middleware/async/exception"]]
+      (let [response-promise (promise)]
+        (-> client
+            ^HttpRequest (.get endpoint)
+            (.send (create-client-handler response-promise)))
+
+        (let [res (wait-for-response response-promise)]
+          (is (= 500 (.statusCode res))))))))
