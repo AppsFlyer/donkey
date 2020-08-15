@@ -1,7 +1,8 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouterFactory;
-import io.vertx.core.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,6 @@ public class ServerVerticle extends AbstractVerticle
   
   private Router createRouter()
   {
-    return new RouterFactory(vertx, config.handlerFactory())
-        .withRoutes(config.routes());
+    return new RouterFactory(vertx, config.handlerConfig()).create();
   }
 }

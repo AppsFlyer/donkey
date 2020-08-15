@@ -2,6 +2,7 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.exception.ServerInitializationException;
 import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.handler.HandlerConfig;
 import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -109,7 +110,6 @@ class ServerTest
     return new ServerConfig(
         new VertxOptions().setEventLoopPoolSize(1),
         new HttpServerOptions().setPort(port),
-        List.of(routeDescriptor),
-        new HandlerFactoryStub());
+        new HandlerConfig(List.of(routeDescriptor), new HandlerFactoryStub()));
   }
 }

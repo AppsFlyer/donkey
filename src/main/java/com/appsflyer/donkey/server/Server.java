@@ -22,7 +22,8 @@ public final class Server
   
   /**
    * Create a new instance with the given {@link ServerConfig}
-   * @param config
+   *
+   * @param config See {@link ServerConfig} for configuration options.
    */
   public Server(ServerConfig config)
   {

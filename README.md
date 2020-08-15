@@ -14,7 +14,8 @@
 ========================================
 
 ## DONE
-- Add support for middleware 
+- Implement global middleware
+- Add support for per route middleware 
 - Metrics are not working
 - Use Spec 'assert' instead of 'conform'.
 - Path variables are not working - 404

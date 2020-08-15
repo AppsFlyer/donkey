@@ -6,13 +6,14 @@
 
 ;; ------- Route Specification ------- ;;
 
+(s/def ::handler fn?)
 (s/def ::path string?)
 (s/def ::methods (s/coll-of keyword?))
 (s/def ::consumes (s/coll-of string?))
 (s/def ::produces (s/coll-of string?))
 (s/def ::handler-mode #{:blocking :non-blocking})
 (s/def ::match-type #{:simple :regex})
-(s/def ::handlers (s/coll-of fn?))
+(s/def ::handlers (s/coll-of ::handler))
 
 (s/def ::route (s/keys :req-un [::handlers]
                        :opt-un [::path
@@ -21,6 +22,10 @@
                                 ::produces
                                 ::handler-mode
                                 ::match-type]))
+
+;; ------- Middleware Specification ------- ;;
+
+(s/def ::middleware (s/coll-of (s/keys :req-un [::handler] :opt-un [::handler-mode])))
 
 ;; ------- Server Configuration Specification ------- ;;
 
@@ -35,8 +40,9 @@
 (s/def ::idle-timeout-seconds (s/and int? #(or (zero? %) (pos? %))))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 
-(s/def ::config (s/keys :req-un [::port ::routes]
-                        :opt-un [::compression
+(s/def ::config (s/keys :req-un [::port]
+                        :opt-un [::middleware
+                                 ::compression
                                  ::host
                                  ::metrics-enabled
                                  ::metrics-registry
@@ -54,4 +60,4 @@
                 :debug                false
                 :idle-timeout-seconds 0
                 :routes               [{:handlers [identity]}]}]
-    (s/explain ::config config)))
+    (s/valid? (s/and ::config ::global-handlers-or-routes) config)))

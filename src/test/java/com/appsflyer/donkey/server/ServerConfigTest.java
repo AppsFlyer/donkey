@@ -1,8 +1,8 @@
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.route.handler.HandlerConfig;
 import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
-import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.HandlerFactory;
+import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.jupiter.api.Test;
@@ -20,17 +20,14 @@ class ServerConfigTest
   {
     var vertxOptions = new VertxOptions();
     var serverOptions = new HttpServerOptions();
-    List<RouteDescriptor> routeDescriptors = List.of();
-    HandlerFactory handlerFactory = new HandlerFactoryStub();
-    
-    assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, routeDescriptors, handlerFactory));
+    HandlerConfig handlerConfig = new HandlerConfig(List.of(new RingRouteDescriptor()), new HandlerFactoryStub());
+  
+    assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, handlerConfig));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(null, serverOptions, routeDescriptors, handlerFactory));
+        new ServerConfig(null, serverOptions, handlerConfig));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, null, routeDescriptors, handlerFactory));
+        new ServerConfig(vertxOptions, null, handlerConfig));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, serverOptions, null, handlerFactory));
-    assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, serverOptions, routeDescriptors, null));
+        new ServerConfig(vertxOptions, serverOptions, null));
   }
 }

@@ -1,15 +1,21 @@
 package com.appsflyer.donkey.route;
 
+import com.appsflyer.donkey.route.handler.HandlerConfig;
 import com.appsflyer.donkey.route.handler.HandlerFactory;
 import com.appsflyer.donkey.route.handler.InternalServerErrorHandler;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Objects;
 
 import static io.vertx.core.http.HttpMethod.*;
 
@@ -17,21 +23,18 @@ public class RouterFactory
 {
   private final Router router;
   private final Vertx vertx;
-  private final HandlerFactory handlerFactory;
+  private final HandlerConfig handlerConfig;
   private static final Collection<HttpMethod> METHODS_WITH_BODY = EnumSet.of(POST, PUT, PATCH);
   
-  public RouterFactory(Vertx vertx, HandlerFactory handlerFactory)
+  public RouterFactory(Vertx vertx, HandlerConfig handlerConfig)
   {
+    Objects.requireNonNull(vertx, "Vertx argument is missing");
+    Objects.requireNonNull(handlerConfig, "Handler config argument is missing");
+    
     this.vertx = vertx;
-    this.handlerFactory = handlerFactory;
+    this.handlerConfig = handlerConfig;
     router = Router.router(vertx);
     router.errorHandler(500, new InternalServerErrorHandler(vertx));
-    addContentTypeHandler();
-  }
-  
-  private void addContentTypeHandler()
-  {
-    router.route().handler(ResponseContentTypeHandler.create());
   }
   
   private boolean hasBody(Route route)
@@ -43,23 +46,16 @@ public class RouterFactory
     return route.methods().stream().anyMatch(METHODS_WITH_BODY::contains);
   }
   
-  public Router withRoutes(List<RouteDescriptor> routes)
+  public Router create()
   {
-    Objects.requireNonNull(routes, "Cannot create router with null routes");
-    routes.stream()
-          .map(rd -> Map.entry(rd, router.route()))
-          .peek(this::buildRoute)
-          .forEach(this::addHandlers);
+    router.route().handler(ResponseContentTypeHandler.create());
+    handlerConfig.routes()
+                 .stream()
+                 .map(rd -> Map.entry(rd, router.route()))
+                 .peek(this::buildRoute)
+                 .forEach(this::addHandlers);
     
     return router;
-  }
-  
-  //This overloaded version is package-private and only used in tests for convenience.
-  @SuppressWarnings("OverloadedVarargsMethod")
-  Router withRoutes(RouteDescriptor... routes)
-  {
-    Objects.requireNonNull(routes, "Cannot create router with null routes");
-    return withRoutes(List.of(routes));
   }
   
   private void buildRoute(Map.Entry<RouteDescriptor, Route> entry)
@@ -87,18 +83,30 @@ public class RouterFactory
     if (hasBody(route)) {
       route.handler(BodyHandler.create());
     }
-    
+    HandlerFactory handlerFactory = handlerConfig.handlerFactory();
     route.handler(handlerFactory.requestHandler());
     
-    rd.handlers().forEach(handler -> {
-      if (rd.handlerMode() == HandlerMode.BLOCKING) {
-        route.blockingHandler(handler);
-      }
-      else {
-        route.handler(handler);
-      }
-    });
+    addMiddleware(route);
+    
+    rd.handlers().forEach(handler -> addHandler(route, handler, rd.handlerMode()));
     
     route.handler(handlerFactory.responseHandler(vertx));
+  }
+  
+  private void addMiddleware(Route route)
+  {
+    route.handler(ResponseContentTypeHandler.create());
+    handlerConfig.middleware().forEach(
+        middleware -> addHandler(route, middleware.handler(), middleware.handlerMode()));
+  }
+  
+  private void addHandler(Route route, Handler<RoutingContext> handler, HandlerMode handlerMode)
+  {
+    if (handlerMode == HandlerMode.BLOCKING) {
+      route.blockingHandler(handler);
+    }
+    else {
+      route.handler(handler);
+    }
   }
 }
