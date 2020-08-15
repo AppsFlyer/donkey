@@ -1,5 +1,6 @@
 package com.appsflyer.donkey.route;
 
+import com.appsflyer.donkey.route.handler.HandlerConfig;
 import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
 import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
 import io.vertx.core.Future;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.appsflyer.donkey.TestUtil.DEFAULT_PORT;
@@ -35,9 +37,14 @@ public class IntegrationTest
   
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
-  private RouterFactory newRouterFactory(Vertx vertx)
+  private RouterFactory newRouterFactory(Vertx vertx, List<RouteDescriptor> routes)
   {
-    return new RouterFactory(vertx, new HandlerFactoryStub());
+    return new RouterFactory(vertx, newHandlerConfig(routes));
+  }
+  
+  private HandlerConfig newHandlerConfig(List<RouteDescriptor> routes)
+  {
+    return new HandlerConfig(routes, new HandlerFactoryStub());
   }
   
   private void assertContextSuccess(VertxTestContext testContext) throws
@@ -83,23 +90,24 @@ public class IntegrationTest
     RouteDescriptor getPathVariable = new RingRouteDescriptor()
         .addMethod(GET)
         .path(new PathDescriptor("/token/:tokenId")).addHandler(handler);
-    
+  
     RouteDescriptor getRegexPath = new RingRouteDescriptor()
         .addMethod(GET)
         .path(new PathDescriptor("/id/(\\d+)", REGEX)).addHandler(handler);
-    
+  
     RouteDescriptor postComplexRegexPath = new RingRouteDescriptor()
         .addMethod(POST)
         .path(new PathDescriptor("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
         .addHandler(handler);
-    
-    return newRouterFactory(vertx)
-        .withRoutes(getFoo,
-                    postFooBar,
-                    postOrPutJson,
-                    getPathVariable,
-                    getRegexPath,
-                    postComplexRegexPath);
+  
+    return newRouterFactory(
+        vertx, List.of(getFoo,
+                       postFooBar,
+                       postOrPutJson,
+                       getPathVariable,
+                       getRegexPath,
+                       postComplexRegexPath))
+        .create();
   }
   
   private Future<HttpServer> startServer(

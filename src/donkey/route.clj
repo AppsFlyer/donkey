@@ -5,7 +5,8 @@
            (java.util ArrayList List)
            (com.appsflyer.donkey.route PathDescriptor$MatchType PathDescriptor HandlerMode)
            (com.appsflyer.donkey.route.ring RingRouteDescriptor)
-           (com.appsflyer.donkey.route.handler.ring Constants)))
+           (com.appsflyer.donkey.route.handler.ring Constants RingHandlerFactory)
+           (com.appsflyer.donkey.route.handler HandlerConfig Middleware)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
@@ -95,15 +96,38 @@
     (add-async-handlers route (:handlers route-map)))
   route)
 
-(defn get-route-descriptors [routes]
-  (reduce (fn [res route-map]
-            (doto ^List res
-              (.add (-> (RingRouteDescriptor.)
-                        (add-path route-map)
-                        (add-methods route-map)
-                        (add-consumes route-map)
-                        (add-produces route-map)
-                        (add-handler-mode route-map)
-                        (add-handlers route-map)))))
-          (ArrayList. (count routes))
-          routes))
+(defn- map->RouteDescriptor [route-map]
+  (-> (RingRouteDescriptor.)
+      (add-path route-map)
+      (add-methods route-map)
+      (add-consumes route-map)
+      (add-produces route-map)
+      (add-handler-mode route-map)
+      (add-handlers route-map)))
+
+(defn- map->Middleware [middleware-map]
+  (if (= :blocking (:handler-mode middleware-map))
+    (Middleware. (wrap-blocking-handler (:handler middleware-map)) HandlerMode/BLOCKING)
+    (Middleware. (wrap-handler (:handler middleware-map)) HandlerMode/NON_BLOCKING)))
+
+(defn- into-array-list
+  "Perform 'fun' on each element in 'col' and return a Java List with the result"
+  [col fun]
+  (reduce
+    (fn [res entry]
+      (doto ^List res
+        (.add (fun entry))))
+    (ArrayList. (count col))
+    col))
+
+(defn- create-route-descriptors [routes]
+  (into-array-list routes map->RouteDescriptor))
+
+(defn- create-middleware [middleware]
+  (into-array-list middleware map->Middleware))
+
+(defn get-handler-config [opts]
+  (HandlerConfig.
+    (create-route-descriptors (:routes opts))
+    (RingHandlerFactory.)
+    (create-middleware (:middleware opts))))

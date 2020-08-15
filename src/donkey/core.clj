@@ -18,6 +18,7 @@
    :event-loops          1
    :debug                false
    :idle-timeout-seconds 0
+   :middleware           []
    :routes               []}
 
   ;;; Route API
@@ -25,8 +26,8 @@
    :consumes     ["application/json" "application/x-www-form-urlencoded" "text/plain"]
    :produces     ["application/json" "text/plain"]
    :handler-mode :non-blocking
-   :handler      (fn [req respond raise]
-                   (respond {:status 200}))
+   :handlers     [(fn [req respond raise]
+                    (respond {:status 200}))]
    :path         "/foo"
    :match-type   :simple}
 
@@ -42,6 +43,9 @@
 
 (defn new-server []
   (-> {:port            8080
+       :middleware      [{:handler-mode :non-blocking
+                          :handler      (fn [req respond _raise]
+                                          (respond (update req :query-params clojure.walk/keywordize-keys)))}]
        :routes          [{:path     "/greet/:name"
                           :methods  [:get]
                           :produces ["application/json"]
@@ -49,7 +53,13 @@
                                        (future
                                          (respond
                                            {:body (.getBytes
-                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))]}]
+                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))]}
+                         {:path         "/foo"
+                          :methods      [:get]
+                          :handler-mode :blocking
+                          :handlers     [(fn [req]
+                                           (println req)
+                                           {:body (str (:query-params req))})]}]
        :metrics-enabled true
        :metrics-prefix  "donkey"}
       create-server))
