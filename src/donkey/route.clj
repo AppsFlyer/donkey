@@ -54,28 +54,29 @@
              (format "Could not find '%s' in RoutingContext"
                      Constants/LAST_HANDLER_RESPONSE_FIELD)))))
 
-(defn- ^Handler wrap-blocking-handler [handler]
-  (reify Handler
-    (handle [_this ctx]
+(deftype RouteHandler [impl]
+  Handler
+  (handle [_this ctx]
+    (letfn [(respond [res]
+              (-> ^RoutingContext ctx
+                  (.put Constants/LAST_HANDLER_RESPONSE_FIELD res)
+                  .next))
+            (raise [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
       (try
-        (-> ^RoutingContext ctx
-            (.put Constants/LAST_HANDLER_RESPONSE_FIELD (handler (get-handler-argument ^RoutingContext ctx)))
-            .next)
+        (impl (get-handler-argument ctx) respond raise)
         (catch Throwable ex
           (.fail ^RoutingContext ctx ^Throwable ex))))))
 
-(defn- ^Handler wrap-handler [handler]
-  (reify Handler
-    (handle [_this ctx]
-      (letfn [(respond [res]
-                (-> ^RoutingContext ctx
-                    (.put Constants/LAST_HANDLER_RESPONSE_FIELD res)
-                    .next))
-              (raise [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
-        (try
-          (handler (get-handler-argument ctx) respond raise)
-          (catch Throwable ex
-            (.fail ^RoutingContext ctx ^Throwable ex)))))))
+(deftype BlockingRouteHandler [impl]
+  Handler
+  (handle [_this ctx]
+    (try
+      (-> ^RoutingContext ctx
+          (.put Constants/LAST_HANDLER_RESPONSE_FIELD
+                (impl (get-handler-argument ^RoutingContext ctx)))
+          .next)
+      (catch Throwable ex
+        (.fail ^RoutingContext ctx ^Throwable ex)))))
 
 (defn- add-handler-mode [^RingRouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
@@ -84,11 +85,11 @@
 
 (defn- add-async-handlers [^RingRouteDescriptor route handlers]
   (doseq [handler handlers]
-    (.addHandler route (wrap-handler handler))))
+    (.addHandler route ^Handler (->RouteHandler handler))))
 
 (defn- add-blocking-handlers [^RingRouteDescriptor route handlers]
   (doseq [handler handlers]
-    (.addHandler route (wrap-blocking-handler handler))))
+    (.addHandler route ^Handler (->BlockingRouteHandler handler))))
 
 (defn- add-handlers [^RingRouteDescriptor route route-map]
   (if (= (:handler-mode route-map) :blocking)
@@ -107,8 +108,8 @@
 
 (defn- map->Middleware [middleware-map]
   (if (= :blocking (:handler-mode middleware-map))
-    (Middleware. (wrap-blocking-handler (:handler middleware-map)) HandlerMode/BLOCKING)
-    (Middleware. (wrap-handler (:handler middleware-map)) HandlerMode/NON_BLOCKING)))
+    (Middleware. ^Handler (->BlockingRouteHandler (:handler middleware-map)) HandlerMode/BLOCKING)
+    (Middleware. ^Handler (->RouteHandler (:handler middleware-map)) HandlerMode/NON_BLOCKING)))
 
 (defn- into-array-list
   "Perform 'fun' on each element in 'col' and return a Java List with the result"

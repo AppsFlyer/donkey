@@ -10,12 +10,12 @@
   "docstring"
   [opts]
   (doto (HttpServerOptions.)
-                       (.setPort (int (:port opts 8080)))
-                       (.setHost ^String (:host opts "0.0.0.0"))
-                       (.setLogActivity ^boolean (:debug opts false))
-                       (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
-                       (.setCompressionSupported (:compression opts false))
-                       (.setDecompressionSupported (:compression opts false))))
+    (.setPort (int (:port opts 8080)))
+    (.setHost ^String (:host opts "0.0.0.0"))
+    (.setLogActivity ^boolean (:debug opts false))
+    (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
+    (.setCompressionSupported (:compression opts false))
+    (.setDecompressionSupported (:compression opts false))))
 
 (defn- ^VertxOptions get-vertx-options [opts]
   (let [vertx-options (VertxOptions.)]
@@ -33,10 +33,10 @@
     (get-server-options opts)
     (get-handler-config opts)))
 
-(defn make-handler [fun]
-  (reify Handler
-    (handle [_this event]
-      (fun event))))
+(deftype EventHandler [impl]
+  Handler
+  (handle [_this event]
+    (impl event)))
 
 (defprotocol HttpServer
   (start [this]
@@ -68,7 +68,7 @@
     (let [res (promise)]
       (.onComplete
         (.start ^Server impl)
-        (make-handler
+        (->EventHandler
           (fn [^AsyncResult async-res]
             (if (.failed async-res)
               (deliver res (ex-info "Server initialization failed" {} (.cause async-res)))
@@ -85,7 +85,7 @@
     (let [res (promise)]
       (.onComplete
         (.shutdown impl)
-        (make-handler
+        (->EventHandler
           (fn [^AsyncResult async-res]
             (if (.failed async-res)
               (deliver res (ex-info "Server shutdown failed" {} (.cause async-res)))

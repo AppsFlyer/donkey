@@ -193,7 +193,7 @@
 (defn- ^Handler create-client-handler
   "Create a handler that resolves `response-promise` when the client receives a response"
   [response-promise]
-  (server/make-handler (fn [^Future res] (deliver response-promise res))))
+  (server/->EventHandler (fn [^Future res] (deliver response-promise res))))
 
 
 ;; ---------- Tests ---------- ;;
