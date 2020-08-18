@@ -95,7 +95,6 @@ public class RouterFactory
   
   private void addMiddleware(Route route)
   {
-    route.handler(ResponseContentTypeHandler.create());
     handlerConfig.middleware().forEach(
         middleware -> addHandler(route, middleware.handler(), middleware.handlerMode()));
   }
