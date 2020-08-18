@@ -3,25 +3,17 @@ package com.appsflyer.donkey.route.handler.ring;
 import clojure.lang.*;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpVersion;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLPeerUnverifiedException;
-import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static com.appsflyer.donkey.route.handler.ring.Constants.LAST_HANDLER_RESPONSE_FIELD;
-import static io.vertx.core.http.HttpMethod.*;
-import static io.vertx.core.http.HttpVersion.*;
+import static com.appsflyer.donkey.route.handler.ring.RingRequestField.*;
 
 /**
  * Handler responsible for converting an {@link io.vertx.core.http.HttpServerRequest}
@@ -32,41 +24,6 @@ import static io.vertx.core.http.HttpVersion.*;
 public class RingRequestHandler implements Handler<RoutingContext>
 {
   private static final Logger logger = LoggerFactory.getLogger(RingRequestHandler.class.getName());
-  
-  private static final Keyword SERVER_PORT = Keyword.intern("server-port");
-  private static final Keyword SERVER_NAME = Keyword.intern("server-name");
-  private static final Keyword REMOTE_ADDRESS = Keyword.intern("remote-addr");
-  private static final Keyword URI = Keyword.intern("uri");
-  private static final Keyword QUERY_STRING = Keyword.intern("query-string");
-  private static final Keyword QUERY_PARAMS = Keyword.intern("query-params");
-  private static final Keyword PATH_PARAMS = Keyword.intern("path-params");
-  private static final Keyword FORM_PARAMS = Keyword.intern("form-params");
-  private static final Keyword SCHEME = Keyword.intern("scheme");
-  private static final Keyword REQUEST_METHOD = Keyword.intern("request-method");
-  private static final Keyword PROTOCOL = Keyword.intern("protocol");
-  private static final Keyword SSL_CLIENT_CERT = Keyword.intern("ssl-client-cert");
-  private static final Keyword HEADERS = Keyword.intern("headers");
-  private static final Keyword BODY = Keyword.intern("body");
-  
-  private static final Map<String, Keyword> schemeMapping =
-      Map.of("http", Keyword.intern("http"),
-             "https", Keyword.intern("https"));
-  
-  private static final Map<HttpMethod, Keyword> methodMapping =
-      Map.of(GET, Keyword.intern("get"),
-             POST, Keyword.intern("post"),
-             PUT, Keyword.intern("put"),
-             DELETE, Keyword.intern("delete"),
-             PATCH, Keyword.intern("patch"),
-             HEAD, Keyword.intern("head"),
-             OPTIONS, Keyword.intern("options"),
-             TRACE, Keyword.intern("trace"),
-             CONNECT, Keyword.intern("connect"));
-  
-  private static final Map<HttpVersion, String> protocolMapping =
-      Map.of(HTTP_1_0, "HTTP/1.0",
-             HTTP_1_1, "HTTP/1.1",
-             HTTP_2, "HTTP/2");
   
   private static String stringJoiner(List<String> v)
   {
@@ -106,6 +63,16 @@ public class RingRequestHandler implements Handler<RoutingContext>
   @Override
   public void handle(RoutingContext ctx)
   {
+    ctx.put(LAST_HANDLER_RESPONSE_FIELD, getImmutableRequest(ctx)).next();
+  }
+  
+  private IPersistentMap getMutableRequest(RoutingContext ctx)
+  {
+    return new MutableRingRequestMap(ctx);
+  }
+  
+  public IPersistentMap getImmutableRequest(RoutingContext ctx)
+  {
     List<Object> values = new ArrayList<>(14 << 1);
     
     addServerPort(ctx, values)
@@ -123,138 +90,88 @@ public class RingRequestHandler implements Handler<RoutingContext>
         .addFormParams(ctx, values)
         .addBody(ctx, values);
     
-    ctx.put(LAST_HANDLER_RESPONSE_FIELD, new PersistentArrayMap(values.toArray()));
-    ctx.next();
+    return PersistentHashMap.create(values.toArray());
   }
   
   private RingRequestHandler addServerPort(RoutingContext ctx, List<Object> values)
   {
-    SocketAddress localAddress = ctx.request().localAddress();
-    if (localAddress != null) {
-      addNameValuePair(SERVER_PORT, localAddress.port(), values);
-    }
-    return this;
+    return addNameValuePair(SERVER_PORT.keyword(), SERVER_PORT.get(ctx), values);
   }
   
   private RingRequestHandler addServerName(RoutingContext ctx, List<Object> values)
   {
-    String host = ctx.request().host();
-    if (host != null) {
-      return addNameValuePair(SERVER_NAME, host, values);
-    }
-    
-    SocketAddress localAddress = ctx.request().localAddress();
-    if (localAddress != null) {
-      addNameValuePair(SERVER_NAME, localAddress.host(), values);
-    }
-    
-    return this;
+    return addNameValuePair(SERVER_NAME.keyword(), SERVER_NAME.get(ctx), values);
   }
   
   private RingRequestHandler addRemoteAddress(RoutingContext ctx, List<Object> values)
   {
-    var forwardedFor = ctx.request().getHeader("x-forwarded-for");
-    if (forwardedFor != null) {
-      return addNameValuePair(REMOTE_ADDRESS, forwardedFor, values);
-    }
-    
-    SocketAddress remoteAddress = ctx.request().remoteAddress();
-    if (remoteAddress != null) {
-      addNameValuePair(REMOTE_ADDRESS, remoteAddress.toString(), values);
-    }
-    
-    return this;
+    return addNameValuePair(REMOTE_ADDRESS.keyword(), REMOTE_ADDRESS.get(ctx), values);
   }
   
   private RingRequestHandler addUri(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(URI, ctx.request().path(), values);
+    return addNameValuePair(URI.keyword(), URI.get(ctx), values);
   }
   
   private RingRequestHandler addScheme(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(SCHEME, schemeMapping.get(ctx.request().scheme()), values);
+    return addNameValuePair(SCHEME.keyword(), SCHEME.get(ctx), values);
   }
   
   private RingRequestHandler addMethod(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(
-        REQUEST_METHOD,
-        methodMapping.get(ctx.request().method()),
-        values);
+    return addNameValuePair(REQUEST_METHOD.keyword(), REQUEST_METHOD.get(ctx), values);
   }
   
   private RingRequestHandler addProtocol(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(
-        PROTOCOL,
-        protocolMapping.get(ctx.request().version()),
-        values);
+    return addNameValuePair(PROTOCOL.keyword(), PROTOCOL.get(ctx), values);
   }
   
   private RingRequestHandler addSslClientCert(RoutingContext ctx, List<Object> values)
   {
-    if (ctx.request().isSSL()) {
-      try {
-        Certificate[] certificates = ctx.request().sslSession().getPeerCertificates();
-        return addNameValuePair(SSL_CLIENT_CERT, certificates, values);
-      } catch (SSLPeerUnverifiedException e) {
-        logger.debug("Caught exception getting SSL peer certificates: {}", e.getMessage());
-      }
-    }
-    return this;
+    return addNameValuePair(CLIENT_CERT.keyword(), CLIENT_CERT.get(ctx), values);
   }
   
   private RingRequestHandler addBody(RoutingContext ctx, List<Object> values)
   {
-    Buffer body = ctx.getBody();
-    if (body != null) {
-      addNameValuePair(BODY, body.getBytes(), values);
-    }
-    return this;
+    return addNameValuePair(BODY.keyword(), BODY.get(ctx), values);
   }
   
   private RingRequestHandler addHeaders(RoutingContext ctx, List<Object> values)
   {
     return addNameValuePair(
-        HEADERS,
-        toPersistentMap(ctx.request().headers(), RingRequestHandler::stringJoiner),
+        HEADERS.keyword(),
+        toPersistentMap(((ClojureMultiMapWrapper) HEADERS.get(ctx)).impl(),
+                        RingRequestHandler::stringJoiner),
         values);
   }
   
   private RingRequestHandler addQueryString(RoutingContext ctx, List<Object> values)
   {
-    return addNameValuePair(QUERY_STRING, ctx.request().query(), values);
+    return addNameValuePair(QUERY_STRING.keyword(), QUERY_STRING.get(ctx), values);
   }
   
   private RingRequestHandler addQueryParams(RoutingContext ctx, List<Object> values)
   {
-    MultiMap queryParams;
-    try {
-      queryParams = ctx.queryParams();
-    } catch (HttpStatusException ex) {
-      logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
-      return this;
-    }
-    
-    return addNameValuePair(QUERY_PARAMS, toPersistentMap(queryParams), values);
+    return addNameValuePair(QUERY_PARAMS.keyword(), QUERY_PARAMS.get(ctx), values);
   }
   
   private RingRequestHandler addPathParams(RoutingContext ctx, List<Object> values)
   {
-    Map<String, String> pathParams = ctx.pathParams();
-    
+    Map<?, ?> pathParams = ((ClojureMutableHashMap<?, ?>) PATH_PARAMS.get(ctx)).impl();
+  
     if (pathParams.isEmpty()) {
       return this;
     }
     Object[] pathParamsArray = new Object[(pathParams.size() << 1)];
     int i = 0;
-    for (Map.Entry<String, String> entry : pathParams.entrySet()) {
-      pathParamsArray[i] = entry.getKey();
-      pathParamsArray[i + 1] = entry.getValue();
+    for (Object obj : pathParams.entrySet()) {
+      pathParamsArray[i] = ((Map.Entry<?, ?>) obj).getKey();
+      pathParamsArray[i + 1] = ((Map.Entry<?, ?>) obj).getValue();
       i += 2;
     }
-    return addNameValuePair(PATH_PARAMS, new PersistentArrayMap(pathParamsArray), values);
+    return addNameValuePair(PATH_PARAMS.keyword(), new PersistentArrayMap(pathParamsArray), values);
   }
   
   private RingRequestHandler addFormParams(RoutingContext ctx, List<Object> values)
@@ -262,18 +179,23 @@ public class RingRequestHandler implements Handler<RoutingContext>
     if (!ctx.request().isExpectMultipart()) {
       return this;
     }
-    
+  
     MultiMap formAttributes = ctx.request().formAttributes();
     if (formAttributes.isEmpty()) {
       return this;
     }
-    return addNameValuePair(FORM_PARAMS, toPersistentMap(formAttributes), values);
+    return addNameValuePair(
+        FORM_PARAMS.keyword(),
+        toPersistentMap(((ClojureMultiMapWrapper) FORM_PARAMS.get(ctx)).impl()),
+        values);
   }
   
   private RingRequestHandler addNameValuePair(Keyword name, Object value, List<Object> values)
   {
-    values.add(name);
-    values.add(value);
+    if (value != null) {
+      values.add(name);
+      values.add(value);
+    }
     return this;
   }
 }
