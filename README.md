@@ -10,6 +10,10 @@
 - Examples
 - README
 - Setup CI
+- Explore having the metrics implementation pluggable by the user.
+- Think about short circuit of handlers
+- Consider going completely data oriented. The config is just json, and the handlers 
+are namespaced keywords point to user functions.
 
 ========================================
 
