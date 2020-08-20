@@ -60,44 +60,6 @@ public enum RingRequestField
       return ctx.request().path();
     }
   },
-  QUERY_STRING("query-string") {
-    @Override
-    public String get(RoutingContext ctx)
-    {
-      return ctx.request().query();
-    }
-  },
-  QUERY_PARAMS("query-params") {
-    @Override
-    public ClojureMultiMapWrapper get(RoutingContext ctx)
-    {
-      try {
-        return new ClojureMultiMapWrapper(ctx.queryParams());
-      } catch (HttpStatusException ex) {
-        logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
-        return new ClojureMultiMapWrapper(MultiMap.caseInsensitiveMultiMap());
-      }
-    }
-  },
-  PATH_PARAMS("path-params") {
-    @Override
-    public Object get(RoutingContext ctx)
-    {
-      return new ClojureMutableHashMap<>(ctx.pathParams());
-    }
-  },
-  FORM_PARAMS("form-params") {
-    @Override
-    public Object get(RoutingContext ctx)
-    {
-      if (ctx.request().isExpectMultipart()) {
-        return new ClojureMultiMapWrapper(ctx.request().formAttributes());
-      }
-      else {
-        return new ClojureMultiMapWrapper(MultiMap.caseInsensitiveMultiMap());
-      }
-    }
-  },
   SCHEME("scheme") {
     private final Map<String, Keyword> schemeMapping =
         Map.of("http", Keyword.intern("http"),
@@ -137,12 +99,49 @@ public enum RingRequestField
       return null;
     }
   },
+  QUERY_STRING("query-string") {
+    @Override
+    public String get(RoutingContext ctx)
+    {
+      return ctx.request().query();
+    }
+  },
+  QUERY_PARAMS("query-params") {
+    @Override
+    public MultiMap get(RoutingContext ctx)
+    {
+      try {
+        return ctx.queryParams();
+      } catch (HttpStatusException ex) {
+        logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
+        return MultiMap.caseInsensitiveMultiMap();
+      }
+    }
+  },
+  PATH_PARAMS("path-params") {
+    @Override
+    public Map<String, String> get(RoutingContext ctx)
+    {
+      return ctx.pathParams();
+    }
+  },
+  FORM_PARAMS("form-params") {
+    @Override
+    public MultiMap get(RoutingContext ctx)
+    {
+      if (ctx.request().isExpectMultipart()) {
+        return ctx.request().formAttributes();
+      }
+      else {
+        return MultiMap.caseInsensitiveMultiMap();
+      }
+    }
+  },
   HEADERS("headers") {
     @Override
-    public ClojureMultiMapWrapper get(RoutingContext ctx)
+    public MultiMap get(RoutingContext ctx)
     {
-      MultiMap headers = ctx.request().headers();
-      return new ClojureMultiMapWrapper(headers);
+      return ctx.request().headers();
     }
   },
   BODY("body") {

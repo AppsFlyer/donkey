@@ -3,21 +3,18 @@ package com.appsflyer.donkey.middleware;
 import clojure.lang.Counted;
 import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
-import clojure.lang.MapEntry;
-import com.appsflyer.donkey.route.handler.ring.ClojureMutableHashMap;
+import clojure.lang.RT;
 
-import java.util.HashMap;
 import java.util.Map;
 
-public final class MiddlewareProvider
-{
-  private static final Keyword QUERY_PARAMS = Keyword.intern("query-params");
+import static com.appsflyer.donkey.route.handler.ring.RingRequestField.QUERY_PARAMS;
+
+public final class MiddlewareProvider {
   
   private MiddlewareProvider() {}
   
-  public static IPersistentMap keywordizeQueryParams(IPersistentMap request)
-  {
-    Object queryParams = request.valAt(QUERY_PARAMS);
+  public static IPersistentMap keywordizeQueryParams(IPersistentMap request) {
+    Object queryParams = request.valAt(QUERY_PARAMS.keyword());
     if (queryParams == null) {
       return request;
     }
@@ -25,13 +22,15 @@ public final class MiddlewareProvider
     if (size == 0) {
       return request;
     }
-    Map<?, ?> params = (Map<?, ?>) queryParams;
-    Map<Object, Object> newParams = new HashMap<>(params.size());
-    for (Object obj : params.entrySet()) {
-      MapEntry entry = (MapEntry) obj;
-      newParams.put(Keyword.intern((String) entry.getKey()), entry.getValue());
+    
+    IPersistentMap params = (IPersistentMap) queryParams;
+    Object[] res = new Object[params.count() << 1];
+    var iter = params.iterator();
+    for (int i = 0; iter.hasNext(); i += 2) {
+      Map.Entry<?, ?> entry = (Map.Entry<?, ?>) iter.next();
+      res[i] = Keyword.intern((String) entry.getKey());
+      res[i + 1] = entry.getValue();
     }
-    return request.assoc(QUERY_PARAMS, new ClojureMutableHashMap<>(newParams));
+    return request.assoc(QUERY_PARAMS.keyword(), RT.mapUniqueKeys(res));
   }
-  
 }
