@@ -2,6 +2,7 @@
   (:require [clojure.set]
             [clojure.spec.alpha :as spec]
             [donkey.server :as server]
+            [donkey.middleware.params :as middleware]
             [donkey.server-spec :as server-spec])
   (:import (donkey.server DonkeyServer)
            (com.appsflyer.donkey.server Server)))
@@ -43,23 +44,16 @@
 
 (defn new-server []
   (-> {:port            8080
-       :middleware      [{:handler-mode :non-blocking
-                          :handler      (fn [req respond _raise]
-                                          (respond (update req :query-params clojure.walk/keywordize-keys)))}]
-       :routes          [{:path     "/greet/:name"
+       :event-loops     16
+       :middleware      [{:handler middleware/keywordize-query-params}
+                         {:handler (fn [req respond _raise]
+                                     (respond (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")))}]
+       :routes          [{:path     "/benchmark"
                           :methods  [:get]
-                          :produces ["application/json"]
                           :handlers [(fn [req respond _raise]
-                                       (future
-                                         (respond
-                                           {:body (.getBytes
-                                                    (str "{\"greet\":\"Hello " (-> :path-params req (get "name")) "\"}"))})))]}
-                         {:path         "/foo"
-                          :methods      [:get]
-                          :handler-mode :blocking
-                          :handlers     [(fn [req]
-                                           (println req)
-                                           {:body (str (:query-params req))})]}]
-       :metrics-enabled true
-       :metrics-prefix  "donkey"}
+                                       (respond
+                                         {:body (format "Query parameters: %s. Headers: %s"
+                                                        (apply str (seq (:query-params req)))
+                                                        (apply str (seq (:headers req))))}))]}]
+       :metrics-enabled false}
       create-server))
