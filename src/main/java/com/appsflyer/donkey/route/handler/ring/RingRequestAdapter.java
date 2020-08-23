@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.appsflyer.donkey.route.handler.ring.Constants.LAST_HANDLER_RESPONSE_FIELD;
+import static com.appsflyer.donkey.route.handler.Constants.LAST_HANDLER_RESPONSE_FIELD;
 import static com.appsflyer.donkey.route.handler.ring.RingRequestField.*;
 
 /**
@@ -19,7 +19,7 @@ import static com.appsflyer.donkey.route.handler.ring.RingRequestField.*;
  * <p></p>
  * See the Ring <a href="https://github.com/ring-clojure/ring/blob/master/SPEC">specification</a> for more details.
  */
-public class RingRequestHandler implements Handler<RoutingContext> {
+public class RingRequestAdapter implements Handler<RoutingContext> {
   
   private static String stringJoiner(List<String> v) {
     return String.join(",", v);
@@ -30,7 +30,7 @@ public class RingRequestHandler implements Handler<RoutingContext> {
   }
   
   private static IPersistentMap toPersistentMap(MultiMap entries) {
-    return toPersistentMap(entries, RingRequestHandler::toVector);
+    return toPersistentMap(entries, RingRequestAdapter::toVector);
   }
   
   private static IPersistentMap toPersistentMap(
@@ -56,10 +56,6 @@ public class RingRequestHandler implements Handler<RoutingContext> {
     ctx.put(LAST_HANDLER_RESPONSE_FIELD, getImmutableRequest(ctx)).next();
   }
   
-  private IPersistentMap getMutableRequest(RoutingContext ctx) {
-    return new MutableRingRequestMap(ctx);
-  }
-  
   public IPersistentMap getImmutableRequest(RoutingContext ctx) {
     List<Object> values = new ArrayList<>(14 << 1);
     
@@ -81,58 +77,58 @@ public class RingRequestHandler implements Handler<RoutingContext> {
     return PersistentHashMap.create(values.toArray());
   }
   
-  private RingRequestHandler addServerPort(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addServerPort(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(SERVER_PORT.keyword(), SERVER_PORT.get(ctx), values);
   }
   
-  private RingRequestHandler addServerName(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addServerName(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(SERVER_NAME.keyword(), SERVER_NAME.get(ctx), values);
   }
   
-  private RingRequestHandler addRemoteAddress(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addRemoteAddress(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(REMOTE_ADDRESS.keyword(), REMOTE_ADDRESS.get(ctx), values);
   }
   
-  private RingRequestHandler addUri(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addUri(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(URI.keyword(), URI.get(ctx), values);
   }
   
-  private RingRequestHandler addScheme(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addScheme(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(SCHEME.keyword(), SCHEME.get(ctx), values);
   }
   
-  private RingRequestHandler addMethod(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addMethod(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(REQUEST_METHOD.keyword(), REQUEST_METHOD.get(ctx), values);
   }
   
-  private RingRequestHandler addProtocol(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addProtocol(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(PROTOCOL.keyword(), PROTOCOL.get(ctx), values);
   }
   
-  private RingRequestHandler addSslClientCert(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addSslClientCert(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(CLIENT_CERT.keyword(), CLIENT_CERT.get(ctx), values);
   }
   
-  private RingRequestHandler addBody(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addBody(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(BODY.keyword(), BODY.get(ctx), values);
   }
   
-  private RingRequestHandler addHeaders(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addHeaders(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(
         HEADERS.keyword(),
-        toPersistentMap(((MultiMap) HEADERS.get(ctx)), RingRequestHandler::stringJoiner),
+        toPersistentMap(((MultiMap) HEADERS.get(ctx)), RingRequestAdapter::stringJoiner),
         values);
   }
   
-  private RingRequestHandler addQueryString(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addQueryString(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(QUERY_STRING.keyword(), QUERY_STRING.get(ctx), values);
   }
   
-  private RingRequestHandler addQueryParams(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addQueryParams(RoutingContext ctx, List<Object> values) {
     return addNameValuePair(QUERY_PARAMS.keyword(), toPersistentMap((MultiMap) QUERY_PARAMS.get(ctx)), values);
   }
   
-  private RingRequestHandler addPathParams(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addPathParams(RoutingContext ctx, List<Object> values) {
     Map<?, ?> pathParams = (Map<?, ?>) PATH_PARAMS.get(ctx);
     
     if (pathParams.isEmpty()) {
@@ -148,7 +144,7 @@ public class RingRequestHandler implements Handler<RoutingContext> {
     return addNameValuePair(PATH_PARAMS.keyword(), RT.mapUniqueKeys(pathParamsArray), values);
   }
   
-  private RingRequestHandler addFormParams(RoutingContext ctx, List<Object> values) {
+  private RingRequestAdapter addFormParams(RoutingContext ctx, List<Object> values) {
     if (!ctx.request().isExpectMultipart()) {
       return this;
     }
@@ -163,7 +159,7 @@ public class RingRequestHandler implements Handler<RoutingContext> {
         values);
   }
   
-  private RingRequestHandler addNameValuePair(Keyword name, Object value, List<Object> values) {
+  private RingRequestAdapter addNameValuePair(Keyword name, Object value, List<Object> values) {
     if (value != null) {
       values.add(name);
       values.add(value);

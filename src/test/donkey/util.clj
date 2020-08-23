@@ -30,8 +30,8 @@
 
 (defn init
   "Initializes the server and client instances that are used in the test"
-  ([routes test-fn] (init routes [] test-fn))
-  ([routes middleware test-fn]
+  ([test-fn routes] (init test-fn routes nil))
+  ([test-fn routes middleware]
    (binding [donkey-server (launch-server
                              {:middleware middleware
                               :routes     routes})]

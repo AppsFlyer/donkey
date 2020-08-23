@@ -1,13 +1,18 @@
 package com.appsflyer.donkey.route;
 
+import com.appsflyer.donkey.route.handler.Middleware;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Collection;
 
-public interface RouteDescriptor
-{
+public interface RouteDescriptor {
+  
+  static RouteDescriptor create() {
+    return new RouteDescriptorImpl();
+  }
+  
   PathDescriptor path();
   
   RouteDescriptor path(PathDescriptor path);
@@ -24,11 +29,17 @@ public interface RouteDescriptor
   
   RouteDescriptor addProduces(String contentType);
   
-  Collection<Handler<RoutingContext>> handlers();
+  Handler<RoutingContext> handler();
   
   RouteDescriptor addHandler(Handler<RoutingContext> handler);
   
   HandlerMode handlerMode();
   
   RouteDescriptor handlerMode(HandlerMode handlerMode);
+  
+  Middleware middleware();
+  
+  RouteDescriptor middleware(Middleware middleware);
+  
+  boolean hasMiddleware();
 }

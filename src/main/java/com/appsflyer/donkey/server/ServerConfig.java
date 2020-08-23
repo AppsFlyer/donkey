@@ -1,7 +1,8 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.handler.HandlerConfig;
-import com.appsflyer.donkey.route.handler.HandlerFactory;
+import com.appsflyer.donkey.route.RouteCreatorSupplier;
+import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.handler.AdapterFactory;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 
@@ -29,40 +30,45 @@ import java.util.Objects;
  *
  * <br><br>
  * <p>
- * {@link HandlerFactory} handlerFactory - Used to create handlers for processing requests / responses.
+ * {@link AdapterFactory} handlerFactory - Used to create handlers for processing requests / responses.
  */
-public class ServerConfig
-{
+public class ServerConfig {
   private final VertxOptions vertxOptions;
   private final HttpServerOptions serverOptions;
-  private final HandlerConfig handlerConfig;
+  private final RouteCreatorSupplier routeCreatorSupplier;
+  private final RouterDefinition routerDefinition;
   
   public ServerConfig(
       VertxOptions vertxOptions,
       HttpServerOptions serverOptions,
-      HandlerConfig handlerConfig)
-  {
+      RouteCreatorSupplier routeCreatorSupplier,
+      RouterDefinition routerDefinition) {
+    
     Objects.requireNonNull(vertxOptions, "Vert.x options is missing");
     Objects.requireNonNull(serverOptions, "Server options is missing");
-    Objects.requireNonNull(handlerConfig, "Handler config is missing");
-  
+    Objects.requireNonNull(serverOptions, "Route factory creator is missing");
+    Objects.requireNonNull(routerDefinition, "Router definition is missing");
+    
     this.vertxOptions = vertxOptions;
     this.serverOptions = serverOptions;
-    this.handlerConfig = handlerConfig;
+    this.routeCreatorSupplier = routeCreatorSupplier;
+    this.routerDefinition = routerDefinition;
   }
   
-  VertxOptions vertxOptions()
-  {
+  VertxOptions vertxOptions() {
     return vertxOptions;
   }
   
-  HttpServerOptions serverOptions()
-  {
+  HttpServerOptions serverOptions() {
     return serverOptions;
   }
   
-  HandlerConfig handlerConfig()
-  {
-    return handlerConfig;
+  public RouteCreatorSupplier routeFactoryCreator() {
+    return routeCreatorSupplier;
   }
+  
+  RouterDefinition routerDefinition() {
+    return routerDefinition;
+  }
+  
 }

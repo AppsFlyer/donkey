@@ -7,9 +7,7 @@
            (clojure.lang Symbol Keyword)))
 
 (deftest test-keywordize-query-params
-  (util/init [routes/blocking-global-middleware]
-             [{:handler keywordize-query-params}]
-             (fn []
+  (util/init (fn []
                (let [response-promise (promise)
                      query-string "foo=bar&_count=6&:valid=true&:-empty=false&1=2&_"]
                  (-> util/client
@@ -25,4 +23,7 @@
                    (is (= "true" (get-in res [:query-params (Keyword/intern (Symbol/create current-ns "valid"))])))
                    (is (= "false" (get-in res [:query-params (Keyword/intern (Symbol/create current-ns "-empty"))])))
                    (is (= "2" (-> res :query-params :1)))
-                   (is (contains? (:query-params res) :_)))))))
+                   (is (contains? (:query-params res) :_)))))
+             [routes/echo-route]
+             {:handlers     [keywordize-query-params]
+              :handler-mode :blocking}))
