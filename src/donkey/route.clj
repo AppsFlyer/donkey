@@ -82,14 +82,14 @@
     `(-> identity ~@funs#)))
 
 (defn- ->Middleware [middleware]
-  (let [handler-mode (:handler-mode middleware)
+  (let [handler-mode (:handler-mode middleware :non-blocking)
         ^Handler route-handler (if (= handler-mode :blocking)
                                  ->BlockingRouteHandler
                                  ->RouteHandler)]
     (-> (:handlers middleware)
         chain-middleware
         route-handler
-        (Middleware. (keyword->HttpMethod handler-mode)))))
+        (Middleware. (keyword->HandlerMode handler-mode)))))
 
 (defn- add-handler-mode [^RouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
@@ -97,16 +97,13 @@
   route)
 
 (defn- create-middleware [middleware]
-  (when (seq (:handlers middleware))
+  (when-not (empty (:handlers middleware))
     (->Middleware middleware)))
 
 (defn- add-middleware [^RouteDescriptor route route-map]
   (when-let [middleware (create-middleware (:middleware route-map))]
-    (.middleware route middleware)))
-
-(defn- add-async-handlers [^RouteDescriptor route handlers]
-  (doseq [handler handlers]
-    (.addHandler route ^Handler (->RouteHandler handler))))
+    (.middleware route middleware))
+  route)
 
 (defmulti
   ^:private add-handler

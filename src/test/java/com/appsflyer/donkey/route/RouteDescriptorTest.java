@@ -5,7 +5,6 @@ import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static io.vertx.core.http.HttpMethod.*;
@@ -42,7 +41,7 @@ class RouteDescriptorTest
     assertEquals(Collections.emptySet(), descriptor.methods());
     assertEquals(Collections.emptySet(), descriptor.consumes());
     assertEquals(Collections.emptySet(), descriptor.produces());
-    assertEquals(List.of(handler), descriptor.handler());
+    assertEquals(handler, descriptor.handler());
     assertEquals(HandlerMode.NON_BLOCKING, descriptor.handlerMode());
   }
   
