@@ -19,7 +19,7 @@
    :event-loops          1
    :debug                false
    :idle-timeout-seconds 0
-   :middleware           []
+   :middleware           {}
    :routes               []}
 
   ;;; Route API
@@ -27,8 +27,10 @@
    :consumes     ["application/json" "application/x-www-form-urlencoded" "text/plain"]
    :produces     ["application/json" "text/plain"]
    :handler-mode :non-blocking
-   :handlers     [(fn [req respond raise]
-                    (respond {:status 200}))]
+   :handler      (fn [req respond raise] (respond {:status 200}))
+   :middleware   {:handlers     [(fn [handler] (fn [req respond raise]
+                                                 (-> req handler identity respond)))]
+                  :handler-mode :non-blocking}
    :path         "/foo"
    :match-type   :simple}
 
@@ -41,19 +43,26 @@
       Server.
       server/->DonkeyServer))
 
+(defn- print-query-params-and-headers [req respond _raise]
+  (respond
+    {:body (format "Query parameters: %s. Headers: %s"
+                   (apply str (seq (:query-params req)))
+                   (apply str (seq (:headers req))))}))
+
+(defn- add-headers [handler]
+  (fn [req respond _raise]
+    (-> req
+        (update :headers assoc "DNT" 1 "Cache-Control" "no-cache")
+        handler
+        respond)))
 
 (defn new-server []
   (-> {:port            8080
        :event-loops     16
-       :middleware      [{:handler middleware/keywordize-query-params}
-                         {:handler (fn [req respond _raise]
-                                     (respond (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")))}]
-       :routes          [{:path     "/benchmark"
-                          :methods  [:get]
-                          :handlers [(fn [req respond _raise]
-                                       (respond
-                                         {:body (format "Query parameters: %s. Headers: %s"
-                                                        (apply str (seq (:query-params req)))
-                                                        (apply str (seq (:headers req))))}))]}]
+       :middleware      {:handlers [middleware/keywordize-query-params
+                                    add-headers]}
+       :routes          [{:path    "/benchmark"
+                          :methods [:get]
+                          :handler print-query-params-and-headers}]
        :metrics-enabled false}
       create-server))

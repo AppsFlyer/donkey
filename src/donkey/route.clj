@@ -3,21 +3,20 @@
            (io.vertx.core Handler)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (com.appsflyer.donkey.route PathDescriptor$MatchType PathDescriptor HandlerMode)
-           (com.appsflyer.donkey.route.ring RingRouteDescriptor)
-           (com.appsflyer.donkey.route.handler.ring Constants RingHandlerFactory)
-           (com.appsflyer.donkey.route.handler HandlerConfig Middleware)))
+           (com.appsflyer.donkey.route PathDescriptor$MatchType HandlerMode PathDescriptor RouteDescriptor)
+           (com.appsflyer.donkey.route.handler Constants)
+           (com.appsflyer.donkey.route.handler RouterDefinition Middleware)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
     PathDescriptor$MatchType/REGEX
     PathDescriptor$MatchType/SIMPLE))
 
-(defn- add-path [^RingRouteDescriptor route route-map]
+(defn- add-path [^RouteDescriptor route route-map]
   (when-let [path (:path route-map)]
     (->> (:match-type route-map)
          keyword->MatchType
-         (PathDescriptor. path)
+         (PathDescriptor/create path)
          (.path route)))
   route)
 
@@ -32,17 +31,17 @@
     :blocking HandlerMode/BLOCKING
     :non-blocking HandlerMode/NON_BLOCKING))
 
-(defn- add-methods [^RingRouteDescriptor route route-map]
+(defn- add-methods [^RouteDescriptor route route-map]
   (doseq [method (:methods route-map [])]
     (.addMethod route (keyword->HttpMethod method)))
   route)
 
-(defn- add-consumes [^RingRouteDescriptor route route-map]
+(defn- add-consumes [^RouteDescriptor route route-map]
   (doseq [^String content-type (:consumes route-map [])]
     (.addConsumes route content-type))
   route)
 
-(defn- add-produces [^RingRouteDescriptor route route-map]
+(defn- add-produces [^RouteDescriptor route route-map]
   (doseq [^String content-type (:produces route-map [])]
     (.addProduces route content-type))
   route)
@@ -78,38 +77,61 @@
       (catch Throwable ex
         (.fail ^RoutingContext ctx ^Throwable ex)))))
 
-(defn- add-handler-mode [^RingRouteDescriptor route route-map]
+(defmacro chain-middleware [& args]
+  (let [funs# (rseq (vec args))]
+    `(-> identity ~@funs#)))
+
+(defn- ->Middleware [middleware]
+  (let [handler-mode (:handler-mode middleware)
+        ^Handler route-handler (if (= handler-mode :blocking)
+                                 ->BlockingRouteHandler
+                                 ->RouteHandler)]
+    (-> (:handlers middleware)
+        chain-middleware
+        route-handler
+        (Middleware. (keyword->HttpMethod handler-mode)))))
+
+(defn- add-handler-mode [^RouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
     (.handlerMode route (keyword->HandlerMode handler-mode)))
   route)
 
-(defn- add-async-handlers [^RingRouteDescriptor route handlers]
+(defn- create-middleware [middleware]
+  (when (seq (:handlers middleware))
+    (->Middleware middleware)))
+
+(defn- add-middleware [^RouteDescriptor route route-map]
+  (when-let [middleware (create-middleware (:middleware route-map))]
+    (.middleware route middleware)))
+
+(defn- add-async-handlers [^RouteDescriptor route handlers]
   (doseq [handler handlers]
     (.addHandler route ^Handler (->RouteHandler handler))))
 
-(defn- add-blocking-handlers [^RingRouteDescriptor route handlers]
-  (doseq [handler handlers]
-    (.addHandler route ^Handler (->BlockingRouteHandler handler))))
+(defmulti
+  ^:private add-handler
+  (fn [^RouteDescriptor _route route-map]
+    (:handler-mode route-map)))
 
-(defn- add-handlers [^RingRouteDescriptor route route-map]
-  (if (= (:handler-mode route-map) :blocking)
-    (add-blocking-handlers route (:handlers route-map))
-    (add-async-handlers route (:handlers route-map)))
+(defmethod
+  ^:private add-handler :blocking [^RouteDescriptor route route-map]
+  (.addHandler route (->BlockingRouteHandler (:handler route-map)))
+  route)
+
+(defmethod
+  ^:private add-handler :default [^RouteDescriptor route route-map]
+  (.addHandler route (->RouteHandler (:handler route-map)))
   route)
 
 (defn- map->RouteDescriptor [route-map]
-  (-> (RingRouteDescriptor.)
+  (-> (RouteDescriptor/create)
       (add-path route-map)
       (add-methods route-map)
       (add-consumes route-map)
       (add-produces route-map)
       (add-handler-mode route-map)
-      (add-handlers route-map)))
-
-(defn- map->Middleware [middleware-map]
-  (if (= :blocking (:handler-mode middleware-map))
-    (Middleware. ^Handler (->BlockingRouteHandler (:handler middleware-map)) HandlerMode/BLOCKING)
-    (Middleware. ^Handler (->RouteHandler (:handler middleware-map)) HandlerMode/NON_BLOCKING)))
+      (add-middleware route-map)
+      (add-handler route-map)))
 
 (defn- into-array-list
   "Perform 'fun' on each element in 'col' and return a Java List with the result"
@@ -124,11 +146,7 @@
 (defn- create-route-descriptors [routes]
   (into-array-list routes map->RouteDescriptor))
 
-(defn- create-middleware [middleware]
-  (into-array-list middleware map->Middleware))
-
-(defn get-handler-config [opts]
-  (HandlerConfig.
+(defn get-router-definition [opts]
+  (RouterDefinition.
     (create-route-descriptors (:routes opts))
-    (RingHandlerFactory.)
     (create-middleware (:middleware opts))))

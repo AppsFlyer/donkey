@@ -1,4 +1,4 @@
-package com.appsflyer.donkey.exception;
+package com.appsflyer.donkey.server.exception;
 
 public class ServerInitializationException extends Exception
 {

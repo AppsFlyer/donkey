@@ -1,8 +1,9 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.handler.HandlerConfig;
-import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
-import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
+import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.handler.Middleware;
+import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.jupiter.api.Test;
@@ -12,22 +13,21 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class ServerConfigTest
-{
+class ServerConfigTest {
   
   @Test
-  void testRequiredOptions()
-  {
+  void testRequiredOptions() {
     var vertxOptions = new VertxOptions();
     var serverOptions = new HttpServerOptions();
-    HandlerConfig handlerConfig = new HandlerConfig(List.of(new RingRouteDescriptor()), new HandlerFactoryStub());
-  
-    assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, handlerConfig));
+    var routeCreatorSupplier = new RingRouteCreatorSupplier();
+    var routerDefinition = new RouterDefinition(List.of(RouteDescriptor.create()), new Middleware(v -> {}));
+    
+    assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, routeCreatorSupplier, routerDefinition));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(null, serverOptions, handlerConfig));
+        new ServerConfig(null, serverOptions, routeCreatorSupplier, routerDefinition));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, null, handlerConfig));
+        new ServerConfig(vertxOptions, null, routeCreatorSupplier, routerDefinition));
     assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, serverOptions, null));
+        new ServerConfig(vertxOptions, serverOptions, routeCreatorSupplier, null));
   }
 }

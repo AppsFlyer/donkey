@@ -1,4 +1,4 @@
-package com.appsflyer.donkey.route.handler.ring;
+package com.appsflyer.donkey.route.handler;
 
 public final class Constants
 {

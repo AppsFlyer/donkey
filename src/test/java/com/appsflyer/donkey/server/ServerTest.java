@@ -1,9 +1,10 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.exception.ServerInitializationException;
 import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.HandlerConfig;
-import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
+import com.appsflyer.donkey.route.handler.Middleware;
+import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
+import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -31,14 +32,12 @@ import static org.mockito.Mockito.mock;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
-class ServerTest
-{
+class ServerTest {
   private static final int port = 16969;
   private static final String responseBody = "Hello world";
   
   @Test
-  void testServerAsyncLifecycle(Vertx vertx, VertxTestContext testContext)
-  {
+  void testServerAsyncLifecycle(Vertx vertx, VertxTestContext testContext) {
     Server server = new Server(newServerConfig(newRouteDescriptor()));
     server.start()
           .onComplete(startResult -> {
@@ -64,8 +63,7 @@ class ServerTest
   
   @Test
   void testServerSyncLifecycle(Vertx vertx, VertxTestContext testContext) throws
-                                                                          ServerInitializationException
-  {
+                                                                          ServerInitializationException {
     Server server = new Server(newServerConfig(newRouteDescriptor()));
     server.startSync();
     
@@ -81,8 +79,7 @@ class ServerTest
   
   @Test
   void testAddressAlreadyInUse(Vertx vertx, VertxTestContext testContext) throws
-                                                                          Exception
-  {
+                                                                          Exception {
     Server server1 = new Server(newServerConfig(newRouteDescriptor()));
     server1.startSync();
     
@@ -97,19 +94,18 @@ class ServerTest
     })));
   }
   
-  private RouteDescriptor newRouteDescriptor()
-  {
+  private RouteDescriptor newRouteDescriptor() {
     RouteDescriptor routeDescriptor = mock(RouteDescriptor.class);
     Collection<Handler<RoutingContext>> handlers = List.of(ctx -> ctx.response().end(responseBody));
-    doReturn(handlers).when(routeDescriptor).handlers();
+    doReturn(handlers).when(routeDescriptor).handler();
     return routeDescriptor;
   }
   
-  private ServerConfig newServerConfig(RouteDescriptor routeDescriptor)
-  {
+  private ServerConfig newServerConfig(RouteDescriptor routeDescriptor) {
     return new ServerConfig(
         new VertxOptions().setEventLoopPoolSize(1),
         new HttpServerOptions().setPort(port),
-        new HandlerConfig(List.of(routeDescriptor), new HandlerFactoryStub()));
+        new RingRouteCreatorSupplier(),
+        new RouterDefinition(List.of(routeDescriptor), new Middleware(v -> {})));
   }
 }

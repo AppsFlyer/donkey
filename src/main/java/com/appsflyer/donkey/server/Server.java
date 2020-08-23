@@ -1,7 +1,7 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.exception.ServerInitializationException;
-import com.appsflyer.donkey.exception.ServerShutdownException;
+import com.appsflyer.donkey.server.exception.ServerInitializationException;
+import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -19,6 +19,9 @@ public final class Server
   private static final Logger logger = LoggerFactory.getLogger(Server.class.getName());
   private final Vertx vertx;
   private final ServerConfig config;
+  private static final String THREAD_CHECKS_PROP_NAME = "vertx.threadChecks";
+  private static final String DISABLE_TIMINGS_PROP_NAME = "vertx.disableContextTimings";
+  private static final String DISABLE_TCCL_PROP_NAME = "vertx.disableTCCL";
   
   /**
    * Create a new instance with the given {@link ServerConfig}

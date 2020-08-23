@@ -4,28 +4,33 @@
   (:import (com.codahale.metrics MetricRegistry)))
 
 
+(s/def ::handler fn?)
+(s/def ::handlers (s/coll-of ::handler))
+
+
+;; ------- Middleware Specification ------- ;;
+
+(s/def ::middleware (s/keys :req-un [::handlers] :opt-un [::handler-mode]))
+
+
 ;; ------- Route Specification ------- ;;
 
-(s/def ::handler fn?)
 (s/def ::path string?)
 (s/def ::methods (s/coll-of keyword?))
 (s/def ::consumes (s/coll-of string?))
 (s/def ::produces (s/coll-of string?))
 (s/def ::handler-mode #{:blocking :non-blocking})
 (s/def ::match-type #{:simple :regex})
-(s/def ::handlers (s/coll-of ::handler))
 
-(s/def ::route (s/keys :req-un [::handlers]
+(s/def ::route (s/keys :req-un [::handler]
                        :opt-un [::path
                                 ::methods
                                 ::consumes
                                 ::produces
                                 ::handler-mode
-                                ::match-type]))
+                                ::match-type
+                                ::middleware]))
 
-;; ------- Middleware Specification ------- ;;
-
-(s/def ::middleware (s/coll-of (s/keys :req-un [::handler] :opt-un [::handler-mode])))
 
 ;; ------- Server Configuration Specification ------- ;;
 
@@ -59,5 +64,6 @@
                 :worker-threads       20
                 :debug                false
                 :idle-timeout-seconds 0
-                :routes               [{:handlers [identity]}]}]
-    (s/valid? (s/and ::config ::global-handlers-or-routes) config)))
+                :routes               [{:middleware {:handlers [identity identity]
+                                                     :handler-mode :non-blocking}
+                                        :handler    [identity]}]}]))

@@ -1,33 +1,20 @@
 package com.appsflyer.donkey.route;
 
-public class PathDescriptor
-{
-  private final String value;
-  private final MatchType matchType;
+public interface PathDescriptor {
   
-  public PathDescriptor(String value, MatchType matchType)
-  {
-    this.value = value;
-    this.matchType = matchType;
+  static PathDescriptor create(String value) {
+    return create(value, MatchType.SIMPLE);
   }
   
-  PathDescriptor(String value)
-  {
-    this(value, MatchType.SIMPLE);
+  static PathDescriptor create(String value, MatchType matchType) {
+    return new PathDescriptorImpl(value, matchType);
   }
   
-  String value()
-  {
-    return value;
-  }
+  String value();
   
-  MatchType matchType()
-  {
-    return matchType;
-  }
+  MatchType matchType();
   
-  public enum MatchType
-  {
+  enum MatchType {
     REGEX, SIMPLE
   }
 }

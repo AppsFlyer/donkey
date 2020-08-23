@@ -1,24 +1,18 @@
 package com.appsflyer.donkey.route.handler;
 
-import io.vertx.core.Vertx;
+import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InternalServerErrorHandler extends ResponseHandler
+public class InternalServerErrorHandler implements Handler<RoutingContext>
 {
   private static final Logger logger = LoggerFactory.getLogger(InternalServerErrorHandler.class.getName());
-  public InternalServerErrorHandler(Vertx vertx)
-  {
-    super(vertx);
-  }
   
   @Override
   public void handle(RoutingContext ctx)
   {
-    Throwable ex = ctx.failure();
-    logger.error("Unhandled exception:", ex);
-    addDefaultHeaders(ctx.response());
+    logger.error("Unhandled exception:", ctx.failure());
     ctx.response().setStatusCode(500).end();
   }
 }

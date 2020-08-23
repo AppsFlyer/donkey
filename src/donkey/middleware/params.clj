@@ -1,11 +1,10 @@
 (ns donkey.middleware.params
   (:import (com.appsflyer.donkey.middleware MiddlewareProvider)))
 
-(defn keywordize-query-params
-  ([request]
-   (MiddlewareProvider/keywordizeQueryParams request))
-  ([request respond raise]
-   (try
-     (respond (MiddlewareProvider/keywordizeQueryParams request))
-     (catch Exception ex
-       (raise ex)))))
+(defn keywordize-query-params [handler]
+  (fn
+    ([request]
+     (handler (MiddlewareProvider/keywordizeQueryParams request)))
+    ([request respond raise]
+     (respond
+       (handler (MiddlewareProvider/keywordizeQueryParams request) respond raise)))))

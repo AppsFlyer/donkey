@@ -1,8 +1,7 @@
 package com.appsflyer.donkey.route;
 
-import com.appsflyer.donkey.route.handler.HandlerConfig;
-import com.appsflyer.donkey.route.handler.HandlerFactoryStub;
-import com.appsflyer.donkey.route.ring.RingRouteDescriptor;
+import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -32,74 +31,72 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
-public class IntegrationTest
-{
+public class IntegrationTest {
   
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
-  private RouterFactory newRouterFactory(Vertx vertx, List<RouteDescriptor> routes)
-  {
+  private RouterFactory newRouterFactory(Vertx vertx, List<RouteDescriptor> routes) {
     return new RouterFactory(vertx, newHandlerConfig(routes));
   }
   
-  private HandlerConfig newHandlerConfig(List<RouteDescriptor> routes)
-  {
-    return new HandlerConfig(routes, new HandlerFactoryStub());
+  private RouterDefinition newHandlerConfig(List<RouteDescriptor> routes) {
+    return new RouterDefinition(routes);
   }
   
   private void assertContextSuccess(VertxTestContext testContext) throws
-                                                                  Throwable
-  {
+                                                                  Throwable {
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
   
-  private RequestOptions optionsForUri(String uri)
-  {
+  private RequestOptions optionsForUri(String uri) {
     return new RequestOptions()
         .setHost(getDefaultAddress().host())
         .setPort(DEFAULT_PORT)
         .setURI(uri);
   }
   
-  private Router defineRoutes(Vertx vertx, Checkpoint requestsServed)
-  {
+  private Router defineRoutes(Vertx vertx, Checkpoint requestsServed) {
     Handler<RoutingContext> handler = ctx -> {
       ctx.response().end(ctx.request().params().toString());
       requestsServed.flag();
     };
     
-    RouteDescriptor getFoo = new RingRouteDescriptor()
-        .addMethod(GET)
-        .path(new PathDescriptor("/foo")).addHandler(handler);
-    
-    RouteDescriptor postFooBar = new RingRouteDescriptor()
-        .addMethod(POST)
-        .path(new PathDescriptor("/foo/bar")).addHandler(handler);
-    
-    RouteDescriptor postOrPutJson = new RingRouteDescriptor()
-        .addMethod(POST)
-        .addMethod(PUT)
-        .path(new PathDescriptor("/json"))
-        .addConsumes("application/json")
-        .addProduces("application/json")
-        .addHandler(handler);
-    
-    RouteDescriptor getPathVariable = new RingRouteDescriptor()
-        .addMethod(GET)
-        .path(new PathDescriptor("/token/:tokenId")).addHandler(handler);
+    var getFoo = RouteDescriptor.create()
+                                            .addMethod(GET)
+                                            .path(PathDescriptor.create("/foo"))
+                                            .addHandler(handler);
   
-    RouteDescriptor getRegexPath = new RingRouteDescriptor()
-        .addMethod(GET)
-        .path(new PathDescriptor("/id/(\\d+)", REGEX)).addHandler(handler);
+    var postFooBar = RouteDescriptor.create()
+                                                .addMethod(POST)
+                                                .path(PathDescriptor.create("/foo/bar"))
+                                                .addHandler(handler);
   
-    RouteDescriptor postComplexRegexPath = new RingRouteDescriptor()
-        .addMethod(POST)
-        .path(new PathDescriptor("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
-        .addHandler(handler);
+    var postOrPutJson = RouteDescriptor.create()
+                                                   .addMethod(POST)
+                                                   .addMethod(PUT)
+                                                   .path(PathDescriptor.create("/json"))
+                                                   .addConsumes("application/json")
+                                                   .addProduces("application/json")
+                                                   .addHandler(handler);
   
+    var getPathVariable = RouteDescriptor.create()
+                                                     .addMethod(GET)
+                                                     .path(PathDescriptor.create("/token/:tokenId"))
+                                                     .addHandler(handler);
+  
+    var getRegexPath = RouteDescriptor.create()
+                                                  .addMethod(GET)
+                                                  .path(PathDescriptor.create("/id/(\\d+)", REGEX))
+                                                  .addHandler(handler);
+  
+    var postComplexRegexPath = RouteDescriptor.create()
+                                                          .addMethod(POST)
+                                                          .path(PathDescriptor.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
+                                                          .addHandler(handler);
+    
     return newRouterFactory(
         vertx, List.of(getFoo,
                        postFooBar,
@@ -107,12 +104,11 @@ public class IntegrationTest
                        getPathVariable,
                        getRegexPath,
                        postComplexRegexPath))
-        .create();
+        .create(new RingRouteCreatorSupplier());
   }
   
   private Future<HttpServer> startServer(
-      Vertx vertx, VertxTestContext testContext, Handler<HttpServerRequest> router)
-  {
+      Vertx vertx, VertxTestContext testContext, Handler<HttpServerRequest> router) {
     Checkpoint serverStarted = testContext.checkpoint();
     Promise<HttpServer> promise = Promise.promise();
     vertx.createHttpServer()
@@ -129,8 +125,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingByMethod(Vertx vertx, VertxTestContext testContext) throws
-                                                                      Throwable
-  {
+                                                                      Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
@@ -159,8 +154,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingByConsumeContentType(Vertx vertx, VertxTestContext testContext) throws
-                                                                                  Throwable
-  {
+                                                                                  Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
@@ -191,8 +185,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingByProduceContentType(Vertx vertx, VertxTestContext testContext) throws
-                                                                                  Throwable
-  {
+                                                                                  Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
@@ -223,8 +216,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingWithPathVariable(Vertx vertx, VertxTestContext testContext) throws
-                                                                              Throwable
-  {
+                                                                              Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(1);
     
@@ -249,8 +241,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingWithRegexPath(Vertx vertx, VertxTestContext testContext) throws
-                                                                           Throwable
-  {
+                                                                           Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(2);
     
@@ -280,8 +271,7 @@ public class IntegrationTest
   
   @Test
   void testRoutingWithComplexRegexPath(Vertx vertx, VertxTestContext testContext) throws
-                                                                                  Throwable
-  {
+                                                                                  Throwable {
     Checkpoint requestsServed = testContext.checkpoint(1);
     Checkpoint responsesReceived = testContext.checkpoint(1);
     

@@ -1,10 +1,12 @@
 (ns donkey.server
   (:require [donkey.metrics :refer [get-metrics-options]]
-            [donkey.route :refer [get-handler-config]])
-  (:import (io.vertx.core.http HttpServerOptions)
+            [donkey.route :refer [get-router-definition]])
+  (:import (io.vertx.core AsyncResult VertxOptions Handler)
+           (io.vertx.core.http HttpServerOptions)
            (com.appsflyer.donkey.server Server ServerConfig)
-           (com.appsflyer.donkey.exception ServerInitializationException ServerShutdownException)
-           (io.vertx.core AsyncResult VertxOptions Handler)))
+           (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
+           (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
+           (io.vertx.core.http HttpServerOptions)))
 
 (defn- ^HttpServerOptions get-server-options
   "docstring"
@@ -31,7 +33,8 @@
   (ServerConfig.
     (get-vertx-options opts)
     (get-server-options opts)
-    (get-handler-config opts)))
+    (RingRouteCreatorSupplier.)
+    (get-router-definition opts)))
 
 (deftype EventHandler [impl]
   Handler

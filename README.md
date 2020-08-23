@@ -38,10 +38,10 @@ Blocking handler mode.
                :methods      [:get]
                :handler-mode :blocking
                :consumes     ["text/plain"]
-               :handlers     [(fn [_req]
+               :handler     (fn [_req]
                                 {:status  200
                                  :headers {"content-type" "application/json"}
-                                 :body    (.getBytes "{\"greet\":\"Hello world!\"}")})]}]}
+                                 :body    (.getBytes "{\"greet\":\"Hello world!\"}")})}]}
     donkey/create-server
     server/start)
 ```
@@ -53,13 +53,13 @@ Non-blocking handler mode.
                :methods         [:get]
                :metrics-enabled true
                :consumes        ["text/plain"]
-               :handlers        [(fn [req respond _raise]
+               :handler        (fn [req respond _raise]
                                    (future
                                      (respond
                                        {:status  200
                                         :headers {"content-type" "text/plain"}
                                         :body    (.getBytes
-                                                   (str "Hello " (-> :path-params req (get "name"))))})))]}]}
+                                                   (str "Hello " (-> :path-params req (get "name"))))})))}]}
     donkey/create-server
     server/start)
 ```
