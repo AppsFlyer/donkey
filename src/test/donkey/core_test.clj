@@ -23,7 +23,7 @@
    routes/async-exceptional-middleware-handlers])
 
 
-(use-fixtures :once (partial util/init route-descriptors))
+(use-fixtures :once (fn [test-fn] (util/init test-fn route-descriptors)))
 
 ;; ---------- Tests ---------- ;;
 

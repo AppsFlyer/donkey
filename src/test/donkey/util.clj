@@ -32,9 +32,7 @@
   "Initializes the server and client instances that are used in the test"
   ([test-fn routes] (init test-fn routes nil))
   ([test-fn routes middleware]
-   (binding [donkey-server (launch-server
-                             {:middleware middleware
-                              :routes     routes})]
+   (binding [donkey-server (launch-server {:routes routes :middleware middleware})]
      (binding [client (launch-client (get-vertx-instance donkey-server))]
        (test-fn)
        (.close client)

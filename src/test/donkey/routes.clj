@@ -21,6 +21,7 @@
 (def echo-route
   {:path    "/echo"
    :methods [:get]
+   :handler-mode :blocking
    :handler return-request})
 
 (def ring-spec
