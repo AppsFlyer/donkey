@@ -4,17 +4,15 @@ import com.appsflyer.donkey.route.handler.AdapterFactory;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
-public class RingAdapterFactory implements AdapterFactory
-{
+public class RingAdapterFactory implements AdapterFactory {
+  
   @Override
-  public Handler<RoutingContext> requestAdapter()
-  {
+  public Handler<RoutingContext> requestAdapter() {
     return new RingRequestAdapter();
   }
   
   @Override
-  public Handler<RoutingContext> responseAdapter()
-  {
+  public Handler<RoutingContext> responseAdapter() {
     return new RingResponseAdapter();
   }
   

@@ -1,6 +1,5 @@
 package com.appsflyer.donkey.route;
 
-import com.appsflyer.donkey.route.handler.Middleware;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
@@ -14,7 +13,6 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   private final Collection<String> produces = new HashSet<>(6);
   private HandlerMode handlerMode = HandlerMode.NON_BLOCKING;
   private Handler<RoutingContext> handler;
-  private Middleware middleware;
   private PathDescriptor path;
   
   @Override
@@ -91,22 +89,6 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   @Override
   public HandlerMode handlerMode() {
     return handlerMode;
-  }
-  
-  @Override
-  public Middleware middleware() {
-    return middleware;
-  }
-  
-  @Override
-  public RouteDescriptor middleware(Middleware middleware) {
-    this.middleware = middleware;
-    return this;
-  }
-  
-  @Override
-  public boolean hasMiddleware() {
-    return middleware != null;
   }
   
   @Override

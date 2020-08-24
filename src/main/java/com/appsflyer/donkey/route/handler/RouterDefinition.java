@@ -2,18 +2,14 @@ package com.appsflyer.donkey.route.handler;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 public class RouterDefinition {
-  private final List<RouteDescriptor> routes;
-  private final Middleware middleware;
+  private final Collection<RouteDescriptor> routes;
   
   public RouterDefinition(List<RouteDescriptor> routes) {
-    this(routes, null);
-  }
-  
-  public RouterDefinition(List<RouteDescriptor> routes, Middleware middleware) {
     
     Objects.requireNonNull(routes, "Routes cannot be null");
     if (routes.isEmpty()) {
@@ -21,15 +17,10 @@ public class RouterDefinition {
     }
     
     this.routes = List.copyOf(routes);
-    this.middleware = middleware;
   }
   
-  public List<RouteDescriptor> routes() {
+  public Collection<RouteDescriptor> routes() {
     return routes;
-  }
-  
-  public Middleware middleware() {
-    return middleware;
   }
   
   

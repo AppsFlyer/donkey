@@ -31,12 +31,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
-public class IntegrationTest {
+class IntegrationTest {
   
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
   private RouterFactory newRouterFactory(Vertx vertx, List<RouteDescriptor> routes) {
-    return new RouterFactory(vertx, newHandlerConfig(routes));
+    return RouterFactory.create(vertx, newHandlerConfig(routes));
   }
   
   private RouterDefinition newHandlerConfig(List<RouteDescriptor> routes) {
@@ -65,37 +65,37 @@ public class IntegrationTest {
     };
     
     var getFoo = RouteDescriptor.create()
-                                            .addMethod(GET)
-                                            .path(PathDescriptor.create("/foo"))
-                                            .addHandler(handler);
-  
+                                .addMethod(GET)
+                                .path(PathDescriptor.create("/foo"))
+                                .addHandler(handler);
+    
     var postFooBar = RouteDescriptor.create()
-                                                .addMethod(POST)
-                                                .path(PathDescriptor.create("/foo/bar"))
-                                                .addHandler(handler);
-  
+                                    .addMethod(POST)
+                                    .path(PathDescriptor.create("/foo/bar"))
+                                    .addHandler(handler);
+    
     var postOrPutJson = RouteDescriptor.create()
-                                                   .addMethod(POST)
-                                                   .addMethod(PUT)
-                                                   .path(PathDescriptor.create("/json"))
-                                                   .addConsumes("application/json")
-                                                   .addProduces("application/json")
-                                                   .addHandler(handler);
-  
+                                       .addMethod(POST)
+                                       .addMethod(PUT)
+                                       .path(PathDescriptor.create("/json"))
+                                       .addConsumes("application/json")
+                                       .addProduces("application/json")
+                                       .addHandler(handler);
+    
     var getPathVariable = RouteDescriptor.create()
-                                                     .addMethod(GET)
-                                                     .path(PathDescriptor.create("/token/:tokenId"))
-                                                     .addHandler(handler);
-  
+                                         .addMethod(GET)
+                                         .path(PathDescriptor.create("/token/:tokenId"))
+                                         .addHandler(handler);
+    
     var getRegexPath = RouteDescriptor.create()
-                                                  .addMethod(GET)
-                                                  .path(PathDescriptor.create("/id/(\\d+)", REGEX))
-                                                  .addHandler(handler);
-  
+                                      .addMethod(GET)
+                                      .path(PathDescriptor.create("/id/(\\d+)", REGEX))
+                                      .addHandler(handler);
+    
     var postComplexRegexPath = RouteDescriptor.create()
-                                                          .addMethod(POST)
-                                                          .path(PathDescriptor.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
-                                                          .addHandler(handler);
+                                              .addMethod(POST)
+                                              .path(PathDescriptor.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
+                                              .addHandler(handler);
     
     return newRouterFactory(
         vertx, List.of(getFoo,
@@ -104,7 +104,7 @@ public class IntegrationTest {
                        getPathVariable,
                        getRegexPath,
                        postComplexRegexPath))
-        .create(new RingRouteCreatorSupplier());
+        .withRouteCreator(new RingRouteCreatorSupplier());
   }
   
   private Future<HttpServer> startServer(

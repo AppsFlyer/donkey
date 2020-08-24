@@ -3,7 +3,7 @@
             [donkey.route :refer [get-router-definition]])
   (:import (io.vertx.core AsyncResult VertxOptions Handler)
            (io.vertx.core.http HttpServerOptions)
-           (com.appsflyer.donkey.server Server ServerConfig)
+           (com.appsflyer.donkey.server ServerConfig Server)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
            (io.vertx.core.http HttpServerOptions)))
@@ -22,7 +22,8 @@
 (defn- ^VertxOptions get-vertx-options [opts]
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
-    (.setEventLoopPoolSize vertx-options (int (:event-loops opts 1)))
+    (.setEventLoopPoolSize
+      vertx-options (int (:event-loops opts (-> (Runtime/getRuntime) .availableProcessors))))
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
     (when (:metrics-enabled opts)
@@ -47,7 +48,7 @@
     Returns a promise that will be resolved with an
     ExceptionInfo if the operation failed. Otherwise
     resolved with nil.")
-  (startSync [this]
+  (start-sync [this]
     "Start the server synchronously.
     Blocks the calling thread until server initialization
     is complete. Throws an ExceptionInfo if the operation failed.")
@@ -56,11 +57,11 @@
     Returns a promise that will be resolved with an
     ExceptionInfo if the operation failed. Otherwise
     resolved with nil.")
-  (stopSync [this]
+  (stop-sync [this]
     "Stop the server synchronously.
     Blocks the calling thread until all server resources are terminated.
     Throws an ExceptionInfo if the operation failed.")
-  (awaitTermination [this]
+  (await-termination [this]
     "Blocks the calling thread until a shutdown signal is received
     by the JVM. Useful in order to prevent exiting the '-main' function.
     Throws an InterruptedException."))
@@ -78,7 +79,7 @@
               (deliver res nil)))))
       res))
 
-  (startSync [_this]
+  (start-sync [_this]
     (try
       (.startSync impl)
       (catch ServerInitializationException ex
@@ -87,7 +88,7 @@
   (stop [_this]
     (let [res (promise)]
       (.onComplete
-        (.shutdown impl)
+        (.shutdown ^Server impl)
         (->EventHandler
           (fn [^AsyncResult async-res]
             (if (.failed async-res)
@@ -95,11 +96,11 @@
               (deliver res nil)))))
       res))
 
-  (stopSync [_this]
+  (stop-sync [_this]
     (try
       (.shutdownSync impl)
       (catch ServerShutdownException ex
         (throw (ex-info (.getMessage ex) ex)))))
 
-  (awaitTermination [_this]
-    (.awaitTermination impl)))
+  (await-termination [_this]
+    (.awaitTermination ^Server impl)))

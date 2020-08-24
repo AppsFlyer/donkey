@@ -19,7 +19,7 @@
    :event-loops          1
    :debug                false
    :idle-timeout-seconds 0
-   :middleware           {}
+   :middleware           []
    :routes               []}
 
   ;;; Route API
@@ -28,9 +28,8 @@
    :produces     ["application/json" "text/plain"]
    :handler-mode :non-blocking
    :handler      (fn [req respond raise] (respond {:status 200}))
-   :middleware   {:handlers     [(fn [handler] (fn [req respond raise]
-                                                 (-> req handler identity respond)))]
-                  :handler-mode :non-blocking}
+   :middleware   [(fn [handler] (fn [req respond raise]
+                                  (-> req handler identity respond)))]
    :path         "/foo"
    :match-type   :simple}
 
@@ -40,7 +39,7 @@
 (defn ^DonkeyServer create-server [opts]
   (-> (spec/assert ::server-spec/config opts)
       server/get-server-config
-      Server.
+      Server/create
       server/->DonkeyServer))
 
 (defn- print-query-params-and-headers [req respond _raise]
@@ -50,18 +49,19 @@
                    (apply str (seq (:headers req))))}))
 
 (defn- add-headers [handler]
-  (fn [req respond _raise]
-    (-> req
-        (update :headers assoc "DNT" 1 "Cache-Control" "no-cache")
-        handler
-        respond)))
+  (fn [req respond raise]
+    (handler
+      (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")
+      respond
+      raise)))
 
 (defn new-server []
   (-> {:port            8080
-       :event-loops     16
-       :middleware      {:handlers [middleware/keywordize-query-params
-                                    add-headers]}
-       :routes          [{:path    "/benchmark"
+       :middleware      [middleware/keywordize-query-params add-headers]
+       :routes          [{:path    "/plaintext"
+                          :methods [:get]
+                          :handler (fn [_req res _err] (res {:body "Hello, world!"}))}
+                         {:path    "/benchmark"
                           :methods [:get]
                           :handler print-query-params-and-headers}]
        :metrics-enabled false}

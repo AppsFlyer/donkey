@@ -1,4 +1,4 @@
-package com.appsflyer.donkey.route.handler;
+package com.appsflyer.donkey.route.handler.error;
 
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -13,6 +13,6 @@ public class InternalServerErrorHandler implements Handler<RoutingContext>
   public void handle(RoutingContext ctx)
   {
     logger.error("Unhandled exception:", ctx.failure());
-    ctx.response().setStatusCode(500).end();
+    ctx.response().setStatusCode(500);
   }
 }

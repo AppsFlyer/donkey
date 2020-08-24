@@ -1,6 +1,5 @@
 package com.appsflyer.donkey.route;
 
-import com.appsflyer.donkey.route.handler.Middleware;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
@@ -36,10 +35,4 @@ public interface RouteDescriptor {
   HandlerMode handlerMode();
   
   RouteDescriptor handlerMode(HandlerMode handlerMode);
-  
-  Middleware middleware();
-  
-  RouteDescriptor middleware(Middleware middleware);
-  
-  boolean hasMiddleware();
 }

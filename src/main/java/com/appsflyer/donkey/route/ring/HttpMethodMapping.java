@@ -1,10 +1,10 @@
-package com.appsflyer.donkey.route.handler.ring;
+package com.appsflyer.donkey.route.ring;
 
 import clojure.lang.Keyword;
 import io.vertx.core.http.HttpMethod;
 
-public final class HttpMethodMapping
-{
+public final class HttpMethodMapping {
+  
   private static final Keyword[] keywords = {
       Keyword.intern("options"),
       Keyword.intern("get"),
@@ -19,9 +19,7 @@ public final class HttpMethodMapping
   
   private HttpMethodMapping() {}
   
-  public static Keyword get(HttpMethod method)
-  {
+  public static Keyword get(HttpMethod method) {
     return keywords[method.ordinal()];
   }
-  
 }
