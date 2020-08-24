@@ -76,63 +76,78 @@ between a client and a server. In other words, it allows users to do things such
 logging, compression, validation, authorization, and transformation (to name a few) 
 to requests and responses.
 
-### Ring Middleware
-
-When using a routing library (@todo link to section about routing) that follows
-the [Ring middleware](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) concept,
-you supply a [higher-order function](https://clojure.org/guides/higher_order_functions)
-that accepts a `handler`, and zero or more optional arguments. The function should 
-return a function that accepts 1 or 3 arguments, that is responsible calling `handler`.
-
-For example:
+According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
+specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
+that accept one or more arguments, where the first argument is the next `handler` function, 
+and any optional arguments required by the middleware. 
+The higher-order function should return a function that accepts one or three arguments:
+- One argument: Called with a `request` map argument when `:handler-mode` is `:blocking`.
+- Three arguments: Called with a `request` map, `respond` function, and `raise` function, 
+when `:handler-mode` is `:non-blocking`. The `respond` function should be called with the
+result of the next handler, and the `raise` function should be called when an exception is
+caught, and it is impossible to continue processing the request.
+ 
+The `handler` argument the higher-order function received has the same signature as the returned function.
+It is the middleware author's responsibility to call the next `handler` at some point.   
+ 
+Here's an example of a one argument arity middleware adding timestamp to the request:
 ```clojure
 (defn add-timestamp-middleware [handler]
-    (fn [request] (handler (assoc request :timestamp (System/currentTimeMillis)))))
+  (fn [request] 
+    (handler 
+      (assoc request :timestamp (System/currentTimeMillis)))))
+```
+
+Here's an example of the same middleware with three argument arity:
+```clojure
+(defn add-timestamp-middleware [handler]
+  (fn [request respond raise]
+    (try
+      (handler
+        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
+      (catch Exception ex
+        (raise ex)))))
+```
+
+Finally, here is an example of a three argument arity middleware that adds 
+a `Content-Type` header to the _response_.
+```clojure
+(defn add-content-type-middleware [handler]
+  (fn [request respond raise]
+    (let [respond' (fn [response]
+                     (try
+                       (respond
+                         (update response :headers assoc "Content-Type" "text/plain"))
+                       (catch Exception ex
+                         (raise ex))))]
+        
+      (handler request respond' raise))))
+```
+
+As mentioned before, the three argument arity function is called when the `:handler-mode`
+is `:non-blocking`. Notice that we are doing the processing on the calling thread. 
+That's because there would be no benefit in off loading a simple `assoc` or `update` 
+to a separate thread. If for example we had a middleware that authenticates with a 
+remote database then we should run it on a separate thread.  
+
+In this example we authenticate a user with a remote service. We get back a
+[CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
+that is executed on a different thread. When the future is complete, we check
+if we had an exception, and then either call the next `handler` with the updated
+request, or stop the execution by calling `raise`.
+```clojure
+(defn user-authentication-middleware [handler]
+  (fn [request respond raise]
+    (let [authentication-future ^CompletableFuture (authenticate-user request)]
+     (.whenComplete
+       authentication-future
+       (reify BiConsumer
+         (accept [this result exception]
+           (if (nil? exception)
+             (handler (assoc request :authenticated result) respond raise)
+             (raise exception))))))))
 ```
    
-### Donkey Handlers
-
-The routing API doesn't have the same separation between middleware and handlers. 
-In fact middleware are just handlers. Each handler is called in order with the 
-result emitted by the previous handler.
-
-For example:
-```clojure 
-(defn add-timestamp-middleware [request respond raise]
-    (respond (assoc request :timestamp (System/currentTimeMillis))))
-``` 
-
-Or when `:handler-mode` is `:blocking` then the next handler is called with the 
-value returned by the previous handler.
-```clojure
-(defn add-timestamp-middleware [request]
-    (assoc request :timestamp (System/currentTimeMillis)))
-```
- 
-Notice that we ran the first handler on the calling thread. That's because there
-would be no benefit in off loading a simple `assoc` to a separate thread.
-But, if for example we have a handler that communicates with a remote database
-then we should run it on a separate thread.
-```clojure
-(defn add-user-id [request respond raise]
-    (future 
-      (respond 
-        (assoc request :user-id (get-id-from-db 
-                                     (-> request :query-params (get "user-email")))))))
-```
-
-Here's an example of a route that uses handlers to modify the request and response.
-```clojure
-{:path     "/timestamp"
- :methods  [:get]
- :handlers [(fn [request respond raise]
-              (respond (assoc request :timestamp (System/currentTimeMillis))))
-            (fn [request respond raise]
-              (respond {:status (if (even? (:timestamp request)) 200 400)}))
-           (fn [response respond raise]
-              (respond (assoc response :body (if (= 200 (:status response)) "Timestamp is even!" "Timestamp id odd :("))))]}
-``` 
-
 
 ## License
 
