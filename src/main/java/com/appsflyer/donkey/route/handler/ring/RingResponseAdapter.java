@@ -13,6 +13,7 @@ import java.util.Map;
 import static com.appsflyer.donkey.route.handler.Constants.LAST_HANDLER_RESPONSE_FIELD;
 
 public class RingResponseAdapter implements Handler<RoutingContext> {
+  
   private static final Keyword HEADERS = Keyword.intern("headers");
   private static final Keyword BODY = Keyword.intern("body");
   private static final Keyword STATUS = Keyword.intern("status");
@@ -42,6 +43,7 @@ public class RingResponseAdapter implements Handler<RoutingContext> {
       }
     }
   }
+  
   private void setStatus(HttpServerResponse serverResponse, IPersistentMap ringResponse) {
     serverResponse.setStatusCode(((Number) ringResponse.valAt(STATUS, 200)).intValue());
   }

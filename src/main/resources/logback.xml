@@ -10,8 +10,9 @@
     <logger name="io.netty" level="warn"/>
     <logger name="io.vertx" level="info"/>
     <logger name="com.appsflyer" level="debug"/>
+    <logger name="donkey" level="debug"/>
 
-    <root level="debug">
+    <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>
 

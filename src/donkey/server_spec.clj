@@ -10,7 +10,7 @@
 
 ;; ------- Middleware Specification ------- ;;
 
-(s/def ::middleware (s/keys :req-un [::handlers] :opt-un [::handler-mode]))
+(s/def ::middleware ::handlers)
 
 
 ;; ------- Route Specification ------- ;;
@@ -64,6 +64,5 @@
                 :worker-threads       20
                 :debug                false
                 :idle-timeout-seconds 0
-                :routes               [{:middleware {:handlers [identity identity]
-                                                     :handler-mode :non-blocking}
+                :routes               [{:middleware [identity]
                                         :handler    [identity]}]}]))

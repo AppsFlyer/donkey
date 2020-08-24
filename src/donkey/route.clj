@@ -5,7 +5,7 @@
            (java.util ArrayList List)
            (com.appsflyer.donkey.route PathDescriptor$MatchType HandlerMode PathDescriptor RouteDescriptor)
            (com.appsflyer.donkey.route.handler Constants)
-           (com.appsflyer.donkey.route.handler RouterDefinition Middleware)))
+           (com.appsflyer.donkey.route.handler RouterDefinition)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
@@ -53,14 +53,18 @@
              (format "Could not find '%s' in RoutingContext"
                      Constants/LAST_HANDLER_RESPONSE_FIELD)))))
 
+(defn- response-handler [^RoutingContext ctx res]
+  (let [failed (.failed ctx)
+        ended (-> ctx .response .ended)]
+    (when-not (or failed ended)
+      (-> (.put ctx Constants/LAST_HANDLER_RESPONSE_FIELD res)
+          .next))))
+
 (deftype RouteHandler [impl]
   Handler
   (handle [_this ctx]
-    (letfn [(respond [res]
-              (-> ^RoutingContext ctx
-                  (.put Constants/LAST_HANDLER_RESPONSE_FIELD res)
-                  .next))
-            (raise [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
+    (let [respond (partial response-handler ctx)
+          raise (fn [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
       (try
         (impl (get-handler-argument ctx) respond raise)
         (catch Throwable ex
@@ -77,47 +81,25 @@
       (catch Throwable ex
         (.fail ^RoutingContext ctx ^Throwable ex)))))
 
-(defmacro chain-middleware [& args]
-  (let [funs# (rseq (vec args))]
-    `(-> identity ~@funs#)))
+(defmulti
+  ^:private create-handler
+  (fn [route-map]
+    (:handler-mode route-map :non-blocking)))
 
-(defn- ->Middleware [middleware]
-  (let [handler-mode (:handler-mode middleware :non-blocking)
-        ^Handler route-handler (if (= handler-mode :blocking)
-                                 ->BlockingRouteHandler
-                                 ->RouteHandler)]
-    (-> (:handlers middleware)
-        chain-middleware
-        route-handler
-        (Middleware. (keyword->HandlerMode handler-mode)))))
+(defmethod
+  ^:private create-handler :blocking [route-map]
+  (->BlockingRouteHandler (:handler route-map)))
+
+(defmethod
+  ^:private create-handler :non-blocking [route-map]
+  (->RouteHandler (:handler route-map)))
+
+(defn- add-handler [^RouteDescriptor route route-map]
+  (.addHandler route ^Handler (create-handler route-map)))
 
 (defn- add-handler-mode [^RouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
     (.handlerMode route (keyword->HandlerMode handler-mode)))
-  route)
-
-(defn- create-middleware [middleware]
-  (when-not (empty (:handlers middleware))
-    (->Middleware middleware)))
-
-(defn- add-middleware [^RouteDescriptor route route-map]
-  (when-let [middleware (create-middleware (:middleware route-map))]
-    (.middleware route middleware))
-  route)
-
-(defmulti
-  ^:private add-handler
-  (fn [^RouteDescriptor _route route-map]
-    (:handler-mode route-map)))
-
-(defmethod
-  ^:private add-handler :blocking [^RouteDescriptor route route-map]
-  (.addHandler route (->BlockingRouteHandler (:handler route-map)))
-  route)
-
-(defmethod
-  ^:private add-handler :default [^RouteDescriptor route route-map]
-  (.addHandler route (->RouteHandler (:handler route-map)))
   route)
 
 (defn- map->RouteDescriptor [route-map]
@@ -127,23 +109,24 @@
       (add-consumes route-map)
       (add-produces route-map)
       (add-handler-mode route-map)
-      (add-middleware route-map)
       (add-handler route-map)))
 
-(defn- into-array-list
-  "Perform 'fun' on each element in 'col' and return a Java List with the result"
-  [col fun]
-  (reduce
-    (fn [res entry]
-      (doto ^List res
-        (.add (fun entry))))
-    (ArrayList. (count col))
-    col))
+(defn- add-middleware [route-map global-middleware]
+  (let [handlers (-> (if (empty? global-middleware) [] global-middleware)
+                     (concat (:middleware route-map [])))]
+    (update route-map :handler (fn [handler]
+                                 (if (empty? handlers)
+                                   handler
+                                   (let [comp-fn (apply comp handlers)]
+                                     (comp-fn handler)))))))
 
-(defn- create-route-descriptors [routes]
-  (into-array-list routes map->RouteDescriptor))
+(defn- create-route-descriptors [opts]
+  (reduce
+    (fn [res route]
+      (doto ^List res
+        (.add (map->RouteDescriptor (add-middleware route (:middleware opts))))))
+    (ArrayList. (count (:routes opts)))
+    (:routes opts)))
 
 (defn get-router-definition [opts]
-  (RouterDefinition.
-    (create-route-descriptors (:routes opts))
-    (create-middleware (:middleware opts))))
+  (RouterDefinition. (create-route-descriptors opts)))

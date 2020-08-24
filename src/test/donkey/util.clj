@@ -15,7 +15,7 @@
 
 (defn- launch-server [opts]
   (let [instance (donkey/create-server (merge default-options opts))]
-    (server/startSync instance)
+    (server/start-sync instance)
     instance))
 
 (defn- ^WebClient launch-client [^Vertx vertx]
@@ -36,7 +36,7 @@
      (binding [client (launch-client (get-vertx-instance donkey-server))]
        (test-fn)
        (.close client)
-       (is (nil? (server/stopSync donkey-server)))))))
+       (is (nil? (server/stop-sync donkey-server)))))))
 
 
 ;; ---------- Helper Functions ---------- ;;

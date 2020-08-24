@@ -2,16 +2,15 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.handler.RouterDefinition;
-import com.appsflyer.donkey.route.handler.AdapterFactory;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 
 import java.util.Objects;
 
-//@todo Add handler config description
+//@todo fix doc string
 
 /**
- * A DTO object used for initializing a {@link Server}.
+ * A DTO object used for initializing a {@link ServerImpl}.
  * It is comprised of the following building blocks:
  * <br><br>
  * <p>
@@ -30,9 +29,9 @@ import java.util.Objects;
  *
  * <br><br>
  * <p>
- * {@link AdapterFactory} handlerFactory - Used to create handlers for processing requests / responses.
  */
 public class ServerConfig {
+  
   private final VertxOptions vertxOptions;
   private final HttpServerOptions serverOptions;
   private final RouteCreatorSupplier routeCreatorSupplier;
@@ -46,7 +45,7 @@ public class ServerConfig {
     
     Objects.requireNonNull(vertxOptions, "Vert.x options is missing");
     Objects.requireNonNull(serverOptions, "Server options is missing");
-    Objects.requireNonNull(serverOptions, "Route factory creator is missing");
+    Objects.requireNonNull(routeCreatorSupplier, "Route creator supplier is missing");
     Objects.requireNonNull(routerDefinition, "Router definition is missing");
     
     this.vertxOptions = vertxOptions;

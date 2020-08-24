@@ -2,6 +2,9 @@
 
 
 ## TODO
+- Clean up the middleware code in route.clj
+- Add more middleware tests
+- Make adding the "Date" header optional
 - TESTS!
 - Implement debug mode
 - Client implementation
@@ -11,13 +14,14 @@
 - README
 - Setup CI
 - Explore having the metrics implementation pluggable by the user.
-- Think about short circuit of handlers
 - Consider going completely data oriented. The config is just json, and the handlers 
 are namespaced keywords point to user functions.
 
 ========================================
 
 ## DONE
+- Refactor middleware to comply with Ring
+- Think about short circuit of handlers
 - Implement global middleware
 - Add support for per route middleware 
 - Metrics are not working

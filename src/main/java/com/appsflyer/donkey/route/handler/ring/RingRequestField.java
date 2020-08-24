@@ -1,6 +1,8 @@
 package com.appsflyer.donkey.route.handler.ring;
 
 import clojure.lang.Keyword;
+import com.appsflyer.donkey.route.ring.HttpMethodMapping;
+import com.appsflyer.donkey.route.ring.HttpProtocolMapping;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;

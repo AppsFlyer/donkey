@@ -1,7 +1,6 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.Middleware;
 import com.appsflyer.donkey.route.handler.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import io.vertx.core.VertxOptions;
@@ -20,7 +19,7 @@ class ServerConfigTest {
     var vertxOptions = new VertxOptions();
     var serverOptions = new HttpServerOptions();
     var routeCreatorSupplier = new RingRouteCreatorSupplier();
-    var routerDefinition = new RouterDefinition(List.of(RouteDescriptor.create()), new Middleware(v -> {}));
+    var routerDefinition = new RouterDefinition(List.of(RouteDescriptor.create()));
     
     assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, routeCreatorSupplier, routerDefinition));
     assertThrows(NullPointerException.class, () ->
