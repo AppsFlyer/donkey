@@ -1,11 +1,12 @@
-# donkey
+# Donkey
 
 
 ## TODO
+- Remove leak detector in production and add in debug mode
+- Turn off / on vertx features in production / debug mode.
 - Clean up the middleware code in route.clj
 - Add more middleware tests
 - TESTS!
-- Implement debug mode
 - Client implementation
 - Check about using OpenCensus rather than DropWizard for metrics
 - Documentation
@@ -19,6 +20,7 @@ are namespaced keywords point to user functions.
 ========================================
 
 ## DONE
+- Implement debug mode
 - Make adding content-type and server headers optional
 - Make adding the "Date" header optional
 - Refactor middleware to comply with Ring
@@ -150,13 +152,15 @@ request, or stop the execution by calling `raise`.
 ```
 
 ### Debug mode
-Add the following system properties when starting the JVM:
-`java -Dvertx.threadChecks=true -Dvertx.disableContextTimings=false -jar my-app.jar`
-Or in Leiningen 
-```clojure
-:jvm-opts ^:replace ["-Dvertx.threadChecks=false"
-                     "-Dvertx.disableContextTimings=true"]
-```
+Debug mode is activated when creating the server with `:debug true`.
+It will cause A LOT of logs to be written and therefore it is completely
+unsuitable for production, and should only be used while debugging in development.
+The logs include:
+- Instantiation logs 
+- Byte level traffic
+- Request routing
+- library debug logs   
+
   
    
 

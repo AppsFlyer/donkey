@@ -1,5 +1,6 @@
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.log.DebugUtil;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.DateHeaderGenerator;
 import com.appsflyer.donkey.route.handler.ServerHeaderHandler;
@@ -29,6 +30,9 @@ public final class ServerImpl implements Server {
     vertx = vertx(config);
     this.config = config;
     addOptionalHandlers();
+    if (config.debug()) {
+      DebugUtil.enableDebugLogging();
+    }
   }
   
   private Vertx vertx(ServerConfig config) {

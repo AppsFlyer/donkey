@@ -21,6 +21,7 @@
                  [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]
                  [org.slf4j/slf4j-api "1.7.30"]
+                 [ch.qos.logback/logback-classic "1.2.3" "scope" :provided]
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/spec.alpha "0.2.187"]]
   :profiles {:dev     {:dependencies   [[org.clojure/tools.logging "1.1.0"]

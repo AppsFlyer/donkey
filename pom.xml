@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>donkey</groupId>
+    <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0-SNAPSHOT</version>
-    <name>donkey</name>
+    <name>Donkey</name>
     <description>Clojure Web Server and Client</description>
-    <url>http://example.com/FIXME</url>
+    <url>https://github.com/yaronel/donkey</url>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -96,14 +96,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-jar-plugin</artifactId>-->
-            <!--                <version>3.2.0</version>-->
-            <!--                <configuration>-->
-            <!--                    <forceCreation>false</forceCreation>-->
-            <!--                </configuration>-->
-            <!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
@@ -125,11 +117,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
+                <configuration>
+                    <optimize>true</optimize>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.2.0</version>
+                <configuration>
+                    <reportOutputDirectory>${project.build.directory}/docs
+                    </reportOutputDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -158,6 +157,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <io.netty.leakDetectionLevel>PARANOID
+                        </io.netty.leakDetectionLevel>
+                        <vertx.useNativeTransport>false
+                        </vertx.useNativeTransport>
+                        <vertx.useDomainSockets>false</vertx.useDomainSockets>
+                        <vertx.threadChecks>true</vertx.threadChecks>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -240,7 +249,7 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
-            <scope>test</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
