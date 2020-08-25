@@ -2,12 +2,11 @@ package com.appsflyer.donkey.route.handler;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class RouterDefinition {
-  private final Collection<RouteDescriptor> routes;
+  
+  private final Deque<RouteDescriptor> routes;
   
   public RouterDefinition(List<RouteDescriptor> routes) {
     
@@ -16,12 +15,22 @@ public class RouterDefinition {
       throw new IllegalArgumentException("Routes cannot be empty");
     }
     
-    this.routes = List.copyOf(routes);
+    this.routes = new LinkedList<>(routes);
   }
   
   public Collection<RouteDescriptor> routes() {
-    return routes;
+    return List.copyOf(routes);
   }
   
+  public RouterDefinition addFirst(RouteDescriptor rd) {
+    Objects.requireNonNull(rd, "Route descriptor cannot be null");
+    routes.addFirst(rd);
+    return this;
+  }
   
+  public RouterDefinition addLast(RouteDescriptor rd) {
+    Objects.requireNonNull(rd, "Route descriptor cannot be null");
+    routes.addLast(rd);
+    return this;
+  }
 }

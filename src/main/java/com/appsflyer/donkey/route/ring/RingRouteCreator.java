@@ -5,6 +5,7 @@ import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.AdapterFactory;
 import com.appsflyer.donkey.route.handler.RouterDefinition;
 import com.appsflyer.donkey.route.handler.ring.RingAdapterFactory;
+import com.appsflyer.donkey.route.handler.ring.RingHandler;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 
@@ -20,10 +21,14 @@ public class RingRouteCreator extends AbstractRouteCreator {
   @Override
   protected void buildRoute(Route route, RouteDescriptor rd) {
     setPath(route, rd);
-    addBodyHandler(route);
-    addRequestAdapter(route);
-    addHandler(route, rd.handler(), rd.handlerMode());
-    addResponseAdapter(route);
+    if (rd.handler() instanceof RingHandler) {
+      addBodyHandler(route);
+      addRequestAdapter(route);
+      addHandler(route, rd.handler(), rd.handlerMode());
+      addResponseAdapter(route);
+    } else {
+      addHandler(route, rd.handler(), rd.handlerMode());
+    }
   }
   
   private void addRequestAdapter(Route route) {

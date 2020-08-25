@@ -3,7 +3,7 @@
             [donkey.route :refer [get-router-definition]])
   (:import (io.vertx.core AsyncResult VertxOptions Handler)
            (io.vertx.core.http HttpServerOptions)
-           (com.appsflyer.donkey.server ServerConfig Server)
+           (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
            (io.vertx.core.http HttpServerOptions)))
@@ -31,11 +31,16 @@
     vertx-options))
 
 (defn ^ServerConfig get-server-config [opts]
-  (ServerConfig.
-    (get-vertx-options opts)
-    (get-server-options opts)
-    (RingRouteCreatorSupplier.)
-    (get-router-definition opts)))
+  (let [builder (doto (ServerConfig/builder)
+                  (.vertxOptions (get-vertx-options opts))
+                  (.serverOptions (get-server-options opts))
+                  (.routeCreatorSupplier (RingRouteCreatorSupplier.))
+                  (.routerDefinition (get-router-definition opts))
+                  (.debug (:debug opts false))
+                  (.addDateHeader (:date-header opts false))
+                  (.addContentTypeHeader (:content-type-header opts false))
+                  (.addServerHeader (:server-header opts false)))]
+    (.build builder)))
 
 (deftype EventHandler [impl]
   Handler

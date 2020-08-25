@@ -96,10 +96,11 @@ class ServerTest {
   }
   
   private ServerConfig newServerConfig(RouteDescriptor routeDescriptor) {
-    return new ServerConfig(
-        new VertxOptions().setEventLoopPoolSize(1),
-        new HttpServerOptions().setPort(port),
-        new RingRouteCreatorSupplier(),
-        new RouterDefinition(List.of(routeDescriptor)));
+    return ServerConfig.builder()
+                       .vertxOptions(new VertxOptions().setEventLoopPoolSize(1))
+                       .serverOptions(new HttpServerOptions().setPort(port))
+                       .routeCreatorSupplier(new RingRouteCreatorSupplier())
+                       .routerDefinition(new RouterDefinition(List.of(routeDescriptor)))
+                       .build();
   }
 }

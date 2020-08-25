@@ -12,9 +12,9 @@
   :test-paths ["src/test" "src/test/java"]
   :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"
                        "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
+                       "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"
                        "-Dvertx.threadChecks=false"
-                       "-Dvertx.disableContextTimings=true"
-                       "-Dvertx.disableTCCL=true"]
+                       "-Dvertx.disableContextTimings=true"]
   :global-vars {*warn-on-reflection* true}
   :javac-options ["-target" "11" "-source" "11"]
   :dependencies [[io.vertx/vertx-web ~vertx-version]
@@ -30,9 +30,8 @@
                                         [org.junit.jupiter/junit-jupiter ~junit-version]
                                         [org.mockito/mockito-junit-jupiter "3.4.6"]]
                        :resource-paths ["src/test/resources"]
-                       :jvm-opts       ^:replace ["-Dvertx.threadChecks=true"
-                                                  "-Dvertx.disableContextTimings=false"
-                                                  "-Dvertx.disableTCCL=false"]}
+                       :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
+                                                  "-Dvertx.disableContextTimings=false"]}
              :uberjar {:aot :all}}
   :pom-location "target/"
   :repl-options {:init-ns donkey.core})

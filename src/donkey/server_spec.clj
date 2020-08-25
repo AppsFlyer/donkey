@@ -42,6 +42,9 @@
 (s/def ::metrics-prefix string?)
 (s/def ::worker-threads #(s/int-in-range? 1 500 %))
 (s/def ::debug boolean?)
+(s/def ::date-header boolean?)
+(s/def ::content-type-header boolean?)
+(s/def ::server-header boolean?)
 (s/def ::idle-timeout-seconds (s/and int? #(or (zero? %) (pos? %))))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 
@@ -54,6 +57,9 @@
                                  ::metrics-prefix
                                  ::worker-threads
                                  ::debug
+                                 ::date-header
+                                 ::content-type-header
+                                 ::server-header
                                  ::idle-timeout-seconds]))
 (comment
   (let [config {:port                 8080
@@ -63,6 +69,9 @@
                 :metrics-prefix       "donkey"
                 :worker-threads       20
                 :debug                false
+                ::date-header         false
+                ::content-type-header false
+                ::server-header       false
                 :idle-timeout-seconds 0
                 :routes               [{:middleware [identity]
                                         :handler    [identity]}]}]))

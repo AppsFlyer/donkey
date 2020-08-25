@@ -1,5 +1,6 @@
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.handler.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
@@ -18,15 +19,38 @@ class ServerConfigTest {
   void testRequiredOptions() {
     var vertxOptions = new VertxOptions();
     var serverOptions = new HttpServerOptions();
-    var routeCreatorSupplier = new RingRouteCreatorSupplier();
+    RouteCreatorSupplier routeCreatorSupplier = new RingRouteCreatorSupplier();
     var routerDefinition = new RouterDefinition(List.of(RouteDescriptor.create()));
     
-    assertDoesNotThrow(() -> new ServerConfig(vertxOptions, serverOptions, routeCreatorSupplier, routerDefinition));
-    assertThrows(NullPointerException.class, () ->
-        new ServerConfig(null, serverOptions, routeCreatorSupplier, routerDefinition));
-    assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, null, routeCreatorSupplier, routerDefinition));
-    assertThrows(NullPointerException.class, () ->
-        new ServerConfig(vertxOptions, serverOptions, routeCreatorSupplier, null));
+    assertDoesNotThrow(() -> ServerConfig.builder()
+                                         .vertxOptions(vertxOptions)
+                                         .serverOptions(serverOptions)
+                                         .routeCreatorSupplier(routeCreatorSupplier)
+                                         .routerDefinition(routerDefinition)
+                                         .build());
+    
+    assertThrows(NullPointerException.class,
+                 () -> ServerConfig.builder()
+                                   .vertxOptions(null)
+                                   .serverOptions(serverOptions)
+                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routerDefinition(routerDefinition)
+                                   .build());
+    
+    assertThrows(NullPointerException.class,
+                 () -> ServerConfig.builder()
+                                   .vertxOptions(vertxOptions)
+                                   .serverOptions(null)
+                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routerDefinition(routerDefinition)
+                                   .build());
+    
+    assertThrows(NullPointerException.class,
+                 () -> ServerConfig.builder()
+                                   .vertxOptions(vertxOptions)
+                                   .serverOptions(serverOptions)
+                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routerDefinition(null)
+                                   .build());
   }
 }
