@@ -4,7 +4,6 @@
 ## TODO
 - Clean up the middleware code in route.clj
 - Add more middleware tests
-- Make adding the "Date" header optional
 - TESTS!
 - Implement debug mode
 - Client implementation
@@ -20,6 +19,8 @@ are namespaced keywords point to user functions.
 ========================================
 
 ## DONE
+- Make adding content-type and server headers optional
+- Make adding the "Date" header optional
 - Refactor middleware to comply with Ring
 - Think about short circuit of handlers
 - Implement global middleware
