@@ -5,7 +5,8 @@
            (java.util ArrayList List)
            (com.appsflyer.donkey.route PathDescriptor$MatchType HandlerMode PathDescriptor RouteDescriptor)
            (com.appsflyer.donkey.route.handler Constants)
-           (com.appsflyer.donkey.route.handler RouterDefinition)))
+           (com.appsflyer.donkey.route.handler RouterDefinition)
+           (com.appsflyer.donkey.route.handler.ring RingHandler)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
@@ -61,7 +62,7 @@
           .next))))
 
 (deftype RouteHandler [impl]
-  Handler
+  RingHandler
   (handle [_this ctx]
     (let [respond (partial response-handler ctx)
           raise (fn [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
@@ -71,7 +72,7 @@
           (.fail ^RoutingContext ctx ^Throwable ex))))))
 
 (deftype BlockingRouteHandler [impl]
-  Handler
+  RingHandler
   (handle [_this ctx]
     (try
       (-> ^RoutingContext ctx

@@ -1,48 +1,66 @@
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.handler.DateHeaderGenerator;
+import com.appsflyer.donkey.route.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.LoggerHandler;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class ServerImpl implements Server {
+  
   private static final Logger logger = LoggerFactory.getLogger(ServerImpl.class.getName());
   private final Vertx vertx;
   private final ServerConfig config;
-  private static final String THREAD_CHECKS_PROP_NAME = "vertx.threadChecks";
-  private static final String DISABLE_TIMINGS_PROP_NAME = "vertx.disableContextTimings";
-  private static final String DISABLE_TCCL_PROP_NAME = "vertx.disableTCCL";
   
-  ServerImpl(ServerConfig config)
-  {
+  ServerImpl(ServerConfig config) {
     vertx = vertx(config);
     this.config = config;
+    addOptionalHandlers();
   }
   
-  private Vertx vertx(ServerConfig config)
-  {
+  private Vertx vertx(ServerConfig config) {
     return Vertx.vertx(config.vertxOptions())
                 .exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
   }
- 
+  
+  private void addOptionalHandlers() {
+    Collection<Handler<RoutingContext>> handlers = new ArrayList<>(4);
+    if (config.debug()) {
+      handlers.add(LoggerHandler.create());
+    }
+    if (config.addDateHeader()) {
+      handlers.add(DateHeaderGenerator.getInstance(vertx));
+    }
+    if (config.addContentTypeHeader()) {
+      handlers.add(ResponseContentTypeHandler.create());
+    }
+    if (config.addServerHeader()) {
+      handlers.add(ServerHeaderHandler.create());
+    }
+    
+    handlers.forEach(h -> config.routerDefinition().addFirst(RouteDescriptor.create().addHandler(h)));
+  }
+  
   @Override
-  public Vertx vertx()
-  {
+  public Vertx vertx() {
     return vertx;
   }
   
   @Override
-  public Future<String> start()
-  {
+  public Future<String> start() {
     Promise<String> promise = Promise.promise();
     var deploymentOptions =
         new DeploymentOptions()
@@ -53,15 +71,13 @@ public final class ServerImpl implements Server {
   }
   
   @Override
-  public void startSync() throws ServerInitializationException
-  {
+  public void startSync() throws ServerInitializationException {
     startSync(5, TimeUnit.SECONDS);
   }
   
   @Override
   public void startSync(int timeout, TimeUnit unit) throws
-                                                    ServerInitializationException
-  {
+                                                    ServerInitializationException {
     var latch = new CountDownLatch(1);
     AtomicReference<Throwable> error = new AtomicReference<>();
     
@@ -90,23 +106,20 @@ public final class ServerImpl implements Server {
   }
   
   @Override
-  public Future<Void> shutdown()
-  {
+  public Future<Void> shutdown() {
     Promise<Void> promise = Promise.promise();
     vertx.close(promise);
     return promise.future();
   }
   
   @Override
-  public void shutdownSync() throws ServerShutdownException
-  {
+  public void shutdownSync() throws ServerShutdownException {
     shutdownSync(5, TimeUnit.SECONDS);
   }
   
   @Override
   public void shutdownSync(int timeout, TimeUnit unit) throws
-                                                       ServerShutdownException
-  {
+                                                       ServerShutdownException {
     var latch = new CountDownLatch(1);
     AtomicReference<Throwable> error = new AtomicReference<>();
     
@@ -134,8 +147,7 @@ public final class ServerImpl implements Server {
   }
   
   @Override
-  public void awaitTermination() throws InterruptedException
-  {
+  public void awaitTermination() throws InterruptedException {
     var latch = new CountDownLatch(1);
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       try {

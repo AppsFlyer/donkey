@@ -147,6 +147,16 @@ request, or stop the execution by calling `raise`.
              (handler (assoc request :authenticated result) respond raise)
              (raise exception))))))))
 ```
+
+### Debug mode
+Add the following system properties when starting the JVM:
+`java -Dvertx.threadChecks=true -Dvertx.disableContextTimings=false -jar my-app.jar`
+Or in Leiningen 
+```clojure
+:jvm-opts ^:replace ["-Dvertx.threadChecks=false"
+                     "-Dvertx.disableContextTimings=true"]
+```
+  
    
 
 ## License

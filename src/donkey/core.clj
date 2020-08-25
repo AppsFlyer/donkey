@@ -56,13 +56,18 @@
       raise)))
 
 (defn new-server []
-  (-> {:port            8080
-       :middleware      [middleware/keywordize-query-params add-headers]
-       :routes          [{:path    "/plaintext"
-                          :methods [:get]
-                          :handler (fn [_req res _err] (res {:body "Hello, world!"}))}
-                         {:path    "/benchmark"
-                          :methods [:get]
-                          :handler print-query-params-and-headers}]
-       :metrics-enabled false}
+  (-> {:port                8080
+       :middleware          [middleware/keywordize-query-params add-headers]
+       :debug               false
+       :date-header         true
+       :content-type-header true
+       :server-header       true
+       :routes              [{:path     "/plaintext"
+                              :methods  [:get]
+                              :produces ["text/plain"]
+                              :handler  (fn [_req res _err] (res {:body "Hello, world!"}))}
+                             {:path    "/benchmark"
+                              :methods [:get]
+                              :handler print-query-params-and-headers}]
+       :metrics-enabled     false}
       create-server))
