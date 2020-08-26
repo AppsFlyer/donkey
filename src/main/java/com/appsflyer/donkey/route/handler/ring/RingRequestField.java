@@ -22,31 +22,26 @@ import java.util.Map;
  * name as a Keyword or string, and extracting the corresponding value from the RoutingContext
  * in the format / type as described in the Ring spec.
  */
-public enum RingRequestField
-{
+public enum RingRequestField {
   SERVER_PORT("server-port") {
     @Override
-    public Integer get(RoutingContext ctx)
-    {
+    public Integer get(RoutingContext ctx) {
       return ctx.request().localAddress().port();
     }
   },
   SERVER_NAME("server-name") {
     @Override
-    public String get(RoutingContext ctx)
-    {
+    public String get(RoutingContext ctx) {
       return ctx.request().host();
     }
   },
   REMOTE_ADDRESS("remote-addr") {
     @Override
-    public String get(RoutingContext ctx)
-    {
+    public String get(RoutingContext ctx) {
       var forwardedFor = ctx.request().getHeader("x-forwarded-for");
       if (forwardedFor != null) {
         return forwardedFor;
-      }
-      else {
+      } else {
         SocketAddress remoteAddress = ctx.request().remoteAddress();
         if (remoteAddress != null) {
           return remoteAddress.toString();
@@ -57,8 +52,7 @@ public enum RingRequestField
   },
   URI("uri") {
     @Override
-    public String get(RoutingContext ctx)
-    {
+    public String get(RoutingContext ctx) {
       return ctx.request().path();
     }
   },
@@ -66,31 +60,27 @@ public enum RingRequestField
     private final Map<String, Keyword> schemeMapping =
         Map.of("http", Keyword.intern("http"),
                "https", Keyword.intern("https"));
-    
+  
     @Override
-    public Keyword get(RoutingContext ctx)
-    {
+    public Keyword get(RoutingContext ctx) {
       return schemeMapping.get(ctx.request().scheme());
     }
   },
   REQUEST_METHOD("request-method") {
     @Override
-    public Object get(RoutingContext ctx)
-    {
+    public Object get(RoutingContext ctx) {
       return HttpMethodMapping.get(ctx.request().method());
     }
   },
   PROTOCOL("protocol") {
     @Override
-    public String get(RoutingContext ctx)
-    {
+    public String get(RoutingContext ctx) {
       return HttpProtocolMapping.get(ctx.request().version());
     }
   },
   CLIENT_CERT("ssl-client-cert") {
     @Override
-    public Certificate[] get(RoutingContext ctx)
-    {
+    public Certificate[] get(RoutingContext ctx) {
       try {
         if (ctx.request().isSSL()) {
           return ctx.request().sslSession().getPeerCertificates();
@@ -103,15 +93,13 @@ public enum RingRequestField
   },
   QUERY_STRING("query-string") {
     @Override
-    public String get(RoutingContext ctx)
-    {
+    public String get(RoutingContext ctx) {
       return ctx.request().query();
     }
   },
   QUERY_PARAMS("query-params") {
     @Override
-    public MultiMap get(RoutingContext ctx)
-    {
+    public MultiMap get(RoutingContext ctx) {
       try {
         return ctx.queryParams();
       } catch (HttpStatusException ex) {
@@ -122,34 +110,29 @@ public enum RingRequestField
   },
   PATH_PARAMS("path-params") {
     @Override
-    public Map<String, String> get(RoutingContext ctx)
-    {
+    public Map<String, String> get(RoutingContext ctx) {
       return ctx.pathParams();
     }
   },
   FORM_PARAMS("form-params") {
     @Override
-    public MultiMap get(RoutingContext ctx)
-    {
+    public MultiMap get(RoutingContext ctx) {
       if (ctx.request().isExpectMultipart()) {
         return ctx.request().formAttributes();
-      }
-      else {
+      } else {
         return MultiMap.caseInsensitiveMultiMap();
       }
     }
   },
   HEADERS("headers") {
     @Override
-    public MultiMap get(RoutingContext ctx)
-    {
+    public MultiMap get(RoutingContext ctx) {
       return ctx.request().headers();
     }
   },
   BODY("body") {
     @Override
-    public byte[] get(RoutingContext ctx)
-    {
+    public byte[] get(RoutingContext ctx) {
       Buffer body = ctx.getBody();
       if (body != null) {
         return body.getBytes();
@@ -191,8 +174,7 @@ public enum RingRequestField
    *
    * @param keyword The name of the field to return
    */
-  public static RingRequestField from(Object keyword)
-  {
+  public static RingRequestField from(Object keyword) {
     return keywordToEnumMapping.get(keyword);
   }
   
@@ -205,21 +187,18 @@ public enum RingRequestField
    *
    * @param keyword The name of the field to check
    */
-  public static boolean exists(Object keyword)
-  {
+  public static boolean exists(Object keyword) {
     return keywordToEnumMapping.containsKey(keyword);
   }
   
   /**
    * @return The number of fields
    */
-  public static int size()
-  {
+  public static int size() {
     return keywordToEnumMapping.size();
   }
   
-  RingRequestField(String field)
-  {
+  RingRequestField(String field) {
     this.field = field;
     keyword = Keyword.intern(field);
   }
@@ -232,16 +211,14 @@ public enum RingRequestField
   /**
    * @return The field name as a string
    */
-  public String field()
-  {
+  public String field() {
     return field;
   }
   
   /**
    * @return The field name as a Keyword
    */
-  public Keyword keyword()
-  {
+  public Keyword keyword() {
     return keyword;
   }
 }
