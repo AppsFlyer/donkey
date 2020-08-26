@@ -7,7 +7,6 @@ import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Tag;
@@ -17,9 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.net.BindException;
 import java.util.List;
 
-import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import static io.vertx.core.http.HttpMethod.GET;
+import static com.appsflyer.donkey.TestUtil.assert200;
+import static com.appsflyer.donkey.TestUtil.doGet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,24 +34,21 @@ class ServerTest {
   void testServerAsyncLifecycle(Vertx vertx, VertxTestContext testContext) {
     Server server = Server.create(newServerConfig(newRouteDescriptor()));
     server.start()
-          .onComplete(startResult -> {
-            if (startResult.failed()) {
-              testContext.failNow(startResult.cause());
-            }
-      
-            WebClient.create(vertx)
-                     .request(GET, getDefaultAddress(), "/")
-                     .send(testContext.succeeding(response -> testContext.verify(() -> {
-                       assertEquals(OK.code(), response.statusCode());
-                       assertEquals(responseBody, response.bodyAsString());
-        
-                       server.shutdown().onComplete(stopResult -> {
-                         if (stopResult.failed()) {
-                           testContext.failNow(stopResult.cause());
-                         }
-                         testContext.completeNow();
-                       });
-                     })));
+          .onFailure(testContext::failNow)
+          .onSuccess(startResult -> {
+            doGet(vertx, "/")
+                .onComplete(testContext.succeeding(
+                    response -> testContext.verify(() -> {
+                      assert200(response);
+                      assertEquals(responseBody, response.bodyAsString());
+              
+                      server.shutdown().onComplete(stopResult -> {
+                        if (stopResult.failed()) {
+                          testContext.failNow(stopResult.cause());
+                        }
+                        testContext.completeNow();
+                      });
+                    })));
           });
   }
   
@@ -62,15 +57,15 @@ class ServerTest {
                                                                           ServerInitializationException {
     Server server = Server.create(newServerConfig(newRouteDescriptor()));
     server.startSync();
-    
-    WebClient.create(vertx)
-             .request(GET, getDefaultAddress(), "/")
-             .send(testContext.succeeding(response -> testContext.verify(() -> {
-               assertEquals(OK.code(), response.statusCode());
-               assertEquals(responseBody, response.bodyAsString());
-               server.shutdownSync();
-               testContext.completeNow();
-             })));
+  
+    doGet(vertx, "/")
+        .onComplete(testContext.succeeding(
+            response -> testContext.verify(() -> {
+              assert200(response);
+              assertEquals(responseBody, response.bodyAsString());
+              server.shutdownSync();
+              testContext.completeNow();
+            })));
   }
   
   @Test

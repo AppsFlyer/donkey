@@ -22,10 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.appsflyer.donkey.TestUtil.DEFAULT_PORT;
-import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
+import static com.appsflyer.donkey.TestUtil.*;
 import static com.appsflyer.donkey.route.PathDescriptor.MatchType.REGEX;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -135,19 +133,19 @@ class IntegrationTest {
     startServer(vertx, testContext, router)
         .onComplete(v -> {
           var client = WebClient.create(vertx);
-          
-          client.request(GET, getDefaultAddress(), "/foo?fizz=buzz")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
-                  responsesReceived.flag();
-                })));
-          
-          client.request(POST, getDefaultAddress(), "/foo")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(METHOD_NOT_ALLOWED.code(), response.statusCode(),
-                               "It should respond with Method Not Allowed");
-                  responsesReceived.flag();
-                })));
+  
+  
+          doGet(client, "/foo?fizz=buzz").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert200(response);
+                responsesReceived.flag();
+              })));
+  
+          doPost(client, "/foo").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert405(response);
+                responsesReceived.flag();
+              })));
         });
     
     assertContextSuccess(testContext);
@@ -168,15 +166,14 @@ class IntegrationTest {
           
           client.request(POST, optionsForUri("/json"))
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
+                  assert200(response);
                   responsesReceived.flag();
                 })));
           
           client.request(POST, getDefaultAddress(), "/json")
                 .putHeader("content-type", "application/octet-stream")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(UNSUPPORTED_MEDIA_TYPE.code(), response.statusCode(),
-                               "It should respond with Unsupported Media Type");
+                  assert415(response);
                   responsesReceived.flag();
                 })));
         });
@@ -199,15 +196,14 @@ class IntegrationTest {
           client.request(PUT, optionsForUri("/json"))
                 .putHeader("Accept", "application/json")
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
+                  assert200(response);
                   responsesReceived.flag();
                 })));
           
           client.request(PUT, optionsForUri("/json"))
                 .putHeader("Accept", "text/html")
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(NOT_ACCEPTABLE.code(), response.statusCode(),
-                               "It should respond with Not Acceptable");
+                  assert406(response);
                   responsesReceived.flag();
                 })));
         });
@@ -226,15 +222,15 @@ class IntegrationTest {
     startServer(vertx, testContext, router)
         .onComplete(v -> {
           var client = WebClient.create(vertx);
-          
-          client.request(GET, getDefaultAddress(), "/token/fizzbuzz?foo=bar&bazz=fuzz")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
-                  assertEquals(
-                      String.join(System.lineSeparator(), "foo: bar", "bazz: fuzz", "tokenId: fizzbuzz"),
-                      response.bodyAsString().trim());
-                  responsesReceived.flag();
-                })));
+  
+          doGet(client, "/token/fizzbuzz?foo=bar&bazz=fuzz").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert200(response);
+                assertEquals(
+                    String.join(System.lineSeparator(), "foo: bar", "bazz: fuzz", "tokenId: fizzbuzz"),
+                    response.bodyAsString().trim());
+                responsesReceived.flag();
+              })));
         });
     
     assertContextSuccess(testContext);
@@ -251,20 +247,19 @@ class IntegrationTest {
     startServer(vertx, testContext, router)
         .onComplete(v -> {
           var client = WebClient.create(vertx);
-          
-          client.request(GET, getDefaultAddress(), "/id/12345")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
-                  assertEquals("param0: 12345", response.bodyAsString().trim());
-                  responsesReceived.flag();
-                })));
-          
-          client.request(GET, getDefaultAddress(), "/id/not-a-number")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(NOT_FOUND.code(), response.statusCode(),
-                               "It should respond with Not Found");
-                  responsesReceived.flag();
-                })));
+  
+          doGet(client, "/id/12345").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert200(response);
+                assertEquals("param0: 12345", response.bodyAsString().trim());
+                responsesReceived.flag();
+              })));
+  
+          doGet(client, "/id/not-a-number").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert404(response);
+                responsesReceived.flag();
+              })));
         });
     
     assertContextSuccess(testContext);
@@ -281,28 +276,27 @@ class IntegrationTest {
     startServer(vertx, testContext, router)
         .onComplete(v -> {
           var client = WebClient.create(vertx);
-          
-          client.request(POST, getDefaultAddress(), "/xyz-company/321/accounting-dept")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(OK.code(), response.statusCode());
-                  assertEquals(
-                      String.join(System.lineSeparator(),
-                                  "param0: xyz-company",
-                                  "param1: 321",
-                                  "param2: accounting"),
-                      response.bodyAsString().trim());
-                  responsesReceived.flag();
-                })));
-          
-          client.request(POST, getDefaultAddress(), "/xyz-company/321/marketing-dept")
-                .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(NOT_FOUND.code(), response.statusCode(), "It should respond with Not Found");
-                  responsesReceived.flag();
-                })));
-          
+  
+          doPost(client, "/xyz-company/321/accounting-dept").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert200(response);
+                assertEquals(
+                    String.join(System.lineSeparator(),
+                                "param0: xyz-company",
+                                "param1: 321",
+                                "param2: accounting"),
+                    response.bodyAsString().trim());
+                responsesReceived.flag();
+              })));
+  
+          doPost(client, "/xyz-company/321/marketing-dept").onComplete(
+              testContext.succeeding(response -> testContext.verify(() -> {
+                assert404(response);
+                responsesReceived.flag();
+              })));
+  
         });
     
     assertContextSuccess(testContext);
   }
-  
 }
