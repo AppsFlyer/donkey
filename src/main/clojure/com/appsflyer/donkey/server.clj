@@ -6,7 +6,7 @@
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
-           (io.vertx.core.http HttpServerOptions)))
+           (com.appsflyer.donkey.util DebugUtil)))
 
 (defn- ^HttpServerOptions get-server-options
   "Creates and returns an HttpServerOptions object from the opts map.
@@ -49,8 +49,13 @@
                   (.debug (:debug opts false))
                   (.addDateHeader (:date-header opts false))
                   (.addContentTypeHeader (:content-type-header opts false))
-                  (.addServerHeader (:server-header opts false)))]
-    (.build builder)))
+                  (.addServerHeader (:server-header opts false)))
+        config (.build builder)]
+    ; We need to initialize debug logging before a Logger
+    ; is created, so SLF4J will use Logback instead of another provider.
+    (when (.debug config)
+      (DebugUtil/enable))
+    config))
 
 (deftype EventHandler [impl]
   Handler

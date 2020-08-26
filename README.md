@@ -164,7 +164,16 @@ The logs include:
   
 ### Logging
 - Uses SLF4J
-- For debug logging you need to have logback on your classpath.  
+- For debug logging you need to have logback on your classpath.
+
+### Start up options
+JVM system properties that can be supplied when running the application
+- `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
+warn the user if an event loop or worker thread is being occupied above a certain 
+threshold which will indicate the code should be examined. 
+- `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
+used by the blocked thread checker. It does _**not**_ disable execution metrics that 
+are exposed via JMX.  
    
 
 ## License
