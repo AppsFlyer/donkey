@@ -1,4 +1,4 @@
-(ns donkey.route
+(ns com.appsflyer.donkey.route
   (:import (io.vertx.ext.web RoutingContext)
            (io.vertx.core Handler)
            (io.vertx.core.http HttpMethod)

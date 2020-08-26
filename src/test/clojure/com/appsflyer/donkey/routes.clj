@@ -1,4 +1,4 @@
-(ns donkey.routes)
+(ns com.appsflyer.donkey.routes)
 
 (defn return-request [req]
   {:status 200

@@ -6,10 +6,11 @@
   :url "https://github.com/yaronel/donkey"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
+  :source-paths ["src/main/clojure"]
+  :test-paths ["src/test/clojure" "src/test/java"]
   :java-source-paths ["src/main/java"]
   :resource-paths ["src/main/resources"]
   :target-path "target/%s"
-  :test-paths ["src/test" "src/test/java"]
   :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"
                        "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
                        "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"
@@ -17,6 +18,7 @@
                        "-Dvertx.disableContextTimings=true"]
   :global-vars {*warn-on-reflection* true}
   :javac-options ["-target" "11" "-source" "11"]
+  :jar-exclusions [#"^.java"]
   :dependencies [[io.vertx/vertx-web ~vertx-version]
                  [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]

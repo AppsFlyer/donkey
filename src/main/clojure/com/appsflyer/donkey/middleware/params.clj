@@ -1,4 +1,4 @@
-(ns donkey.middleware.params
+(ns com.appsflyer.donkey.middleware.params
   (:import (com.appsflyer.donkey.middleware MiddlewareProvider)))
 
 (defn keywordize-query-params [handler]

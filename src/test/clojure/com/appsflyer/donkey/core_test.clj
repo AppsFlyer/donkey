@@ -1,8 +1,8 @@
-(ns ^:integration donkey.core-test
+(ns ^:integration com.appsflyer.donkey.core-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [clojure.set]
-            [donkey.routes :as routes]
-            [donkey.util :as util])
+            [com.appsflyer.donkey.routes :as routes]
+            [com.appsflyer.donkey.util :as util])
   (:import (io.vertx.ext.web.client HttpRequest)
            (clojure.lang ILookup)))
 

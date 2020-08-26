@@ -1,6 +1,6 @@
-(ns donkey.server
-  (:require [donkey.metrics :refer [get-metrics-options]]
-            [donkey.route :refer [get-router-definition]])
+(ns com.appsflyer.donkey.server
+  (:require [com.appsflyer.donkey.metrics :refer [get-metrics-options]]
+            [com.appsflyer.donkey.route :refer [get-router-definition]])
   (:import (io.vertx.core AsyncResult VertxOptions Handler)
            (io.vertx.core.http HttpServerOptions)
            (com.appsflyer.donkey.server Server ServerConfig)

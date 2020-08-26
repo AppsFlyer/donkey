@@ -1,4 +1,4 @@
-(ns donkey.server-spec
+(ns com.appsflyer.donkey.server-spec
   (:require [clojure.spec.alpha :as s]
             [clojure.string])
   (:import (com.codahale.metrics MetricRegistry)))

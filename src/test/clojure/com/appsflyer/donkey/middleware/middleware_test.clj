@@ -1,8 +1,8 @@
-(ns donkey.middleware.middleware-test
+(ns com.appsflyer.donkey.middleware.middleware-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
-            [donkey.util :as util]
-            [donkey.middleware.params :refer [keywordize-query-params]]
-            [donkey.routes :as routes])
+            [com.appsflyer.donkey.util :as util]
+            [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params]]
+            [com.appsflyer.donkey.routes :as routes])
   (:import (io.vertx.ext.web.client HttpRequest)
            (clojure.lang Symbol Keyword)))
 
