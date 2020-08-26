@@ -6,6 +6,7 @@ import clojure.lang.Keyword;
 import clojure.lang.RT;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static com.appsflyer.donkey.route.handler.ring.RingRequestField.QUERY_PARAMS;
 
@@ -14,6 +15,8 @@ public final class MiddlewareProvider {
   private MiddlewareProvider() {}
   
   public static IPersistentMap keywordizeQueryParams(IPersistentMap request) {
+    Objects.requireNonNull(request, "Request map cannot be null");
+  
     Object queryParams = request.valAt(QUERY_PARAMS.keyword());
     if (queryParams == null) {
       return request;
@@ -22,7 +25,7 @@ public final class MiddlewareProvider {
     if (size == 0) {
       return request;
     }
-    
+  
     IPersistentMap params = (IPersistentMap) queryParams;
     Object[] res = new Object[params.count() << 1];
     var iter = params.iterator();
