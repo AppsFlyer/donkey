@@ -126,7 +126,7 @@
     (fn [res route]
       (doto ^List res
         (.add (map->RouteDescriptor (add-middleware route (:middleware opts))))))
-    (ArrayList. (count (:routes opts)))
+    (ArrayList. (int (count (:routes opts))))
     (:routes opts)))
 
 (defn get-router-definition [opts]

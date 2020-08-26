@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static com.appsflyer.donkey.TestUtil.DEFAULT_PORT;
 import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
 import static com.appsflyer.donkey.route.PathDescriptor.MatchType.REGEX;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -137,13 +138,13 @@ class IntegrationTest {
           
           client.request(GET, getDefaultAddress(), "/foo?fizz=buzz")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   responsesReceived.flag();
                 })));
           
           client.request(POST, getDefaultAddress(), "/foo")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(405, response.statusCode(),
+                  assertEquals(METHOD_NOT_ALLOWED.code(), response.statusCode(),
                                "It should respond with Method Not Allowed");
                   responsesReceived.flag();
                 })));
@@ -167,14 +168,14 @@ class IntegrationTest {
           
           client.request(POST, optionsForUri("/json"))
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   responsesReceived.flag();
                 })));
           
           client.request(POST, getDefaultAddress(), "/json")
                 .putHeader("content-type", "application/octet-stream")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(415, response.statusCode(),
+                  assertEquals(UNSUPPORTED_MEDIA_TYPE.code(), response.statusCode(),
                                "It should respond with Unsupported Media Type");
                   responsesReceived.flag();
                 })));
@@ -198,14 +199,14 @@ class IntegrationTest {
           client.request(PUT, optionsForUri("/json"))
                 .putHeader("Accept", "application/json")
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   responsesReceived.flag();
                 })));
           
           client.request(PUT, optionsForUri("/json"))
                 .putHeader("Accept", "text/html")
                 .sendJson(dummyJson, testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(406, response.statusCode(),
+                  assertEquals(NOT_ACCEPTABLE.code(), response.statusCode(),
                                "It should respond with Not Acceptable");
                   responsesReceived.flag();
                 })));
@@ -228,7 +229,7 @@ class IntegrationTest {
           
           client.request(GET, getDefaultAddress(), "/token/fizzbuzz?foo=bar&bazz=fuzz")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   assertEquals(
                       String.join(System.lineSeparator(), "foo: bar", "bazz: fuzz", "tokenId: fizzbuzz"),
                       response.bodyAsString().trim());
@@ -253,14 +254,14 @@ class IntegrationTest {
           
           client.request(GET, getDefaultAddress(), "/id/12345")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   assertEquals("param0: 12345", response.bodyAsString().trim());
                   responsesReceived.flag();
                 })));
           
           client.request(GET, getDefaultAddress(), "/id/not-a-number")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(404, response.statusCode(),
+                  assertEquals(NOT_FOUND.code(), response.statusCode(),
                                "It should respond with Not Found");
                   responsesReceived.flag();
                 })));
@@ -283,7 +284,7 @@ class IntegrationTest {
           
           client.request(POST, getDefaultAddress(), "/xyz-company/321/accounting-dept")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(200, response.statusCode());
+                  assertEquals(OK.code(), response.statusCode());
                   assertEquals(
                       String.join(System.lineSeparator(),
                                   "param0: xyz-company",
@@ -295,7 +296,7 @@ class IntegrationTest {
           
           client.request(POST, getDefaultAddress(), "/xyz-company/321/marketing-dept")
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                  assertEquals(404, response.statusCode(), "It should respond with Not Found");
+                  assertEquals(NOT_FOUND.code(), response.statusCode(), "It should respond with Not Found");
                   responsesReceived.flag();
                 })));
           

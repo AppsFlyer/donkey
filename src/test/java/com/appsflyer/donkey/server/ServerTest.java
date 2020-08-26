@@ -18,13 +18,12 @@ import java.net.BindException;
 import java.util.List;
 
 import static com.appsflyer.donkey.TestUtil.getDefaultAddress;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
@@ -45,7 +44,7 @@ class ServerTest {
             WebClient.create(vertx)
                      .request(GET, getDefaultAddress(), "/")
                      .send(testContext.succeeding(response -> testContext.verify(() -> {
-                       assertEquals(200, response.statusCode());
+                       assertEquals(OK.code(), response.statusCode());
                        assertEquals(responseBody, response.bodyAsString());
         
                        server.shutdown().onComplete(stopResult -> {
@@ -67,7 +66,7 @@ class ServerTest {
     WebClient.create(vertx)
              .request(GET, getDefaultAddress(), "/")
              .send(testContext.succeeding(response -> testContext.verify(() -> {
-               assertEquals(200, response.statusCode());
+               assertEquals(OK.code(), response.statusCode());
                assertEquals(responseBody, response.bodyAsString());
                server.shutdownSync();
                testContext.completeNow();

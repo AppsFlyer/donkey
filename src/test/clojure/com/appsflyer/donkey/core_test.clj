@@ -4,7 +4,12 @@
             [com.appsflyer.donkey.routes :as routes]
             [com.appsflyer.donkey.util :as util])
   (:import (io.vertx.ext.web.client HttpRequest)
-           (clojure.lang ILookup)))
+           (clojure.lang ILookup)
+           (io.vertx.core.json JsonObject)
+           (io.vertx.core MultiMap)
+           (io.netty.handler.codec.http HttpResponseStatus)
+           (io.vertx.ext.web.multipart MultipartForm)
+           (io.vertx.core.buffer Buffer)))
 
 
 ;; ---------- Initialization ---------- ;;
@@ -20,7 +25,9 @@
    routes/blocking-middleware-handlers
    routes/async-middleware-handlers
    routes/blocking-exceptional-middleware-handlers
-   routes/async-exceptional-middleware-handlers])
+   routes/async-exceptional-middleware-handlers
+   routes/explicit-consumes-json
+   routes/explicit-consumes-multi-part-or-form-encoded-or-octet-stream])
 
 
 (use-fixtures :once (fn [test-fn] (util/init test-fn route-descriptors)))
@@ -36,7 +43,7 @@
           (.send (util/create-client-handler response-promise)))
 
       (let [res (util/wait-for-response response-promise)]
-        (is (= 200 (.statusCode res)))))))
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))))
 
 (deftest test-ring-compliant-request
   (testing "it should include all the fields as specified by
@@ -125,7 +132,7 @@
             (.send (util/create-client-handler response-promise)))
 
         (let [res (util/wait-for-response response-promise)]
-          (is (= 404 (.statusCode res)))))
+          (is (= (.code HttpResponseStatus/NOT_FOUND) (.statusCode res)))))
 
       (let [response-promise (promise)]
         (-> util/client
@@ -133,7 +140,7 @@
             (.send (util/create-client-handler response-promise)))
 
         (let [res (util/wait-for-response response-promise)]
-          (is (= 404 (.statusCode res))))))))
+          (is (= (.code HttpResponseStatus/NOT_FOUND) (.statusCode res))))))))
 
 (deftest blocking-handler-test
   (testing "it should call the 1 argument arity handler"
@@ -143,7 +150,7 @@
           (.send (util/create-client-handler response-promise)))
 
       (let [res (util/wait-for-response response-promise)]
-        (is (= 200 (.statusCode res)))
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))
         (is (= "hit /blocking-handler" (.bodyAsString res)))))))
 
 (deftest middleware-per-route-test
@@ -155,7 +162,7 @@
             (.send (util/create-client-handler response-promise)))
 
         (let [res (util/wait-for-response response-promise)]
-          (is (= 200 (.statusCode res)))
+          (is (= (.code HttpResponseStatus/OK) (.statusCode res)))
           (let [res-json (.bodyAsJsonObject res)]
             (is (= true (.getBoolean res-json "success")))
             (is (= 3 (.getInteger res-json "counter")))))))))
@@ -169,4 +176,63 @@
             (.send (util/create-client-handler response-promise)))
 
         (let [res (util/wait-for-response response-promise)]
-          (is (= 500 (.statusCode res))))))))
+          (is (= (.code HttpResponseStatus/INTERNAL_SERVER_ERROR) (.statusCode res))))))))
+
+(deftest test-consumes-content-type
+  (testing "it should only accept requests with content type application/json"
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/json")
+          (.sendJsonObject (JsonObject. "{\"foo\":\"bar\"}")
+                           (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
+
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/json")
+          (.sendForm (-> (MultiMap/caseInsensitiveMultiMap) (.add "foo" "bar"))
+                     (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/UNSUPPORTED_MEDIA_TYPE) (.statusCode res))))))
+
+  (testing "it should accept requests with content type
+  multipart/form-data, application/x-www-form-urlencoded, or application/octet-stream"
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
+          (.sendMultipartForm (.attribute (MultipartForm/create) "foo" "bar")
+                              (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
+
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
+          (.sendForm (-> (MultiMap/caseInsensitiveMultiMap) (.add "foo" "bar"))
+                     (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
+
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
+          (.putHeader "content-type" "application/octet-stream")
+          (.sendBuffer (Buffer/buffer "foo bar")
+                       (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
+
+    (let [response-promise (promise)]
+      (-> util/client
+          ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
+          (.sendJsonObject (JsonObject. "{\"foo\":\"bar\"}")
+                           (util/create-client-handler response-promise)))
+
+      (let [res (util/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/UNSUPPORTED_MEDIA_TYPE) (.statusCode res)))))))
