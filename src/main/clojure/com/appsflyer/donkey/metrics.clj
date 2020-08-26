@@ -1,4 +1,4 @@
-(ns donkey.metrics
+(ns com.appsflyer.donkey.metrics
   (:import (io.vertx.ext.dropwizard DropwizardMetricsOptions Match MatchType)
            (io.vertx.core.metrics MetricsOptions)))
 

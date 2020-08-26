@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>donkey</groupId>
+    <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <packaging>jar</packaging>
+    <packaging>clojure</packaging>
     <version>0.1.0-SNAPSHOT</version>
     <name>Donkey</name>
     <description>Clojure Web Server and Client</description>
@@ -36,82 +36,52 @@
         <outputDirectory>target/classes</outputDirectory>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+            </plugin>
+            <plugin>
+                <groupId>com.theoryinpractise</groupId>
+                <artifactId>clojure-maven-plugin</artifactId>
+                <version>1.8.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <temporaryOutputDirectory>true</temporaryOutputDirectory>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>lein-test</id>
+                        <id>junit-tests</id>
                         <phase>test</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>test-with-junit</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath/>
-                                <argument>clojure.main</argument>
-                                <argument>-m</argument>
-                                <argument>leiningen.core.main</argument>
-                                <argument>test</argument>
-                            </arguments>
+                            <testOutputDirectory>target/surefire-reports
+                            </testOutputDirectory>
+                            <warnOnReflection>true</warnOnReflection>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>lein-compile</id>
-                        <phase>compile</phase>
+                        <id>default-test</id>
+                        <phase>test</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>test</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath/>
-                                <argument>clojure.main</argument>
-                                <argument>-m</argument>
-                                <argument>leiningen.core.main</argument>
-                                <argument>compile</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>pkg-lein-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath/>
-                                <argument>clojure.main</argument>
-                                <argument>-m</argument>
-                                <argument>leiningen.core.main</argument>
-                                <argument>jar</argument>
-                            </arguments>
+                            <skip>true</skip>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>3.0.0-M1</version>
-                <executions>
-                    <execution>
-                        <id>default-install-file</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <pomFile>pom.xml</pomFile>
-                            <file>target/${project.build.finalName}.jar</file>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -172,6 +142,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>3.0.0-M5</version>
+                <executions>
+                    <execution>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

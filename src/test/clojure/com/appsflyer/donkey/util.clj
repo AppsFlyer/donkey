@@ -1,11 +1,10 @@
-(ns donkey.util
+(ns com.appsflyer.donkey.util
   (:require [clojure.test :refer [is]]
-            [donkey.core :as donkey]
-            [donkey.server :as server])
+            [com.appsflyer.donkey.core :as donkey]
+            [com.appsflyer.donkey.server :as server])
   (:import (io.vertx.ext.web.client WebClient WebClientOptions HttpResponse)
            (io.vertx.core Vertx Future Handler)
-           (com.appsflyer.donkey.server Server)
-           (donkey.server DonkeyServer)))
+           (com.appsflyer.donkey.server DonkeyServer Server)))
 
 (def ^:dynamic donkey-server)
 (def ^:dynamic ^WebClient client)

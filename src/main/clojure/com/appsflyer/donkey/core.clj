@@ -1,11 +1,10 @@
-(ns donkey.core
+(ns com.appsflyer.donkey.core
   (:require [clojure.set]
             [clojure.spec.alpha :as spec]
-            [donkey.server :as server]
-            [donkey.middleware.params :as middleware]
-            [donkey.server-spec :as server-spec])
-  (:import (donkey.server DonkeyServer)
-           (com.appsflyer.donkey.server Server)))
+            [com.appsflyer.donkey.server :as server]
+            [com.appsflyer.donkey.middleware.params :as middleware]
+            [com.appsflyer.donkey.server-spec :as server-spec])
+  (:import (com.appsflyer.donkey.server Server DonkeyServer)))
 
 (comment
   ;;; Server API
