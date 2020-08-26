@@ -57,6 +57,20 @@
    :handler      (fn [_req]
                    {:body "hit /blocking-handler"})})
 
+(def explicit-consumes-json
+  {:path         "/consumes/json"
+   :methods      [:post]
+   :consumes     ["application/json"]
+   :handler-mode :blocking
+   :handler      (fn [_req & _args] {})})
+
+(def explicit-consumes-multi-part-or-form-encoded-or-octet-stream
+  {:path         "/consumes/multi-urlencoded-stream"
+   :methods      [:post]
+   :consumes     ["multipart/form-data" "application/x-www-form-urlencoded" "application/octet-stream"]
+   :handler-mode :blocking
+   :handler      (fn [_req & _args] {})})
+
 (defn- make-pre-processing-blocking-middleware [fun]
   (fn [handler]
     (fn [req]

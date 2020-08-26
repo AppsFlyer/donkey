@@ -9,7 +9,9 @@
            (io.vertx.core.http HttpServerOptions)))
 
 (defn- ^HttpServerOptions get-server-options
-  "docstring"
+  "Creates and returns an HttpServerOptions object from the opts map.
+  The server options are use to define basic things such as the host and port
+  the server should listen to, as well as lower level connection parameters."
   [opts]
   (doto (HttpServerOptions.)
     (.setPort (int (:port opts 8080)))
@@ -19,7 +21,12 @@
     (.setCompressionSupported (:compression opts false))
     (.setDecompressionSupported (:compression opts false))))
 
-(defn- ^VertxOptions get-vertx-options [opts]
+(defn- ^VertxOptions get-vertx-options
+  "Creates and returns a VertxOptions object from the opts map.
+  The vertx options are used to initialise the Vertx object which is an
+  integral part of the server. It allows configuring thread pools,
+  clustering, and metrics."
+  [opts]
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
     (.setEventLoopPoolSize
@@ -30,7 +37,10 @@
       (.setMetricsOptions vertx-options (get-metrics-options opts)))
     vertx-options))
 
-(defn ^ServerConfig get-server-config [opts]
+(defn ^ServerConfig get-server-config
+  "Creates and returns a ServerConfig object from the opts map.
+  See the ServerConfig docs for more information."
+  [opts]
   (let [builder (doto (ServerConfig/builder)
                   (.vertxOptions (get-vertx-options opts))
                   (.serverOptions (get-server-options opts))
@@ -51,17 +61,17 @@
   (start [this]
     "Start the server asynchronously.
     Returns a promise that will be resolved with an
-    ExceptionInfo if the operation failed. Otherwise
-    resolved with nil.")
+    ExceptionInfo if the operation failed.
+    Otherwise resolved with nil.")
   (start-sync [this]
     "Start the server synchronously.
-    Blocks the calling thread until server initialization
-    is complete. Throws an ExceptionInfo if the operation failed.")
+    Blocks the calling thread until server initialization completes.
+    Throws an ExceptionInfo if the operation failed.")
   (stop [this]
     "Stop the server asynchronously.
     Returns a promise that will be resolved with an
-    ExceptionInfo if the operation failed. Otherwise
-    resolved with nil.")
+    ExceptionInfo if the operation failed.
+    Otherwise resolved with nil.")
   (stop-sync [this]
     "Stop the server synchronously.
     Blocks the calling thread until all server resources are terminated.
@@ -71,7 +81,7 @@
     by the JVM. Useful in order to prevent exiting the '-main' function.
     Throws an InterruptedException."))
 
-(defrecord DonkeyServer [^Server impl]
+(deftype DonkeyServer [^Server impl]
   HttpServer
   (start [_this]
     (let [res (promise)]

@@ -162,6 +162,9 @@ The logs include:
 - library debug logs   
 
   
+### Logging
+- Uses SLF4J
+- For debug logging you need to have logback on your classpath.  
    
 
 ## License

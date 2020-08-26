@@ -10,6 +10,7 @@
     <name>Donkey</name>
     <description>Clojure Web Server and Client</description>
     <url>https://github.com/yaronel/donkey</url>
+    <inceptionYear>2020</inceptionYear>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
