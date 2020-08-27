@@ -33,7 +33,8 @@
                                         [org.mockito/mockito-junit-jupiter "3.4.6"]]
                        :resource-paths ["src/test/resources"]
                        :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
-                                                  "-Dvertx.disableContextTimings=false"]}
+                                                  "-Dvertx.disableContextTimings=false"]
+                       :plugins        [[lein-kibit "0.1.8"]]}
              :uberjar {:aot :all}}
   :pom-location "target/"
   :repl-options {:init-ns donkey.core})

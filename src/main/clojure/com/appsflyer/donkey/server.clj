@@ -30,7 +30,7 @@
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
     (.setEventLoopPoolSize
-      vertx-options (int (:event-loops opts (-> (Runtime/getRuntime) .availableProcessors))))
+      vertx-options (int (:event-loops opts (.availableProcessors (Runtime/getRuntime)))))
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
     (when (:metrics-enabled opts)
