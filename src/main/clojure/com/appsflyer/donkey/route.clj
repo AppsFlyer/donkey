@@ -58,8 +58,7 @@
   (let [failed (.failed ctx)
         ended (-> ctx .response .ended)]
     (when-not (or failed ended)
-      (-> (.put ctx Constants/LAST_HANDLER_RESPONSE_FIELD res)
-          .next))))
+      (.next (.put ctx Constants/LAST_HANDLER_RESPONSE_FIELD res)))))
 
 (deftype RouteHandler [impl]
   RingHandler
@@ -113,8 +112,9 @@
       (add-handler route-map)))
 
 (defn- add-middleware [route-map global-middleware]
-  (let [handlers (-> (if (empty? global-middleware) [] global-middleware)
-                     (concat (:middleware route-map [])))]
+  (let [handlers (concat
+                   (if (empty? global-middleware) [] global-middleware)
+                   (:middleware route-map []))]
     (update route-map :handler (fn [handler]
                                  (if (empty? handlers)
                                    handler
