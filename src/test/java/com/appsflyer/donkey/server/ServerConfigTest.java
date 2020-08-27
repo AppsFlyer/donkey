@@ -8,8 +8,6 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -20,7 +18,7 @@ class ServerConfigTest {
     var vertxOptions = new VertxOptions();
     var serverOptions = new HttpServerOptions();
     RouteCreatorSupplier routeCreatorSupplier = new RingRouteCreatorSupplier();
-    var routerDefinition = new RouterDefinition(List.of(RouteDescriptor.create()));
+    var routerDefinition = RouterDefinition.from(RouteDescriptor.create());
     
     assertDoesNotThrow(() -> ServerConfig.builder()
                                          .vertxOptions(vertxOptions)

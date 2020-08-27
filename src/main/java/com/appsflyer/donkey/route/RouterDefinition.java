@@ -6,6 +6,10 @@ public class RouterDefinition {
   
   private final Deque<RouteDescriptor> routes;
   
+  public static RouterDefinition from(RouteDescriptor... routes) {
+    return new RouterDefinition(List.of(routes));
+  }
+  
   public RouterDefinition(List<RouteDescriptor> routes) {
     
     Objects.requireNonNull(routes, "Routes cannot be null");

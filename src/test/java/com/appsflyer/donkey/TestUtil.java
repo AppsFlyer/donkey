@@ -16,8 +16,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
-import java.util.List;
-
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -100,8 +98,7 @@ public final class TestUtil {
   }
   
   private static RouterDefinition defaultRouterDefinition() {
-    return new RouterDefinition(List.of(
-        RouteDescriptor.create().handler(ctx -> ctx.response().end())));
+    return RouterDefinition.from(RouteDescriptor.create().handler(ctx -> ctx.response().end()));
   }
   
   public static RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
