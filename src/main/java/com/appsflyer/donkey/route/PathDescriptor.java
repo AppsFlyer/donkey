@@ -3,7 +3,7 @@ package com.appsflyer.donkey.route;
 public interface PathDescriptor {
   
   static PathDescriptor create(String value) {
-    return create(value, MatchType.SIMPLE);
+    return new PathDescriptorImpl(value);
   }
   
   static PathDescriptor create(String value, MatchType matchType) {
