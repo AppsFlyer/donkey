@@ -1,6 +1,4 @@
-package com.appsflyer.donkey.route.handler;
-
-import com.appsflyer.donkey.route.RouteDescriptor;
+package com.appsflyer.donkey.route;
 
 import java.util.*;
 
@@ -18,7 +16,7 @@ public class RouterDefinition {
     this.routes = new LinkedList<>(routes);
   }
   
-  public Collection<RouteDescriptor> routes() {
+  public List<RouteDescriptor> routes() {
     return List.copyOf(routes);
   }
   

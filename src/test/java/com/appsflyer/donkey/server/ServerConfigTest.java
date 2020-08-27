@@ -2,7 +2,7 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;

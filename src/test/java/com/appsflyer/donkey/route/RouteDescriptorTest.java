@@ -27,7 +27,7 @@ class RouteDescriptorTest
     assertThrows(NullPointerException.class, () -> descriptor.addConsumes(null));
     assertThrows(NullPointerException.class, () -> descriptor.addProduces(null));
     assertThrows(NullPointerException.class, () -> descriptor.handlerMode(null));
-    assertThrows(NullPointerException.class, () -> descriptor.addHandler(null));
+    assertThrows(NullPointerException.class, () -> descriptor.handler(null));
     
     assertDoesNotThrow(() -> descriptor.path(null));
   }
@@ -36,7 +36,7 @@ class RouteDescriptorTest
   void testDefaultValues()
   {
     Handler<RoutingContext> handler = v -> {};
-    RouteDescriptor descriptor = RouteDescriptor.create().addHandler(handler);
+    RouteDescriptor descriptor = RouteDescriptor.create().handler(handler);
     assertNull(descriptor.path());
     assertEquals(Collections.emptySet(), descriptor.methods());
     assertEquals(Collections.emptySet(), descriptor.consumes());

@@ -1,7 +1,7 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import io.vertx.core.Vertx;
@@ -35,21 +35,19 @@ class ServerTest {
     Server server = Server.create(newServerConfig(newRouteDescriptor()));
     server.start()
           .onFailure(testContext::failNow)
-          .onSuccess(startResult -> {
-            doGet(vertx, "/")
-                .onComplete(testContext.succeeding(
-                    response -> testContext.verify(() -> {
-                      assert200(response);
-                      assertEquals(responseBody, response.bodyAsString());
-              
-                      server.shutdown().onComplete(stopResult -> {
-                        if (stopResult.failed()) {
-                          testContext.failNow(stopResult.cause());
-                        }
-                        testContext.completeNow();
-                      });
-                    })));
-          });
+          .onSuccess(startResult -> doGet(vertx, "/")
+              .onComplete(testContext.succeeding(
+                  response -> testContext.verify(() -> {
+                    assert200(response);
+                    assertEquals(responseBody, response.bodyAsString());
+            
+                    server.shutdown().onComplete(stopResult -> {
+                      if (stopResult.failed()) {
+                        testContext.failNow(stopResult.cause());
+                      }
+                      testContext.completeNow();
+                    });
+                  }))));
   }
   
   @Test
@@ -86,7 +84,7 @@ class ServerTest {
   }
   
   private RouteDescriptor newRouteDescriptor() {
-    return RouteDescriptor.create().addHandler(ctx -> ctx.response().end(responseBody));
+    return RouteDescriptor.create().handler(ctx -> ctx.response().end(responseBody));
   }
   
   private ServerConfig newServerConfig(RouteDescriptor routeDescriptor) {

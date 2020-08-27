@@ -1,7 +1,6 @@
 package com.appsflyer.donkey.route;
 
 import com.appsflyer.donkey.route.handler.error.NotFoundErrorHandler;
-import com.appsflyer.donkey.route.handler.RouterDefinition;
 import com.appsflyer.donkey.route.handler.error.InternalServerErrorHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;

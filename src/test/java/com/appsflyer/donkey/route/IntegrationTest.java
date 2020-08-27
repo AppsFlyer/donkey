@@ -1,6 +1,5 @@
 package com.appsflyer.donkey.route;
 
-import com.appsflyer.donkey.route.handler.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -62,40 +61,40 @@ class IntegrationTest {
       ctx.response().end(ctx.request().params().toString());
       requestsServed.flag();
     };
-    
+  
     var getFoo = RouteDescriptor.create()
                                 .addMethod(GET)
                                 .path(PathDescriptor.create("/foo"))
-                                .addHandler(handler);
-    
+                                .handler(handler);
+  
     var postFooBar = RouteDescriptor.create()
                                     .addMethod(POST)
                                     .path(PathDescriptor.create("/foo/bar"))
-                                    .addHandler(handler);
-    
+                                    .handler(handler);
+  
     var postOrPutJson = RouteDescriptor.create()
                                        .addMethod(POST)
                                        .addMethod(PUT)
                                        .path(PathDescriptor.create("/json"))
                                        .addConsumes("application/json")
                                        .addProduces("application/json")
-                                       .addHandler(handler);
-    
+                                       .handler(handler);
+  
     var getPathVariable = RouteDescriptor.create()
                                          .addMethod(GET)
                                          .path(PathDescriptor.create("/token/:tokenId"))
-                                         .addHandler(handler);
-    
+                                         .handler(handler);
+  
     var getRegexPath = RouteDescriptor.create()
                                       .addMethod(GET)
                                       .path(PathDescriptor.create("/id/(\\d+)", REGEX))
-                                      .addHandler(handler);
-    
+                                      .handler(handler);
+  
     var postComplexRegexPath = RouteDescriptor.create()
                                               .addMethod(POST)
                                               .path(PathDescriptor.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
-                                              .addHandler(handler);
-    
+                                              .handler(handler);
+  
     return newRouterFactory(
         vertx, List.of(getFoo,
                        postFooBar,
