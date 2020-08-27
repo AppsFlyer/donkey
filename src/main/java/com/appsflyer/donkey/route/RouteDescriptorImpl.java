@@ -80,7 +80,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor addHandler(Handler<RoutingContext> handler) {
+  public RouteDescriptor handler(Handler<RoutingContext> handler) {
     Objects.requireNonNull(handler, "Handler cannot be null");
     this.handler = handler;
     return this;

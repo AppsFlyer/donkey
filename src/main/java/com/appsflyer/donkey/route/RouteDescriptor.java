@@ -30,7 +30,7 @@ public interface RouteDescriptor {
   
   Handler<RoutingContext> handler();
   
-  RouteDescriptor addHandler(Handler<RoutingContext> handler);
+  RouteDescriptor handler(Handler<RoutingContext> handler);
   
   HandlerMode handlerMode();
   

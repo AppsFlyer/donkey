@@ -3,6 +3,7 @@ package com.appsflyer.donkey.route.handler;
 import com.appsflyer.donkey.route.AbstractRouteCreator;
 import com.appsflyer.donkey.route.RouteCreator;
 import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
@@ -12,7 +13,6 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -43,7 +43,7 @@ class DateHeaderGeneratorTest {
   
   private RouterDefinition defaultRouterDefinition() {
     return new RouterDefinition(List.of(
-        RouteDescriptor.create().addHandler(ctx -> ctx.response().end())));
+        RouteDescriptor.create().handler(ctx -> ctx.response().end())));
   }
   
   private RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
@@ -75,33 +75,30 @@ class DateHeaderGeneratorTest {
                                    .addDateHeader(true)
                                    .build());
     server.start();
-    
-    var client = WebClient.create(vertx);
+  
     Checkpoint responsesReceived = testContext.checkpoint(2);
-    
+  
     AtomicReference<String> lastDate = new AtomicReference<>("");
-    Handler<Long> testCase = v -> {
-      doGet(client, "/")
-          .onComplete(ignore -> {
-            //Second time we can shutdown the server
-            if (!lastDate.get().isBlank()) {
-              server.shutdown();
-            }
-          })
-          .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
-            assert200(response);
-            // Validate that the Date header is a valid date, and that it changed
-            //since the last request.
-            String date = response.getHeader("Date");
-            assertNotEquals(lastDate.getAndSet(date), date);
-            assertValidDate(date);
-            responsesReceived.flag();
-          })));
-    };
-    
+    Handler<Long> testCase = v -> doGet(vertx, "/")
+        .onComplete(ignore -> {
+          //Second time we can shutdown the server
+          if (!lastDate.get().isBlank()) {
+            server.shutdown();
+          }
+        })
+        .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+          assert200(response);
+          // Assert that the Date header is a valid date, and that it changed
+          //since the last request.
+          String date = response.getHeader("Date");
+          assertNotEquals(lastDate.getAndSet(date), date);
+          assertValidDate(date);
+          responsesReceived.flag();
+        })));
+  
     //Call one time now
     testCase.handle(0L);
-    
+  
     //Call again in one second
     vertx.setTimer(1000, testCase);
   }

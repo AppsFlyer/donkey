@@ -2,7 +2,7 @@ package com.appsflyer.donkey.route.ring;
 
 import com.appsflyer.donkey.route.AbstractRouteCreator;
 import com.appsflyer.donkey.route.RouteCreatorSupplier;
-import com.appsflyer.donkey.route.handler.RouterDefinition;
+import com.appsflyer.donkey.route.RouterDefinition;
 import io.vertx.ext.web.Router;
 
 public class RingRouteCreatorSupplier implements RouteCreatorSupplier {
