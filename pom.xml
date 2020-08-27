@@ -57,8 +57,7 @@
                             <goal>test-with-junit</goal>
                         </goals>
                         <configuration>
-                            <testOutputDirectory>target/surefire-reports
-                            </testOutputDirectory>
+                            <testOutputDirectory>target</testOutputDirectory>
                             <warnOnReflection>true</warnOnReflection>
                         </configuration>
                     </execution>

@@ -169,7 +169,7 @@ request, or stop the execution by calling `raise`.
 ```
 
 ### Metrics
-List the available metrics - this is largely a copy + paste from  
+List the available metrics - this is largely a copy + paste from https://vertx.io/docs/vertx-dropwizard-metrics/java/ 
 
 ### Debug mode
 Debug mode is activated when creating the server with `:debug true`.

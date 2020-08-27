@@ -1,10 +1,17 @@
 (ns com.appsflyer.donkey.routes)
 
-(defn return-request [req]
-  {:status 200
-   :body   (-> (dissoc req :body)
-               pr-str
-               .getBytes)})
+(defn return-request
+  ([req]
+   {:status 200
+    :body   (-> (dissoc req :body)
+                pr-str
+                .getBytes)})
+  ([req respond _raise]
+   (respond
+     {:status 200
+      :body   (-> (dissoc req :body)
+                  pr-str
+                  .getBytes)})))
 
 (defn async-return-request-handler
   "An asynchronous handler that returns the request in the response body"
@@ -22,6 +29,11 @@
    :methods      [:get]
    :handler-mode :blocking
    :handler      return-request})
+
+(def echo-route-non-blocking
+  {:path    "/echo/non-blocking"
+   :methods [:get]
+   :handler return-request})
 
 (def ring-spec
   {:path    "/ring-spec"
