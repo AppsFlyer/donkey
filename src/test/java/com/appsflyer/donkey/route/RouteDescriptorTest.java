@@ -6,22 +6,21 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class RouteDescriptorTest
-{
+class RouteDescriptorTest {
+  
   @Test
-  void testRequiredHandler()
-  {
+  void testRequiredHandler() {
     RouteDescriptor descriptor = RouteDescriptor.create();
     assertThrows(IllegalStateException.class, descriptor::handler);
   }
   
   @Test
-  void testNonNullArguments()
-  {
+  void testNonNullArguments() {
     RouteDescriptor descriptor = RouteDescriptor.create();
     assertThrows(NullPointerException.class, () -> descriptor.addMethod(null));
     assertThrows(NullPointerException.class, () -> descriptor.addConsumes(null));
@@ -33,8 +32,7 @@ class RouteDescriptorTest
   }
   
   @Test
-  void testDefaultValues()
-  {
+  void testDefaultValues() {
     Handler<RoutingContext> handler = v -> {};
     RouteDescriptor descriptor = RouteDescriptor.create().handler(handler);
     assertNull(descriptor.path());
@@ -46,52 +44,56 @@ class RouteDescriptorTest
   }
   
   @Test
-  void testMethods()
-  {
+  void testMethods() {
     RouteDescriptor descriptor = RouteDescriptor.create().addMethod(POST);
     assertEquals(Set.of(POST), descriptor.methods());
     
     descriptor = RouteDescriptor.create()
-        .addMethod(GET)
-        .addMethod(POST)
-        .addMethod(PUT)
-        .addMethod(DELETE);
+                                .addMethod(GET)
+                                .addMethod(POST)
+                                .addMethod(PUT)
+                                .addMethod(DELETE);
     assertEquals(Set.of(GET, POST, PUT, DELETE), descriptor.methods());
   }
   
   @Test
-  void testConsumes()
-  {
+  void testConsumes() {
     RouteDescriptor descriptor = RouteDescriptor.create().addConsumes("text/plain");
     assertEquals(Set.of("text/plain"), descriptor.consumes());
     
     descriptor = RouteDescriptor.create()
-        .addConsumes("text/plain")
-        .addConsumes("application/json")
-        .addConsumes("application/x-www-form-urlencoded");
+                                .addConsumes("text/plain")
+                                .addConsumes("application/json")
+                                .addConsumes("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",
                         "application/x-www-form-urlencoded"),
                  descriptor.consumes());
-    
   }
   
   @Test
-  void testProduces()
-  {
+  void testProduces() {
     RouteDescriptor descriptor = RouteDescriptor.create().addProduces("text/plain");
     assertEquals(Set.of("text/plain"), descriptor.produces());
     
     descriptor = RouteDescriptor.create()
-        .addProduces("text/plain")
-        .addProduces("application/json")
-        .addProduces("application/x-www-form-urlencoded");
+                                .addProduces("text/plain")
+                                .addProduces("application/json")
+                                .addProduces("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",
                         "application/x-www-form-urlencoded"),
                  descriptor.produces());
-    
+  }
+  
+  @Test
+  void testContentTypeCannotBeBlank() {
+    RouteDescriptor descriptor = RouteDescriptor.create();
+    Stream.of("", " ").forEach(type -> {
+      assertThrows(IllegalArgumentException.class, () -> descriptor.addConsumes(type));
+      assertThrows(IllegalArgumentException.class, () -> descriptor.addProduces(type));
+    });
   }
 }

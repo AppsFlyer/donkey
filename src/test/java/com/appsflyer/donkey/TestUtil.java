@@ -104,11 +104,13 @@ public final class TestUtil {
         RouteDescriptor.create().handler(ctx -> ctx.response().end())));
   }
   
-  private static RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
+  public static RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
     return new AbstractRouteCreator(router, routerDefinition) {
       @Override
       protected void buildRoute(Route route, RouteDescriptor rd) {
-        route.handler(rd.handler());
+        setPath(route, rd);
+        addBodyHandler(route);
+        addHandler(route, rd.handler(), rd.handlerMode());
       }
     };
   }
