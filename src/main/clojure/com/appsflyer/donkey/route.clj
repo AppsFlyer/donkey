@@ -1,11 +1,14 @@
 (ns com.appsflyer.donkey.route
-  (:import (io.vertx.ext.web RoutingContext)
-           (io.vertx.core Handler)
+  (:import (io.vertx.core Handler)
+           (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (com.appsflyer.donkey.route PathDescriptor$MatchType HandlerMode PathDescriptor RouteDescriptor)
+           (com.appsflyer.donkey.route RouterDefinition
+                                       PathDescriptor$MatchType
+                                       HandlerMode
+                                       PathDescriptor
+                                       RouteDescriptor)
            (com.appsflyer.donkey.route.handler Constants)
-           (com.appsflyer.donkey.route.handler RouterDefinition)
            (com.appsflyer.donkey.route.handler.ring RingHandler)))
 
 (defn- keyword->MatchType [matchType]
@@ -47,7 +50,7 @@
     (.addProduces route content-type))
   route)
 
-(defn- get-handler-argument [^RoutingContext ctx]
+(defn- get-last-handler-response [^RoutingContext ctx]
   (if-let [last-response (.get ctx Constants/LAST_HANDLER_RESPONSE_FIELD)]
     last-response
     (throw (IllegalStateException.
@@ -66,7 +69,7 @@
     (let [respond (partial response-handler ctx)
           raise (fn [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
       (try
-        (impl (get-handler-argument ctx) respond raise)
+        (impl (get-last-handler-response ctx) respond raise)
         (catch Throwable ex
           (.fail ^RoutingContext ctx ^Throwable ex))))))
 
@@ -76,7 +79,7 @@
     (try
       (-> ^RoutingContext ctx
           (.put Constants/LAST_HANDLER_RESPONSE_FIELD
-                (impl (get-handler-argument ^RoutingContext ctx)))
+                (impl (get-last-handler-response ^RoutingContext ctx)))
           .next)
       (catch Throwable ex
         (.fail ^RoutingContext ctx ^Throwable ex)))))
@@ -95,7 +98,7 @@
   (->RouteHandler (:handler route-map)))
 
 (defn- add-handler [^RouteDescriptor route route-map]
-  (.addHandler route ^Handler (create-handler route-map)))
+  (.handler route ^Handler (create-handler route-map)))
 
 (defn- add-handler-mode [^RouteDescriptor route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
@@ -111,21 +114,32 @@
       (add-handler-mode route-map)
       (add-handler route-map)))
 
-(defn- add-middleware [route-map global-middleware]
+(defn- compose-middleware
+  "The function takes the global middleware that's applied to all routes,
+   the route specific middleware, and the route handler, and returns a new
+   function that is the composition of all the functions.
+   In the simplest case where there's no middleware, it returns the route handler.
+   If there's global or route middleware, then it applies the global middleware first,
+   then the route specific middleware, and finally the route handler."
+  [{:keys [handler middleware] :or {middleware []}} global-middleware]
   (let [handlers (concat
                    (if (empty? global-middleware) [] global-middleware)
-                   (:middleware route-map []))]
-    (update route-map :handler (fn [handler]
-                                 (if (empty? handlers)
-                                   handler
-                                   (let [comp-fn (apply comp handlers)]
-                                     (comp-fn handler)))))))
+                   middleware)]
+    (if (empty? handlers)
+      handler
+      (let [comp-fn (apply comp handlers)]
+        (comp-fn handler)))))
 
-(defn- create-route-descriptors [opts]
+(defn- create-route-descriptors
+  "Returns a List<RouteDescriptor>"
+  [opts]
   (reduce
     (fn [res route]
-      (doto ^List res
-        (.add (map->RouteDescriptor (add-middleware route (:middleware opts))))))
+      (let [handler (compose-middleware route (:middleware opts))]
+        (doto ^List res
+          (.add
+            (map->RouteDescriptor
+              (assoc route :handler handler))))))
     (ArrayList. (int (count (:routes opts))))
     (:routes opts)))
 
