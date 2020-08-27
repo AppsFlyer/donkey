@@ -6,7 +6,7 @@ import io.vertx.ext.web.RoutingContext;
 public class ServerHeaderHandler implements Handler<RoutingContext> {
   
   private static final String SERVER_PROP = "Server";
-  private static final String SERVER_NAME = "Donkey";
+  static final String SERVER_NAME = "Donkey";
   
   public static ServerHeaderHandler create() {
     return new ServerHeaderHandler();

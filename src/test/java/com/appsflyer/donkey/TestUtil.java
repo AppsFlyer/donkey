@@ -1,11 +1,22 @@
 package com.appsflyer.donkey;
 
+import com.appsflyer.donkey.route.AbstractRouteCreator;
+import com.appsflyer.donkey.route.RouteCreator;
+import com.appsflyer.donkey.route.RouteDescriptor;
+import com.appsflyer.donkey.route.RouterDefinition;
+import com.appsflyer.donkey.server.ServerConfig;
+import com.appsflyer.donkey.server.ServerConfigBuilder;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -70,12 +81,34 @@ public final class TestUtil {
   
   private static Handler<AsyncResult<HttpResponse<Buffer>>> asyncResultHandler(
       Promise<HttpResponse<Buffer>> promise) {
-    
+  
     return asyncResult -> {
       if (asyncResult.failed()) {
         promise.fail(asyncResult.cause());
       } else {
         promise.complete(asyncResult.result());
+      }
+    };
+  }
+  
+  public static ServerConfigBuilder getDefaultConfigBuilder() {
+    return ServerConfig.builder()
+                       .vertxOptions(new VertxOptions())
+                       .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
+                       .routerDefinition(defaultRouterDefinition())
+                       .routeCreatorSupplier(TestUtil::newRouteCreator);
+  }
+  
+  private static RouterDefinition defaultRouterDefinition() {
+    return new RouterDefinition(List.of(
+        RouteDescriptor.create().handler(ctx -> ctx.response().end())));
+  }
+  
+  private static RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
+    return new AbstractRouteCreator(router, routerDefinition) {
+      @Override
+      protected void buildRoute(Route route, RouteDescriptor rd) {
+        route.handler(rd.handler());
       }
     };
   }
