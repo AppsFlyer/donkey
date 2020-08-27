@@ -106,7 +106,7 @@ class ContentTypeHandlerTest {
   }
   
   private RouterDefinition newRouterDefinitionWithContentType(RouteDescriptor... routeDescriptors) {
-    return new RouterDefinition(List.of(routeDescriptors));
+    return RouterDefinition.from(routeDescriptors);
   }
   
   private ServerConfigBuilder getDefaultConfigBuilder(RouterDefinition routerDefinition) {

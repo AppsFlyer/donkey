@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.BindException;
-import java.util.List;
 
 import static com.appsflyer.donkey.TestUtil.assert200;
 import static com.appsflyer.donkey.TestUtil.doGet;
@@ -40,7 +39,7 @@ class ServerTest {
                   response -> testContext.verify(() -> {
                     assert200(response);
                     assertEquals(responseBody, response.bodyAsString());
-            
+  
                     server.shutdown().onComplete(stopResult -> {
                       if (stopResult.failed()) {
                         testContext.failNow(stopResult.cause());
@@ -92,7 +91,7 @@ class ServerTest {
                        .vertxOptions(new VertxOptions().setEventLoopPoolSize(1))
                        .serverOptions(new HttpServerOptions().setPort(port))
                        .routeCreatorSupplier(new RingRouteCreatorSupplier())
-                       .routerDefinition(new RouterDefinition(List.of(routeDescriptor)))
+                       .routerDefinition(RouterDefinition.from(routeDescriptor))
                        .build();
   }
 }

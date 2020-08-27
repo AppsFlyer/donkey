@@ -30,13 +30,14 @@ class RouterDefinitionTest {
   void testRequiredArgument() {
     assertThrows(NullPointerException.class, () -> new RouterDefinition(null));
     assertThrows(IllegalArgumentException.class, () -> new RouterDefinition(List.of()));
+    assertThrows(IllegalArgumentException.class, RouterDefinition::from);
   }
   
   @Test
   void testAddFirst() {
     var newRouteDescriptor = RouteDescriptor.create().handler(RoutingContext::next);
     var routerDefinition =
-        new RouterDefinition(List.of(routeDescriptor)).addFirst(newRouteDescriptor);
+        RouterDefinition.from(routeDescriptor).addFirst(newRouteDescriptor);
     
     assertEquals(2, routerDefinition.routes().size());
     assertEquals(newRouteDescriptor, routerDefinition.routes().get(0));
@@ -47,7 +48,7 @@ class RouterDefinitionTest {
   void testAddLast() {
     var newRouteDescriptor = RouteDescriptor.create().handler(RoutingContext::next);
     var routerDefinition =
-        new RouterDefinition(List.of(routeDescriptor)).addLast(newRouteDescriptor);
+        RouterDefinition.from(routeDescriptor).addLast(newRouteDescriptor);
     
     assertEquals(2, routerDefinition.routes().size());
     assertEquals(routeDescriptor, routerDefinition.routes().get(0));
