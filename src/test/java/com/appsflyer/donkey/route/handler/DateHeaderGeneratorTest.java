@@ -1,18 +1,8 @@
 package com.appsflyer.donkey.route.handler;
 
-import com.appsflyer.donkey.route.AbstractRouteCreator;
-import com.appsflyer.donkey.route.RouteCreator;
-import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.server.Server;
-import com.appsflyer.donkey.server.ServerConfig;
-import com.appsflyer.donkey.server.ServerConfigBuilder;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -21,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.appsflyer.donkey.TestUtil.*;
@@ -32,28 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class DateHeaderGeneratorTest {
   
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.RFC_1123_DATE_TIME;
-  
-  private ServerConfigBuilder getDefaultConfigBuilder() {
-    return ServerConfig.builder()
-                       .vertxOptions(new VertxOptions())
-                       .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
-                       .routerDefinition(defaultRouterDefinition())
-                       .routeCreatorSupplier(this::newRouteCreator);
-  }
-  
-  private RouterDefinition defaultRouterDefinition() {
-    return new RouterDefinition(List.of(
-        RouteDescriptor.create().handler(ctx -> ctx.response().end())));
-  }
-  
-  private RouteCreator newRouteCreator(Router router, RouterDefinition routerDefinition) {
-    return new AbstractRouteCreator(router, routerDefinition) {
-      @Override
-      protected void buildRoute(Route route, RouteDescriptor rd) {
-        route.handler(rd.handler());
-      }
-    };
-  }
   
   @Test
   void testDateHeaderNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) {
