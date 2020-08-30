@@ -7,6 +7,8 @@ import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
+import com.appsflyer.donkey.server.exception.ServerInitializationException;
+import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
@@ -14,6 +16,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,14 +35,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @ExtendWith(VertxExtension.class)
 class ContentTypeHandlerTest {
   
+  private Server server;
+  
+  @AfterEach
+  void tearDown() throws ServerShutdownException {
+    server.shutdownSync();
+    server = null;
+  }
+  
   @Test
-  void testContentTypeNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) {
-    var server = Server.create(TestUtil.getDefaultConfigBuilder().build());
-    server.start();
+  void testContentTypeNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) throws
+                                                                                      ServerInitializationException {
+    server = Server.create(TestUtil.getDefaultConfigBuilder().build());
+    server.startSync();
     
     doGet(vertx, "/")
         .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
-          server.shutdown();
           assert200(response);
           assertNull(response.getHeader("content-type"));
           testContext.completeNow();
@@ -48,7 +59,7 @@ class ContentTypeHandlerTest {
   
   @Test
   void testAddingContentTypeHeader(Vertx vertx, VertxTestContext testContext) throws
-                                                                              InterruptedException {
+                                                                              Exception {
     var routes =
         List.of(
             Map.of("content-type", "text/plain",
@@ -78,9 +89,9 @@ class ContentTypeHandlerTest {
         .addContentTypeHeader(true)
         .build();
     
-    var server = Server.create(config);
+    server = Server.create(config);
+    server.startSync();
     
-    server.start();
     WebClient client = WebClient.create(vertx);
     
     Checkpoint responsesReceived = testContext.checkpoint(routes.size());
@@ -98,7 +109,6 @@ class ContentTypeHandlerTest {
                    }))));
     
     shutdownServerLatch.await(5, TimeUnit.SECONDS);
-    server.shutdown();
   }
   
   private RouteDescriptor routeForContentType(String uri, String contentType) {
