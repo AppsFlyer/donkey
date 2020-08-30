@@ -38,7 +38,7 @@
 (s/def ::compression boolean?)
 (s/def ::host (s/and string? (comp not clojure.string/blank?)))
 (s/def ::metrics-enabled boolean?)
-(s/def ::metrics-registry #(instance? MetricRegistry %))
+(s/def ::metric-registry #(instance? MetricRegistry %))
 (s/def ::metrics-prefix string?)
 (s/def ::worker-threads #(s/int-in-range? 1 500 %))
 (s/def ::debug boolean?)
@@ -53,7 +53,7 @@
                                  ::compression
                                  ::host
                                  ::metrics-enabled
-                                 ::metrics-registry
+                                 ::metric-registry
                                  ::metrics-prefix
                                  ::worker-threads
                                  ::debug

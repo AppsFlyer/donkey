@@ -94,7 +94,7 @@ The term "middleware" is generally used in the context of HTTP frameworks
 as a pluggable unit of functionality that can examine or manipulate the flow of bytes
 between a client and a server. In other words, it allows users to do things such as 
 logging, compression, validation, authorization, and transformation (to name a few) 
-to requests and responses.
+of requests and responses.
 
 According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
 specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
@@ -168,10 +168,86 @@ request, or stop the execution by calling `raise`.
              (raise exception))))))))
 ```
 
-### Metrics
-List the available metrics - this is largely a copy + paste from https://vertx.io/docs/vertx-dropwizard-metrics/java/ 
+## Metrics
 
-### Debug mode
+The library uses Dropwizard to capture different metrics. The metrics can be largely 
+grouped into three categories: 
+- Thread Pool
+- Server
+- Client
+
+Metrics collection can be enabled by setting `:metrics-enabled true` when creating
+a server or client. By default, a new Dropwizard `MetricRegistry` is created and can be 
+viewed as managed beans in profilers such as [VisualVM](https://visualvm.github.io/).
+That might be enough for local development, but in production you'll want to have 
+the metrics reported to some monitoring service such as [Prometheus](https://prometheus.io/), 
+or [graphite](https://graphiteapp.org/).
+A pre instantiated instance of `MetricRegistry` can be provided by setting `:metrc-registry instance`
+in the configuration. 
+As later described, metrics are named using a `.` as a separator. By default all metrics 
+are prefixed with `donkey`, but it's possible to set `:metrics-prefix` to use a different string.    
+
+### List of Exposed Metrics
+
+#### Thread Pool Metrics   
+
+Base name:  `<:metrics-prefix>`
+
+- `event-loop-size` - A Gauge of the number of threads in the event loop pool
+- `worker-pool-size` - A Gauge of the number of threads in the worker pool
+
+Base name:  `<:metrics-prefix>.pools.worker.vert.x-worker-thread`
+ 
+- `queue-delay` - A Timer measuring the duration of the delay to obtain the resource, i.e the wait time in the queue
+- `queue-size` - A Counter of the actual number of waiters in the queue
+- `usage` - A Timer measuring the duration of the usage of the resource
+- `in-use` - A count of the actual number of resources used
+- `pool-ratio` - A ratio Gauge of the in use resource / pool size
+- `max-pool-size` - A Gauge of the max pool size
+ 
+
+#### Server Metrics   
+
+Base name: `<:metrics-prefix>.http.servers.<host>:<port>`
+
+- `open-netsockets` - A Counter of the number of open net socket connections
+- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
+- `connections` - A Timer of a connection and the rate of its occurrence
+- `exceptions` - A Counter of the number of exceptions
+- `bytes-read` - A Histogram of the number of bytes read.
+- `bytes-written` - A Histogram of the number of bytes written.
+- `requests` - A Throughput Timer of a request and the rate of it’s occurrence
+- `<http-method>-requests` - A Throughput Timer of a specific HTTP method request, and the rate of its occurrence
+Examples: get-requests, post-requests
+- `responses-1xx` - A ThroughputMeter of the 1xx response code
+- `responses-2xx` - A ThroughputMeter of the 2xx response code
+- `responses-3xx` - A ThroughputMeter of the 3xx response code
+- `responses-4xx` - A ThroughputMeter of the 4xx response code
+- `responses-5xx` - A ThroughputMeter of the 5xx response code
+
+#### Client Metrics
+
+Base name: `<:metrics-prefix>.http.clients`
+
+- `open-netsockets` - A Counter of the number of open net socket connections
+- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
+- `connections` - A Timer of a connection and the rate of its occurrence
+- `exceptions` - A Counter of the number of exceptions
+- `bytes-read` - A Histogram of the number of bytes read.
+- `bytes-written` - A Histogram of the number of bytes written.
+- `connections.max-pool-size` - A Gauge of the max connection pool size
+- `connections.pool-ratio` - A ratio Gauge of the open connections / max connection pool size
+- `responses-1xx` - A Meter of the 1xx response code
+- `responses-2xx` - A Meter of the 2xx response code
+- `responses-3xx` - A Meter of the 3xx response code
+- `responses-4xx` - A Meter of the 4xx response code
+- `responses-5xx` - A Meter of the 5xx response code
+
+
+
+
+   
+## Debug mode
 Debug mode is activated when creating the server with `:debug true`.
 It will cause A LOT of logs to be written and therefore it is completely
 unsuitable for production, and should only be used while debugging in development.
@@ -182,11 +258,11 @@ The logs include:
 - library debug logs   
 
   
-### Logging
+## Logging
 - Uses SLF4J
 - For debug logging you need to have logback on your classpath.
 
-### Start up options
+## Start up options
 JVM system properties that can be supplied when running the application
 - `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
 warn the user if an event loop or worker thread is being occupied above a certain 

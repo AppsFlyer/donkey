@@ -12,7 +12,7 @@
    :compression          false
    :host                 "0.0.0.0"
    :metrics-enabled      true
-   :metrics-registry     nil
+   :metric-registry      nil
    :metrics-prefix       "donkey"
    :worker-threads       20
    :event-loops          1
