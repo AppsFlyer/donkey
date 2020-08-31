@@ -89,9 +89,10 @@ public final class TestUtil {
     };
   }
   
-  public static ServerConfigBuilder getDefaultConfigBuilder() {
+  public static ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx) {
     return ServerConfig.builder()
-                       .vertxOptions(new VertxOptions())
+                       .vertx(vertx)
+                       .instances(1)
                        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
                        .routerDefinition(defaultRouterDefinition())
                        .routeCreatorSupplier(TestUtil::newRouteCreator);

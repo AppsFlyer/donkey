@@ -56,8 +56,8 @@
           (.send (util/create-client-handler response-promise)))
 
       (let [^ILookup res (util/parse-response-body-when-resolved response-promise)]
-        (is (= (:port util/default-options) (:server-port res)))
-        (is (= (str "localhost:" (:port util/default-options)) (:server-name res)))
+        (is (= (:port util/default-server-options) (:server-port res)))
+        (is (= (str "localhost:" (:port util/default-server-options)) (:server-name res)))
         (is (re-find #"127\.0\.0\.1:\d+" (:remote-addr res)))
         (is (= "/ring-spec" (:uri res)))
         (is (= "foo=bar" (:query-string res)))

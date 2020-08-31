@@ -10,7 +10,6 @@ import com.appsflyer.donkey.server.ServerConfigBuilder;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.Checkpoint;
@@ -46,7 +45,7 @@ class ContentTypeHandlerTest {
   @Test
   void testContentTypeNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) throws
                                                                                       ServerInitializationException {
-    server = Server.create(TestUtil.getDefaultConfigBuilder().build());
+    server = Server.create(TestUtil.getDefaultConfigBuilder(vertx).build());
     server.startSync();
     
     doGet(vertx, "/")
@@ -85,7 +84,7 @@ class ContentTypeHandlerTest {
               .toArray(RouteDescriptor[]::new);
     
     ServerConfig config = getDefaultConfigBuilder(
-        newRouterDefinitionWithContentType(routeDescriptors))
+        vertx, newRouterDefinitionWithContentType(routeDescriptors))
         .addContentTypeHeader(true)
         .build();
     
@@ -119,9 +118,10 @@ class ContentTypeHandlerTest {
     return RouterDefinition.from(routeDescriptors);
   }
   
-  private ServerConfigBuilder getDefaultConfigBuilder(RouterDefinition routerDefinition) {
+  private ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx, RouterDefinition routerDefinition) {
     return ServerConfig.builder()
-                       .vertxOptions(new VertxOptions())
+                       .vertx(vertx)
+                       .instances(1)
                        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
                        .routerDefinition(routerDefinition)
                        .routeCreatorSupplier(TestUtil::newRouteCreator);

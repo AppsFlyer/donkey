@@ -2,6 +2,7 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.RouterDefinition;
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 
@@ -32,10 +33,11 @@ import java.util.Objects;
  */
 public final class ServerConfigImpl implements ServerConfig {
   
-  private VertxOptions vertxOptions;
+  private Vertx vertx;
   private HttpServerOptions serverOptions;
   private RouteCreatorSupplier routeCreatorSupplier;
   private RouterDefinition routerDefinition;
+  private int instances;
   private boolean debug;
   private boolean addDateHeader;
   private boolean addContentTypeHeader;
@@ -44,8 +46,8 @@ public final class ServerConfigImpl implements ServerConfig {
   private ServerConfigImpl() {}
   
   @Override
-  public VertxOptions vertxOptions() {
-    return vertxOptions;
+  public Vertx vertx() {
+    return vertx;
   }
   
   @Override
@@ -61,6 +63,11 @@ public final class ServerConfigImpl implements ServerConfig {
   @Override
   public RouterDefinition routerDefinition() {
     return routerDefinition;
+  }
+  
+  @Override
+  public int instances() {
+    return instances;
   }
   
   @Override
@@ -90,10 +97,10 @@ public final class ServerConfigImpl implements ServerConfig {
     ServerConfigBuilderImpl() {
       instance = new ServerConfigImpl();
     }
-    
+  
     @Override
-    public ServerConfigBuilder vertxOptions(VertxOptions vertxOptions) {
-      instance.vertxOptions = vertxOptions;
+    public ServerConfigBuilder vertx(Vertx vertx) {
+      instance.vertx = vertx;
       return this;
     }
     
@@ -108,19 +115,25 @@ public final class ServerConfigImpl implements ServerConfig {
       instance.routeCreatorSupplier = routeCreatorSupplier;
       return this;
     }
-    
+  
     @Override
     public ServerConfigBuilder routerDefinition(RouterDefinition routerDefinition) {
       instance.routerDefinition = routerDefinition;
       return this;
     }
-    
+  
+    @Override
+    public ServerConfigBuilder instances(int val) {
+      instance.instances = val;
+      return this;
+    }
+  
     @Override
     public ServerConfigBuilder debug(boolean val) {
       instance.debug = val;
       return this;
     }
-    
+  
     @Override
     public ServerConfigBuilder addDateHeader(boolean val) {
       instance.addDateHeader = val;
@@ -148,10 +161,13 @@ public final class ServerConfigImpl implements ServerConfig {
     }
     
     private void assertValidState() {
-      Objects.requireNonNull(instance.vertxOptions, "Vert.x options is missing");
+      Objects.requireNonNull(instance.vertx, "Vert.x instance is missing");
       Objects.requireNonNull(instance.serverOptions, "Server options is missing");
       Objects.requireNonNull(instance.routeCreatorSupplier, "Route creator supplier is missing");
       Objects.requireNonNull(instance.routerDefinition, "Router definition is missing");
+      if (instance.instances < 1) {
+        throw new IllegalArgumentException("Number of instances must be greater than 0");
+      }
     }
   }
   

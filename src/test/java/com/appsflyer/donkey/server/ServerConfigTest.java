@@ -4,7 +4,7 @@ import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.RouteDescriptor;
 import com.appsflyer.donkey.route.RouterDefinition;
 import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.jupiter.api.Test;
 
@@ -15,21 +15,32 @@ class ServerConfigTest {
   
   @Test
   void testRequiredOptions() {
-    var vertxOptions = new VertxOptions();
+    var vertx = Vertx.vertx();
     var serverOptions = new HttpServerOptions();
     RouteCreatorSupplier routeCreatorSupplier = new RingRouteCreatorSupplier();
     var routerDefinition = RouterDefinition.from(RouteDescriptor.create());
-    
+  
     assertDoesNotThrow(() -> ServerConfig.builder()
-                                         .vertxOptions(vertxOptions)
+                                         .vertx(vertx)
+                                         .instances(1)
                                          .serverOptions(serverOptions)
                                          .routeCreatorSupplier(routeCreatorSupplier)
                                          .routerDefinition(routerDefinition)
                                          .build());
-    
+  
     assertThrows(NullPointerException.class,
                  () -> ServerConfig.builder()
-                                   .vertxOptions(null)
+                                   .vertx(null)
+                                   .instances(1)
+                                   .serverOptions(serverOptions)
+                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routerDefinition(routerDefinition)
+                                   .build());
+  
+    assertThrows(NullPointerException.class,
+                 () -> ServerConfig.builder()
+                                   .vertx(null)
+                                   .instances(0)
                                    .serverOptions(serverOptions)
                                    .routeCreatorSupplier(routeCreatorSupplier)
                                    .routerDefinition(routerDefinition)
@@ -37,7 +48,8 @@ class ServerConfigTest {
     
     assertThrows(NullPointerException.class,
                  () -> ServerConfig.builder()
-                                   .vertxOptions(vertxOptions)
+                                   .vertx(vertx)
+                                   .instances(1)
                                    .serverOptions(null)
                                    .routeCreatorSupplier(routeCreatorSupplier)
                                    .routerDefinition(routerDefinition)
@@ -45,7 +57,8 @@ class ServerConfigTest {
     
     assertThrows(NullPointerException.class,
                  () -> ServerConfig.builder()
-                                   .vertxOptions(vertxOptions)
+                                   .vertx(vertx)
+                                   .instances(1)
                                    .serverOptions(serverOptions)
                                    .routeCreatorSupplier(routeCreatorSupplier)
                                    .routerDefinition(null)
