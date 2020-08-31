@@ -22,18 +22,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class ServerImpl implements Server {
   
   private static final Logger logger = LoggerFactory.getLogger(ServerImpl.class.getName());
-  private final Vertx vertx;
   private final ServerConfig config;
   
   ServerImpl(ServerConfig config) {
-    vertx = vertx(config);
+    config.vertx().exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
     this.config = config;
     addOptionalHandlers();
-  }
-  
-  private Vertx vertx(ServerConfig config) {
-    return Vertx.vertx(config.vertxOptions())
-                .exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
   }
   
   private void addOptionalHandlers() {
@@ -42,7 +36,7 @@ public final class ServerImpl implements Server {
       handlers.add(LoggerHandler.create());
     }
     if (config.addDateHeader()) {
-      handlers.add(DateHeaderGenerator.getInstance(vertx));
+      handlers.add(DateHeaderGenerator.getInstance(config.vertx()));
     }
     if (config.addContentTypeHeader()) {
       handlers.add(ResponseContentTypeHandler.create());
@@ -56,17 +50,16 @@ public final class ServerImpl implements Server {
   
   @Override
   public Vertx vertx() {
-    return vertx;
+    return config.vertx();
   }
   
   @Override
   public Future<String> start() {
     Promise<String> promise = Promise.promise();
     var deploymentOptions =
-        new DeploymentOptions()
-            .setInstances(config.vertxOptions().getEventLoopPoolSize());
-    vertx.deployVerticle(() -> new ServerVerticle(config), deploymentOptions, promise);
-    
+        new DeploymentOptions().setInstances(config.instances());
+    config.vertx().deployVerticle(() -> new ServerVerticle(config), deploymentOptions, promise);
+  
     return promise.future();
   }
   
@@ -108,7 +101,7 @@ public final class ServerImpl implements Server {
   @Override
   public Future<Void> shutdown() {
     Promise<Void> promise = Promise.promise();
-    vertx.close(promise);
+    config.vertx().close(promise);
     return promise.future();
   }
   

@@ -249,5 +249,11 @@
             <version>3.4.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>criterium</groupId>
+            <artifactId>criterium</artifactId>
+            <version>0.4.6</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

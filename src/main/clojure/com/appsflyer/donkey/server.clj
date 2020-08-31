@@ -1,7 +1,6 @@
 (ns com.appsflyer.donkey.server
-  (:require [com.appsflyer.donkey.metrics :refer [get-metrics-options]]
-            [com.appsflyer.donkey.route :refer [get-router-definition]])
-  (:import (io.vertx.core AsyncResult VertxOptions Handler)
+  (:require [com.appsflyer.donkey.route :refer [get-router-definition]])
+  (:import (io.vertx.core AsyncResult Handler)
            (io.vertx.core.http HttpServerOptions)
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
@@ -21,31 +20,16 @@
     (.setCompressionSupported (:compression opts false))
     (.setDecompressionSupported (:compression opts false))))
 
-(defn- ^VertxOptions get-vertx-options
-  "Creates and returns a VertxOptions object from the opts map.
-  The vertx options are used to initialise the Vertx object which is an
-  integral part of the server. It allows configuring thread pools,
-  clustering, and metrics."
-  [opts]
-  (let [vertx-options (VertxOptions.)]
-    (.setPreferNativeTransport vertx-options true)
-    (.setEventLoopPoolSize
-      vertx-options (int (:event-loops opts (.availableProcessors (Runtime/getRuntime)))))
-    (when-let [worker-threads (:worker-threads opts)]
-      (.setWorkerPoolSize vertx-options (int worker-threads)))
-    (when (:metrics-enabled opts)
-      (.setMetricsOptions vertx-options (get-metrics-options opts)))
-    vertx-options))
-
 (defn ^ServerConfig get-server-config
   "Creates and returns a ServerConfig object from the opts map.
   See the ServerConfig docs for more information."
   [opts]
   (let [builder (doto (ServerConfig/builder)
-                  (.vertxOptions (get-vertx-options opts))
+                  (.vertx (:vertx opts))
                   (.serverOptions (get-server-options opts))
                   (.routeCreatorSupplier (RingRouteCreatorSupplier.))
                   (.routerDefinition (get-router-definition opts))
+                  (.instances (:instances opts (.availableProcessors (Runtime/getRuntime))))
                   (.debug (:debug opts false))
                   (.addDateHeader (:date-header opts false))
                   (.addContentTypeHeader (:content-type-header opts false))

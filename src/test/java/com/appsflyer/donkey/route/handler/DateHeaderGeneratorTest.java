@@ -35,7 +35,7 @@ class DateHeaderGeneratorTest {
   @Test
   void testDateHeaderNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) throws
                                                                                      ServerInitializationException {
-    server = Server.create(getDefaultConfigBuilder().build());
+    server = Server.create(getDefaultConfigBuilder(vertx).build());
     server.startSync();
     
     doGet(vertx, "/")
@@ -49,7 +49,7 @@ class DateHeaderGeneratorTest {
   @Test
   void testAddingDateHeader(Vertx vertx, VertxTestContext testContext) throws
                                                                        ServerInitializationException {
-    server = Server.create(getDefaultConfigBuilder()
+    server = Server.create(getDefaultConfigBuilder(vertx)
                                .addDateHeader(true)
                                .build());
     server.startSync();

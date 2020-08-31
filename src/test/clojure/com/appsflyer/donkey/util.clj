@@ -4,16 +4,20 @@
             [com.appsflyer.donkey.server :as server])
   (:import (io.vertx.ext.web.client WebClient WebClientOptions HttpResponse)
            (io.vertx.core Vertx Future Handler)
-           (com.appsflyer.donkey.server DonkeyServer Server)))
+           (com.appsflyer.donkey.server DonkeyServer Server)
+           (com.appsflyer.donkey.core Donkey)))
 
 (def ^:dynamic donkey-server)
 (def ^:dynamic ^WebClient client)
 
 (def ^:const
-  default-options {:port 16969 :event-loops 1 :worker-threads 4 :metrics-enabled true})
+  default-server-options {:port 16969 :metrics-enabled true})
 
-(defn- launch-server [opts]
-  (let [instance (donkey/create-server (merge default-options opts))]
+(def ^:const
+  default-donkey-options {:instances 4 :event-loops 1 :worker-threads 4})
+
+(defn- launch-server [^Donkey donkey-instance opts]
+  (let [instance (donkey/create-server donkey-instance (merge default-server-options opts))]
     (server/start-sync instance)
     instance))
 
@@ -22,7 +26,7 @@
     vertx
     (-> (WebClientOptions.)
         (.setDefaultHost "localhost")
-        (.setDefaultPort (int (:port default-options))))))
+        (.setDefaultPort (int (:port default-server-options))))))
 
 (defn- get-vertx-instance [^DonkeyServer donkey-server]
   (.vertx ^Server (.-impl donkey-server)))
@@ -31,11 +35,12 @@
   "Initializes the server and client instances that are used in the test"
   ([test-fn routes] (init test-fn routes nil))
   ([test-fn routes middleware]
-   (binding [donkey-server (launch-server {:routes routes :middleware middleware})]
-     (binding [client (launch-client (get-vertx-instance donkey-server))]
-       (test-fn)
-       (.close client)
-       (is (nil? (server/stop-sync donkey-server)))))))
+   (let [^Donkey donkey-instance (donkey/create-donkey default-donkey-options)]
+     (binding [donkey-server (launch-server donkey-instance {:routes routes :middleware middleware})]
+       (binding [client (launch-client (.-vertx donkey-instance))]
+         (test-fn)
+         (.close client)
+         (is (nil? (server/stop-sync donkey-server))))))))
 
 
 ;; ---------- Helper Functions ---------- ;;

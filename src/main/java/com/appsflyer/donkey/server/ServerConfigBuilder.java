@@ -2,7 +2,7 @@ package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteCreatorSupplier;
 import com.appsflyer.donkey.route.RouterDefinition;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 
 public interface ServerConfigBuilder {
@@ -11,13 +11,15 @@ public interface ServerConfigBuilder {
     return new ServerConfigImpl.ServerConfigBuilderImpl();
   }
   
-  ServerConfigBuilder vertxOptions(VertxOptions vertxOptions);
+  ServerConfigBuilder vertx(Vertx vertx);
   
   ServerConfigBuilder serverOptions(HttpServerOptions serverOptions);
   
   ServerConfigBuilder routeCreatorSupplier(RouteCreatorSupplier routeCreatorSupplier);
   
   ServerConfigBuilder routerDefinition(RouterDefinition routerDefinition);
+  
+  ServerConfigBuilder instances(int val);
   
   ServerConfigBuilder debug(boolean val);
   

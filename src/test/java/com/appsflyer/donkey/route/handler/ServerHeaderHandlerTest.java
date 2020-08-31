@@ -28,7 +28,7 @@ class ServerHeaderHandlerTest {
   
   @Test
   void testDateHeaderNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) {
-    server = Server.create(getDefaultConfigBuilder().build());
+    server = Server.create(getDefaultConfigBuilder(vertx).build());
     server.start()
           .onSuccess(
               v -> doGet(vertx, "/")
@@ -41,7 +41,7 @@ class ServerHeaderHandlerTest {
   
   @Test
   void testAddingDateHeader(Vertx vertx, VertxTestContext testContext) {
-    server = Server.create(getDefaultConfigBuilder().addServerHeader(true).build());
+    server = Server.create(getDefaultConfigBuilder(vertx).addServerHeader(true).build());
     server.start()
           .onSuccess(
               v -> doGet(vertx, "/")
