@@ -12,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
 import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
 
 /**
- * The Enum class encapsulates the logic of translating between a Vertx {@link HttpResponse}
+ * The Enum class encapsulates the logic of translating between an {@link HttpResponse}
  * and a Ring response.
  * Each element corresponds to a Ring response field. It implements getting the field's
- * name as a {@link Keyword} or string, and extracting the corresponding value from
+ * name as a {@link Keyword}, and extracting the corresponding value from
  * the {@link HttpResponse}.
  */
 public enum RingResponseField implements ValueExtractor<HttpResponse<Buffer>> {
