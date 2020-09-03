@@ -1,13 +1,18 @@
 package com.appsflyer.donkey.route.handler.ring;
 
+import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
+import clojure.lang.RT;
+import com.appsflyer.donkey.ValueExtractor;
 import com.appsflyer.donkey.route.ring.HttpMethodMapping;
 import com.appsflyer.donkey.route.ring.HttpProtocolMapping;
+import com.appsflyer.donkey.util.TypeConverter;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,29 +20,113 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import java.security.cert.Certificate;
 import java.util.Map;
 
+import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
+
 /**
- * The Enum class encapsulates the logic of translating between a Vertx {@link RoutingContext}
+ * The class encapsulates the logic of translating between a Vertx {@link RoutingContext}
  * and a Ring request.
  * Each element corresponds to a Ring request field. It implements getting the field's
- * name as a Keyword or string, and extracting the corresponding value from the RoutingContext
- * in the format / type as described in the Ring spec.
+ * name as a Keyword, and extracting the corresponding value from the RoutingContext.
  */
-public enum RingRequestField {
-  SERVER_PORT("server-port") {
+public enum RingRequestField implements ValueExtractor<RoutingContext> {
+  
+  BODY("body") {
     @Override
-    public Integer get(RoutingContext ctx) {
-      return ctx.request().localAddress().port();
+    public byte[] from(RoutingContext ctx) {
+      Buffer body = ctx.getBody();
+      if (body != null) {
+        return body.getBytes();
+      }
+      return BYTES;
     }
   },
-  SERVER_NAME("server-name") {
+  CLIENT_CERT("ssl-client-cert") {
+    @Nullable
     @Override
-    public String get(RoutingContext ctx) {
-      return ctx.request().host();
+    public Certificate[] from(RoutingContext ctx) {
+      try {
+        if (ctx.request().isSSL()) {
+          return ctx.request().sslSession().getPeerCertificates();
+        }
+      } catch (SSLPeerUnverifiedException e) {
+        logger.warn("Caught exception getting SSL peer certificates: {}", e.getMessage());
+      }
+      return null;
+    }
+  },
+  FORM_PARAMS("form-params") {
+    @Nullable
+    @Override
+    public IPersistentMap from(RoutingContext ctx) {
+      if (!ctx.request().isExpectMultipart()) {
+        return null;
+      }
+      
+      MultiMap formAttributes = ctx.request().formAttributes();
+      if (formAttributes.isEmpty()) {
+        return null;
+      }
+      return toPersistentMap(formAttributes);
+    }
+  },
+  HEADERS("headers") {
+    @Nullable
+    @Override
+    public IPersistentMap from(RoutingContext ctx) {
+      MultiMap headers = ctx.request().headers();
+      if (headers.isEmpty()) {
+        return null;
+      }
+      return toPersistentMap(headers, TypeConverter::stringJoiner);
+    }
+  },
+  PATH_PARAMS("path-params") {
+    @Nullable
+    @Override
+    public IPersistentMap from(RoutingContext ctx) {
+      Map<String, String> pathParams = ctx.pathParams();
+      if (pathParams.isEmpty()) {
+        return null;
+      }
+      
+      Object[] pathParamsArray = new Object[(pathParams.size() << 1)];
+      int i = 0;
+      for (Object obj : pathParams.entrySet()) {
+        pathParamsArray[i] = ((Map.Entry<?, ?>) obj).getKey();
+        pathParamsArray[i + 1] = ((Map.Entry<?, ?>) obj).getValue();
+        i += 2;
+      }
+      return RT.mapUniqueKeys(pathParamsArray);
+    }
+  },
+  PROTOCOL("protocol") {
+    @Override
+    public String from(RoutingContext ctx) {
+      return HttpProtocolMapping.get(ctx.request().version());
+    }
+  },
+  QUERY_PARAMS("query-params") {
+    @Nullable
+    @Override
+    public IPersistentMap from(RoutingContext ctx) {
+      try {
+        return toPersistentMap(ctx.queryParams());
+      } catch (HttpStatusException ex) {
+        logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
+        return null;
+      }
+    }
+  },
+  QUERY_STRING("query-string") {
+    @Override
+    public String from(RoutingContext ctx) {
+      return ctx.request().query();
     }
   },
   REMOTE_ADDRESS("remote-addr") {
+    @Nullable
     @Override
-    public String get(RoutingContext ctx) {
+    public String from(RoutingContext ctx) {
       var forwardedFor = ctx.request().getHeader("x-forwarded-for");
       if (forwardedFor != null) {
         return forwardedFor;
@@ -50,169 +139,64 @@ public enum RingRequestField {
       return null;
     }
   },
-  URI("uri") {
+  /**
+   * The request "verb", i.e GET, POST,
+   */
+  REQUEST_METHOD("request-method") {
     @Override
-    public String get(RoutingContext ctx) {
-      return ctx.request().path();
+    public Keyword from(RoutingContext ctx) {
+      return HttpMethodMapping.get(ctx.request().method());
     }
   },
+  /**
+   * The request scheme - HTTP or HTTPS
+   */
   SCHEME("scheme") {
     private final Map<String, Keyword> schemeMapping =
         Map.of("http", Keyword.intern("http"),
                "https", Keyword.intern("https"));
-  
+    
     @Override
-    public Keyword get(RoutingContext ctx) {
+    public Keyword from(RoutingContext ctx) {
       return schemeMapping.get(ctx.request().scheme());
     }
   },
-  REQUEST_METHOD("request-method") {
+  /**
+   * The hostname of the server, or the ip if a hostname cannot be determined.
+   */
+  SERVER_NAME("server-name") {
     @Override
-    public Object get(RoutingContext ctx) {
-      return HttpMethodMapping.get(ctx.request().method());
+    public String from(RoutingContext ctx) {
+      return ctx.request().host();
     }
   },
-  PROTOCOL("protocol") {
+  /**
+   * The port on which the server is listening on
+   */
+  SERVER_PORT("server-port") {
     @Override
-    public String get(RoutingContext ctx) {
-      return HttpProtocolMapping.get(ctx.request().version());
+    public Integer from(RoutingContext ctx) {
+      return ctx.request().localAddress().port();
     }
   },
-  CLIENT_CERT("ssl-client-cert") {
+  /**
+   * The path part of the url.<br>
+   * Example:<br>
+   * {@code http://www.example.com/foo/bar => /foo/bar}
+   */
+  URI("uri") {
     @Override
-    public Certificate[] get(RoutingContext ctx) {
-      try {
-        if (ctx.request().isSSL()) {
-          return ctx.request().sslSession().getPeerCertificates();
-        }
-      } catch (SSLPeerUnverifiedException e) {
-        logger.warn("Caught exception getting SSL peer certificates: {}", e.getMessage());
-      }
-      return null;
-    }
-  },
-  QUERY_STRING("query-string") {
-    @Override
-    public String get(RoutingContext ctx) {
-      return ctx.request().query();
-    }
-  },
-  QUERY_PARAMS("query-params") {
-    @Override
-    public MultiMap get(RoutingContext ctx) {
-      try {
-        return ctx.queryParams();
-      } catch (HttpStatusException ex) {
-        logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
-        return MultiMap.caseInsensitiveMultiMap();
-      }
-    }
-  },
-  PATH_PARAMS("path-params") {
-    @Override
-    public Map<String, String> get(RoutingContext ctx) {
-      return ctx.pathParams();
-    }
-  },
-  FORM_PARAMS("form-params") {
-    @Override
-    public MultiMap get(RoutingContext ctx) {
-      if (ctx.request().isExpectMultipart()) {
-        return ctx.request().formAttributes();
-      } else {
-        return MultiMap.caseInsensitiveMultiMap();
-      }
-    }
-  },
-  HEADERS("headers") {
-    @Override
-    public MultiMap get(RoutingContext ctx) {
-      return ctx.request().headers();
-    }
-  },
-  BODY("body") {
-    @Override
-    public byte[] get(RoutingContext ctx) {
-      Buffer body = ctx.getBody();
-      if (body != null) {
-        return body.getBytes();
-      }
-      return BYTES;
+    public String from(RoutingContext ctx) {
+      return ctx.request().path();
     }
   };
   
   private static final Logger logger = LoggerFactory.getLogger(RingRequestField.class.getName());
-  private static final Map<Keyword, RingRequestField> keywordToEnumMapping;
   private static final byte[] BYTES = new byte[0];
-  private final String field;
   private final Keyword keyword;
   
-  static {
-    keywordToEnumMapping = Map.ofEntries(
-        Map.entry(SERVER_PORT.keyword, SERVER_PORT),
-        Map.entry(SERVER_NAME.keyword, SERVER_NAME),
-        Map.entry(REMOTE_ADDRESS.keyword, REMOTE_ADDRESS),
-        Map.entry(URI.keyword, URI),
-        Map.entry(QUERY_STRING.keyword, QUERY_STRING),
-        Map.entry(QUERY_PARAMS.keyword, QUERY_PARAMS),
-        Map.entry(PATH_PARAMS.keyword, PATH_PARAMS),
-        Map.entry(FORM_PARAMS.keyword, FORM_PARAMS),
-        Map.entry(SCHEME.keyword, SCHEME),
-        Map.entry(REQUEST_METHOD.keyword, REQUEST_METHOD),
-        Map.entry(PROTOCOL.keyword, PROTOCOL),
-        Map.entry(CLIENT_CERT.keyword, CLIENT_CERT),
-        Map.entry(HEADERS.keyword, HEADERS),
-        Map.entry(BODY.keyword, BODY));
-  }
-  
-  /**
-   * Get a field from a Keyword.
-   * <p></p>
-   * <b>Note</b>: The argument should be a Keyword since all request fields in Ring are keywords.
-   * The signature accepts an `Object` to be compatible with Clojure maps that
-   * are not type safe.
-   *
-   * @param keyword The name of the field to return
-   */
-  public static RingRequestField from(Object keyword) {
-    return keywordToEnumMapping.get(keyword);
-  }
-  
-  /**
-   * Check if a field exists.
-   * <p></p>
-   * <b>Note</b>: The argument should be a Keyword since all request fields in Ring are keywords.
-   * The signature accepts an `Object` to be compatible with Clojure maps that
-   * are not type safe.
-   *
-   * @param keyword The name of the field to check
-   */
-  public static boolean exists(Object keyword) {
-    return keywordToEnumMapping.containsKey(keyword);
-  }
-  
-  /**
-   * @return The number of fields
-   */
-  public static int size() {
-    return keywordToEnumMapping.size();
-  }
-  
   RingRequestField(String field) {
-    this.field = field;
     keyword = Keyword.intern(field);
-  }
-  
-  /**
-   * Get the value for the this field from the {@link RoutingContext}
-   */
-  public abstract Object get(RoutingContext ctx);
-  
-  /**
-   * @return The field name as a string
-   */
-  public String field() {
-    return field;
   }
   
   /**

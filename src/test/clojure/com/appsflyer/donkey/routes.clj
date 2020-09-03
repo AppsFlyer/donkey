@@ -76,6 +76,13 @@
    :handler-mode :blocking
    :handler      (fn [_req & _args] {})})
 
+(def explicit-produces-json
+  {:path         "/produces/json"
+   :methods      [:get]
+   :produces     ["application/json"]
+   :handler-mode :blocking
+   :handler      (fn [_req & _args] "{\"success\":true}")})
+
 (def explicit-consumes-multi-part-or-form-encoded-or-octet-stream
   {:path         "/consumes/multi-urlencoded-stream"
    :methods      [:post]

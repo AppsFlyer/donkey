@@ -2,6 +2,7 @@
 
 
 ## TODO
+- Go over donkey-spec with Ben, work on dependant types.  
 - See about adding health check support.
 It's probably going to be simple enough to create an "alive" health check
 without user interference (or with minimal such as port and uri).

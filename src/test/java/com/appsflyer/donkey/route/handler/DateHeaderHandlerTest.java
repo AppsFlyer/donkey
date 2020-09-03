@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
-class DateHeaderGeneratorTest {
+class DateHeaderHandlerTest {
   
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.RFC_1123_DATE_TIME;
   private Server server;

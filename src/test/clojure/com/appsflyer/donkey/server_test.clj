@@ -1,4 +1,4 @@
-(ns ^:integration com.appsflyer.donkey.core-test
+(ns ^:integration com.appsflyer.donkey.server-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [clojure.set]
             [com.appsflyer.donkey.routes :as routes]
@@ -29,8 +29,10 @@
    routes/explicit-consumes-json
    routes/explicit-consumes-multi-part-or-form-encoded-or-octet-stream])
 
-
-(use-fixtures :once (fn [test-fn] (util/init test-fn route-descriptors)))
+(use-fixtures :once
+              util/init-donkey
+              (fn [test-fn] (util/init-donkey-server test-fn route-descriptors))
+              util/init-web-client)
 
 ;; ---------- Tests ---------- ;;
 
@@ -38,7 +40,7 @@
 (deftest test-basic-functionality
   (testing "the server should return a 200 response"
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.get "/")
           (.send (util/create-client-handler response-promise)))
 
@@ -50,7 +52,7 @@
   https://github.com/ring-clojure/ring/blob/master/SPEC"
     (let [response-promise (promise)]
 
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.get (str "/ring-spec?foo=bar"))
           (.putHeader "DNT" "1")
           (.send (util/create-client-handler response-promise)))
@@ -74,7 +76,7 @@
     (let [query-string "foo=bar&count=6&valid=true&empty=false&version=4.0.9&ratio=2.4"
           response-promise (promise)]
 
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.get (str "/ring-spec?" query-string))
           (.send (util/create-client-handler response-promise)))
 
@@ -91,7 +93,7 @@
   (testing "it should parse path variables and includes them in the request"
     (testing "Single path variable"
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.post "/user/12345")
             (.send (util/create-client-handler response-promise)))
 
@@ -100,7 +102,7 @@
 
     (testing "Multiple path variables"
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.put "/user/joe-shm0e123/marketing")
             (.send (util/create-client-handler response-promise)))
 
@@ -109,7 +111,7 @@
 
     (testing "Single regex path variable with capturing group"
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get "/admin/909011")
             (.send (util/create-client-handler response-promise)))
 
@@ -118,7 +120,7 @@
 
     (testing "Multiple regex path variables with capturing groups"
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get "/admin/10000/y-dept")
             (.send (util/create-client-handler response-promise)))
 
@@ -127,7 +129,7 @@
 
     (testing "when regex path doesn't match the route is not called"
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get "/admin/1-123-4")
             (.send (util/create-client-handler response-promise)))
 
@@ -135,7 +137,7 @@
           (is (= (.code HttpResponseStatus/NOT_FOUND) (.statusCode res)))))
 
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get "/admin/1234/xyz-dept")
             (.send (util/create-client-handler response-promise)))
 
@@ -145,7 +147,7 @@
 (deftest blocking-handler-test
   (testing "it should call the 1 argument arity handler"
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.get "/blocking-handler")
           (.send (util/create-client-handler response-promise)))
 
@@ -157,7 +159,7 @@
   (testing "it should call each middleware with the result of the previous"
     (doseq [endpoint ["/route/middleware/blocking" "/route/middleware/async"]]
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get endpoint)
             (.send (util/create-client-handler response-promise)))
 
@@ -171,7 +173,7 @@
   (testing "it should return an internal server error when an exception is thrown"
     (doseq [endpoint ["/route/middleware/blocking/exception" "/route/middleware/async/exception"]]
       (let [response-promise (promise)]
-        (-> util/client
+        (-> util/vertx-client
             ^HttpRequest (.get endpoint)
             (.send (util/create-client-handler response-promise)))
 
@@ -181,7 +183,7 @@
 (deftest test-consumes-content-type
   (testing "it should only accept requests with content type application/json"
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/json")
           (.sendJsonObject (JsonObject. "{\"foo\":\"bar\"}")
                            (util/create-client-handler response-promise)))
@@ -190,7 +192,7 @@
         (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
 
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/json")
           (.sendForm (-> (MultiMap/caseInsensitiveMultiMap) (.add "foo" "bar"))
                      (util/create-client-handler response-promise)))
@@ -201,7 +203,7 @@
   (testing "it should accept requests with content type
   multipart/form-data, application/x-www-form-urlencoded, or application/octet-stream"
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
           (.sendMultipartForm (.attribute (MultipartForm/create) "foo" "bar")
                               (util/create-client-handler response-promise)))
@@ -210,7 +212,7 @@
         (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
 
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
           (.sendForm (-> (MultiMap/caseInsensitiveMultiMap) (.add "foo" "bar"))
                      (util/create-client-handler response-promise)))
@@ -219,7 +221,7 @@
         (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
 
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
           (.putHeader "content-type" "application/octet-stream")
           (.sendBuffer (Buffer/buffer "foo bar")
@@ -229,7 +231,7 @@
         (is (= (.code HttpResponseStatus/OK) (.statusCode res)))))
 
     (let [response-promise (promise)]
-      (-> util/client
+      (-> util/vertx-client
           ^HttpRequest (.post "/consumes/multi-urlencoded-stream")
           (.sendJsonObject (JsonObject. "{\"foo\":\"bar\"}")
                            (util/create-client-handler response-promise)))

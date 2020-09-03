@@ -1,55 +1,57 @@
-package com.appsflyer.donkey.middleware;
+package com.appsflyer.donkey.route.ring.middleware;
 
 import clojure.lang.IPersistentMap;
 import clojure.lang.RT;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static com.appsflyer.donkey.route.handler.ring.RingRequestField.QUERY_PARAMS;
+import static com.appsflyer.donkey.route.ring.middleware.MiddlewareProvider.keywordizeQueryParams;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class KeywordizeQueryParamsTest {
   
   @Test
   void testNullRequest() {
-    assertThrows(NullPointerException.class, () -> MiddlewareProvider.keywordizeQueryParams(null));
+    assertThrows(NullPointerException.class, () -> keywordizeQueryParams(null));
   }
   
   @Test
   void testEmptyRequest() {
-    assertEquals(RT.map(), MiddlewareProvider.keywordizeQueryParams(RT.map()));
+    assertEquals(RT.map(), keywordizeQueryParams(RT.map()));
   }
   
   @Test
   void testEmptyQueryParams() {
     IPersistentMap request = RT.map(QUERY_PARAMS.keyword(), RT.map());
-    assertEquals(request, MiddlewareProvider.keywordizeQueryParams(request));
+    assertEquals(request, keywordizeQueryParams(request));
   }
   
   @Test
   void testQueryParamsValueIsNull() {
     IPersistentMap request = RT.map(QUERY_PARAMS.keyword(), null);
-    assertEquals(request, MiddlewareProvider.keywordizeQueryParams(request));
+    assertEquals(request, keywordizeQueryParams(request));
   }
   
   @Test
   void testKeyIsAlreadyKeyword() {
     IPersistentMap request = RT.map(QUERY_PARAMS.keyword(), RT.map(RT.keyword(null, "foo"), "bar"));
-    
-    assertThrows(ClassCastException.class, () -> MiddlewareProvider.keywordizeQueryParams(request));
+  
+    assertThrows(ClassCastException.class, () -> keywordizeQueryParams(request));
   }
   
   @Test
   void testKeyIsNull() {
     IPersistentMap request = RT.map(QUERY_PARAMS.keyword(), RT.map(null, "foo"));
-    assertThrows(NullPointerException.class, () -> MiddlewareProvider.keywordizeQueryParams(request));
+    assertThrows(NullPointerException.class, () -> keywordizeQueryParams(request));
   }
   
   @Test
   void testKeyStartsWithColon() {
     IPersistentMap request = RT.map(QUERY_PARAMS.keyword(), RT.map(":foo", "bar"));
     IPersistentMap expected = RT.map(QUERY_PARAMS.keyword(), RT.map(RT.keyword(null, ":foo"), "bar"));
-    
-    assertEquals(expected, MiddlewareProvider.keywordizeQueryParams(request));
+  
+    assertEquals(expected, keywordizeQueryParams(request));
   }
   
   @Test
@@ -59,7 +61,7 @@ class KeywordizeQueryParamsTest {
     IPersistentMap expected = RT.map(
         QUERY_PARAMS.keyword(), RT.map(RT.keyword(null, "foo"), "bar",
                                        RT.keyword(null, "fizz"), "baz"));
-    
-    assertEquals(expected, MiddlewareProvider.keywordizeQueryParams(request));
+  
+    assertEquals(expected, keywordizeQueryParams(request));
   }
 }

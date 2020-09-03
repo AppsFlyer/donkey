@@ -1,7 +1,8 @@
 (ns com.appsflyer.donkey.donkey-spec
   (:require [clojure.spec.alpha :as s]
             [clojure.string])
-  (:import (com.codahale.metrics MetricRegistry)))
+  (:import (com.codahale.metrics MetricRegistry)
+           (io.vertx.core.impl.cpu CpuCoreSensor)))
 
 
 ;; ------- Donkey Specification ------- ;;
@@ -11,10 +12,10 @@
 (s/def ::metric-registry #(instance? MetricRegistry %))
 (s/def ::instances #(s/int-in-range? 1 500 %))
 (s/def ::worker-threads #(s/int-in-range? 1 500 %))
-(s/def ::event-loops #(s/int-in-range? 1 (.availableProcessors (Runtime/getRuntime)) %))
+(s/def ::event-loops #(s/int-in-range? 1 (CpuCoreSensor/availableProcessors) %))
 
-(s/def ::donkey-config (s/keys :req-un [::instances]
-                               :opt-un [::metrics-prefix
+(s/def ::donkey-config (s/keys :opt-un [::instances
+                                        ::metrics-prefix
                                         ::metric-registry
                                         ::metrics-enabled
                                         ::worker-threads
@@ -25,6 +26,9 @@
 (s/def ::handler fn?)
 (s/def ::handlers (s/coll-of ::handler))
 (s/def ::strings (s/coll-of string?))
+(s/def ::not-blank (s/and string? (comp not clojure.string/blank?)))
+(s/def ::method #{:get :post :put :delete :options :head :trace :connect :patch})
+
 
 
 ;; ------- Middleware Specification ------- ;;
@@ -35,7 +39,7 @@
 ;; ------- Route Specification ------- ;;
 
 (s/def ::path string?)
-(s/def ::methods (s/coll-of keyword?))
+(s/def ::methods (s/coll-of ::method))
 (s/def ::consumes ::strings)
 (s/def ::produces ::strings)
 (s/def ::handler-mode #{:blocking :non-blocking})
@@ -55,7 +59,7 @@
 
 (s/def ::port #(s/int-in-range? 1 65536 %))
 (s/def ::compression boolean?)
-(s/def ::host (s/and string? (comp not clojure.string/blank?)))
+(s/def ::host ::not-blank)
 (s/def ::debug boolean?)
 (s/def ::date-header boolean?)
 (s/def ::content-type-header boolean?)
@@ -97,6 +101,8 @@
 (s/def ::max-redirects ::pos-int)
 (s/def ::default-port ::port)
 (s/def ::default-host ::host)
+(s/def ::user-agent string?)
+(s/def ::enable-user-agent boolean?)
 (s/def ::proxy-type #{:http :sock4 :sock5})
 (s/def ::proxy (s/keys :req-un [::host ::port ::proxy-type]))
 
@@ -110,6 +116,8 @@
                                         ::connect-timeout-seconds
                                         ::max-redirects
                                         ::idle-timeout-seconds
+                                        ::user-agent
+                                        ::enable-user-agent
                                         ::proxy]))
 
 (comment
@@ -121,9 +129,10 @@
                 :default-port               80
                 :default-host               "localhost"
                 :max-redirects              16
+                :user-agent                 "Donkey-Client"
+                :enable-user-agent          true
                 :proxy-type                 {:host "localhost"
                                              :port 3128
                                              :type :http|:sock4|:sock5}
-                :compression                false}])
-
-  )
+                :compression                false
+                :middleware                 []}]))

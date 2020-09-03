@@ -1,7 +1,6 @@
 package com.appsflyer.donkey.client;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 
 public interface ClientConfig {
@@ -12,9 +11,7 @@ public interface ClientConfig {
   
   Vertx vertx();
   
-  HttpClientOptions clientOptions();
-  
-  WebClientOptions webClientOptions();
+  WebClientOptions clientOptions();
   
   boolean debug();
 }

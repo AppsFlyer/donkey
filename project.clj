@@ -23,7 +23,7 @@
                  [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]
                  [org.slf4j/slf4j-api "1.7.30"]
-                 [org.clojure/clojure "1.10.1" "scope" :provided]
+                 [org.clojure/clojure "1.10.1"]
                  [org.clojure/spec.alpha "0.2.187"]]
   :profiles {:dev     {:dependencies   [[org.clojure/tools.logging "1.1.0"]
                                         [ch.qos.logback/logback-classic "1.2.3"]
@@ -38,4 +38,4 @@
                        :plugins        [[lein-kibit "0.1.8"]]}
              :uberjar {:aot :all}}
   :pom-location "target/"
-  :repl-options {:init-ns donkey.core})
+  :repl-options {:init-ns com.appsflyer.donkey.core})

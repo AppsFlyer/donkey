@@ -9,8 +9,7 @@
 (defn- test-case [uri]
   (let [response-promise (promise)
         query-string "foo=bar&_count=6&:valid=true&:-empty=false&1=2&_"]
-    (-> util/client
-        ^HttpRequest (.get (str uri "?" query-string))
+    (-> ^HttpRequest (.get util/vertx-client (str uri "?" query-string))
         (.send (util/create-client-handler response-promise)))
 
     (let [res (util/parse-response-body-when-resolved response-promise)
