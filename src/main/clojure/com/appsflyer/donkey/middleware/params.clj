@@ -1,5 +1,5 @@
 (ns com.appsflyer.donkey.middleware.params
-  (:import (com.appsflyer.donkey.middleware MiddlewareProvider)))
+  (:import (com.appsflyer.donkey.route.ring.middleware MiddlewareProvider)))
 
 (defn keywordize-query-params [handler]
   (fn

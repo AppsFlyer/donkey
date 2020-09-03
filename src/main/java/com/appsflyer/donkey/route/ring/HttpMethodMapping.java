@@ -3,6 +3,8 @@ package com.appsflyer.donkey.route.ring;
 import clojure.lang.Keyword;
 import io.vertx.core.http.HttpMethod;
 
+import java.util.Locale;
+
 public final class HttpMethodMapping {
   
   private static final Keyword[] keywords = {
@@ -21,5 +23,9 @@ public final class HttpMethodMapping {
   
   public static Keyword get(HttpMethod method) {
     return keywords[method.ordinal()];
+  }
+  
+  public static HttpMethod get(Keyword keyword) {
+    return HttpMethod.valueOf(keyword.getName().toUpperCase(Locale.ENGLISH));
   }
 }

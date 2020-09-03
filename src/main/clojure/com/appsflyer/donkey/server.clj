@@ -5,7 +5,8 @@
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
-           (com.appsflyer.donkey.util DebugUtil)))
+           (com.appsflyer.donkey.util DebugUtil)
+           (io.vertx.core.impl.cpu CpuCoreSensor)))
 
 (defn- ^HttpServerOptions get-server-options
   "Creates and returns an HttpServerOptions object from the opts map.
@@ -29,7 +30,7 @@
                   (.serverOptions (get-server-options opts))
                   (.routeCreatorSupplier (RingRouteCreatorSupplier.))
                   (.routerDefinition (get-router-definition opts))
-                  (.instances (:instances opts (.availableProcessors (Runtime/getRuntime))))
+                  (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
                   (.debug (:debug opts false))
                   (.addDateHeader (:date-header opts false))
                   (.addContentTypeHeader (:content-type-header opts false))

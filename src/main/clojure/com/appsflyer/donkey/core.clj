@@ -2,11 +2,15 @@
   (:require [clojure.set]
             [clojure.spec.alpha :as spec]
             [com.appsflyer.donkey.server :as server]
+            [com.appsflyer.donkey.client :as client]
             [com.appsflyer.donkey.metrics :as metrics]
             [com.appsflyer.donkey.middleware.params :as middleware]
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
   (:import (com.appsflyer.donkey.server Server DonkeyServer)
-           (io.vertx.core Vertx VertxOptions)))
+           (io.vertx.core Vertx VertxOptions)
+           (io.vertx.core.impl.cpu CpuCoreSensor)
+           (com.appsflyer.donkey.client.ring RingClient)
+           (com.appsflyer.donkey.client DonkeyClient)))
 
 (comment
   ;;; Server API
@@ -17,7 +21,7 @@
    :metric-registry      nil
    :metrics-prefix       "donkey"
    :worker-threads       20
-   :event-loops          1
+   :event-loops          16
    :debug                false
    :idle-timeout-seconds 0
    :middleware           []
@@ -32,13 +36,29 @@
    :middleware   [(fn [handler] (fn [req respond raise]
                                   (-> req handler identity respond)))]
    :path         "/foo"
-   :match-type   :simple}
+   :match-type   :simple})
+
+(comment
+  ;;; Client API
+  {:keep-alive                 false
+   :keep-alive-timeout-seconds 60
+   :debug                      false
+   :idle-timeout-seconds       0
+   :connect-timeout-seconds    60
+   :default-port               80
+   :default-host               "localhost"
+   :max-redirects              16
+   :proxy-type                 {:host "localhost"
+                                :port 3128
+                                :type :http|:sock4|:sock5}
+   :compression                false
+   :middleware                 []}
 
   )
 
 (defprotocol IDonkey
-  (create-server [_this opts])
-  (create-client [_this opts]))
+  (^DonkeyServer create-server [_this opts])
+  (^DonkeyClient create-client [_this opts]))
 
 (deftype Donkey [^Vertx vertx]
   IDonkey
@@ -49,7 +69,11 @@
         Server/create
         server/->DonkeyServer))
   (create-client [_this opts]
-    ))
+    (-> (spec/assert ::donkey-spec/client-config opts)
+        (assoc :vertx vertx)
+        client/get-client-config
+        RingClient/create
+        client/->DonkeyClient)))
 
 (defn- ^VertxOptions get-vertx-options
   "Creates and returns a VertxOptions object from the opts map.
@@ -59,7 +83,7 @@
   [opts]
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
-    (.setEventLoopPoolSize vertx-options (int (:event-loops opts 1)))
+    (.setEventLoopPoolSize vertx-options (int (:event-loops opts (CpuCoreSensor/availableProcessors))))
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
     (when (:metrics-enabled opts)
@@ -79,12 +103,6 @@
       respond
       raise)))
 
-(defn ^Donkey create-donkey [opts]
-  (-> (spec/assert ::donkey-spec/donkey-config opts)
-      get-vertx-options
-      Vertx/vertx
-      ->Donkey))
-
 (defn ^DonkeyServer new-server [^Donkey donkey]
   (create-server
     donkey
@@ -101,3 +119,11 @@
                            {:path    "/benchmark"
                             :methods [:get]
                             :handler print-query-params-and-headers}]}))
+
+(defn ^Donkey create-donkey
+  ([] create-donkey {})
+  ([opts]
+   (-> (spec/assert ::donkey-spec/donkey-config opts)
+       get-vertx-options
+       Vertx/vertx
+       ->Donkey)))

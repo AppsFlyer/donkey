@@ -1,7 +1,7 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.handler.DateHeaderGenerator;
+import com.appsflyer.donkey.route.handler.DateHeaderHandler;
 import com.appsflyer.donkey.route.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
@@ -36,7 +36,7 @@ public final class ServerImpl implements Server {
       handlers.add(LoggerHandler.create());
     }
     if (config.addDateHeader()) {
-      handlers.add(DateHeaderGenerator.getInstance(config.vertx()));
+      handlers.add(DateHeaderHandler.getInstance(config.vertx()));
     }
     if (config.addContentTypeHeader()) {
       handlers.add(ResponseContentTypeHandler.create());

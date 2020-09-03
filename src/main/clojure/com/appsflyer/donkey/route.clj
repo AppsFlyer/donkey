@@ -24,16 +24,16 @@
          (.path route)))
   route)
 
+(defn- ^HandlerMode keyword->HandlerMode [val]
+  (case val
+    :blocking HandlerMode/BLOCKING
+    :non-blocking HandlerMode/NON_BLOCKING))
+
 (defn- ^HttpMethod keyword->HttpMethod [method]
   (-> method
       name
       .toUpperCase
       HttpMethod/valueOf))
-
-(defn- ^HandlerMode keyword->HandlerMode [val]
-  (case val
-    :blocking HandlerMode/BLOCKING
-    :non-blocking HandlerMode/NON_BLOCKING))
 
 (defn- add-methods [^RouteDescriptor route route-map]
   (doseq [method (:methods route-map [])]

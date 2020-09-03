@@ -1,7 +1,6 @@
 package com.appsflyer.donkey.client;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 
 import java.util.Objects;
@@ -9,8 +8,7 @@ import java.util.Objects;
 public class ClientConfigImpl implements ClientConfig {
   
   private Vertx vertx;
-  private HttpClientOptions clientOptions;
-  private WebClientOptions webClientOptions;
+  private WebClientOptions clientOptions;
   private boolean debug;
   
   @Override
@@ -19,13 +17,8 @@ public class ClientConfigImpl implements ClientConfig {
   }
   
   @Override
-  public HttpClientOptions clientOptions() {
+  public WebClientOptions clientOptions() {
     return clientOptions;
-  }
-  
-  @Override
-  public WebClientOptions webClientOptions() {
-    return webClientOptions;
   }
   
   @Override
@@ -47,18 +40,11 @@ public class ClientConfigImpl implements ClientConfig {
       instance.vertx = vertx;
       return this;
     }
-    
+  
     @Override
-    public ClientConfigBuilder clientOptions(HttpClientOptions clientOptions) {
+    public ClientConfigBuilder clientOptions(WebClientOptions clientOptions) {
       Objects.requireNonNull(clientOptions, "Client options argument cannot be null");
       instance.clientOptions = clientOptions;
-      return this;
-    }
-    
-    @Override
-    public ClientConfigBuilder webClientOptions(WebClientOptions webClientOptions) {
-      Objects.requireNonNull(webClientOptions, "Web client options argument cannot be null");
-      instance.webClientOptions = webClientOptions;
       return this;
     }
     
@@ -79,7 +65,6 @@ public class ClientConfigImpl implements ClientConfig {
     private void assertValidState() {
       Objects.requireNonNull(instance.vertx, "Vertx field is missing");
       Objects.requireNonNull(instance.clientOptions, "Client options field is missing");
-      Objects.requireNonNull(instance.webClientOptions, "Web client options field is missing");
       
     }
   }
