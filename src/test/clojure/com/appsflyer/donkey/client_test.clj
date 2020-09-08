@@ -1,7 +1,8 @@
 (ns ^:integration com.appsflyer.donkey.client-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
+            [clj-http.client :as clj-http]
             [com.appsflyer.donkey.client :as client]
-            [com.appsflyer.donkey.util :as util]
+            [com.appsflyer.donkey.test-helper :as util]
             [com.appsflyer.donkey.routes :as routes])
   (:import (io.netty.handler.codec.http HttpResponseStatus)
            (clojure.lang ExceptionInfo)
@@ -90,7 +91,10 @@
       (is (instance? UnsupportedDataTypeException (ex-cause ex))))))
 
 (defn- parse-response-body [response]
-  (read-string (String. ^bytes (:body response))))
+  (let [body (:body response)]
+    (if (string? body)
+      (read-string body)
+      (read-string (String. ^bytes body)))))
 
 (deftest test-query-parameters
   (let [params "baz=3&foo=bar"
@@ -108,6 +112,26 @@
             body (parse-response-body res)]
         (is (nil? ex))
         (is (= params (:query-string body)))
-        (is (= expected (:query-params body)))))
+        (is (= expected (:query-params body)))))))
+
+
+(deftest test-unicode-encoding
+  (let [expected "高性能HTTPServer和Client"
+        encoded "%E9%AB%98%E6%80%A7%E8%83%BDHTTPServer%E5%92%8CClient"
+        uri (str "/echo?str=" encoded)
+        opts {:method :get, :uri uri}]
+    (let [{:keys [res ex]} @(make-request opts)]
+      (is (nil? ex))
+      (is (= expected (get-in (parse-response-body res) [:query-params "str"]))))
+    (let [{:keys [res ex]} @(make-request (assoc opts :method :post
+                                                      :query-params {"str" encoded}
+                                                      :uri "/echo"
+                                                      :headers {"content-type" "multipart/form-data"}))]
+      (println (parse-response-body res))
+      (is (nil? ex))
+      (is (= expected (get-in (parse-response-body res) [:form-params "str"]))))
+    ;(is (= u (:body (clj-http/post url {:form-params {:str u}}))))
+    ;(is (= u (:body @(http/get url2))))
+    ;(is (= u (:body (clj-http/get url2))))
 
     ))

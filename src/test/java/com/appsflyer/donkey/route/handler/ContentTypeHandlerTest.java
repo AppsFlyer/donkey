@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.appsflyer.donkey.TestUtil.*;
+import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,7 +52,7 @@ class ContentTypeHandlerTest {
     doGet(vertx, "/")
         .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
           assert200(response);
-          assertNull(response.getHeader("content-type"));
+          assertNull(response.getHeader(CONTENT_TYPE.toString()));
           testContext.completeNow();
         })));
   }
@@ -61,25 +62,25 @@ class ContentTypeHandlerTest {
                                                                               Exception {
     var routes =
         List.of(
-            Map.of("content-type", "text/plain",
+            Map.of(CONTENT_TYPE, "text/plain",
                    "uri", "/plain-text",
                    "body", "Hello world"),
             
-            Map.of("content-type", "text/html",
+            Map.of(CONTENT_TYPE, "text/html",
                    "uri", "/html",
                    "body", "<!DOCTYPE html><html><body>Hello world</body></html>"),
             
-            Map.of("content-type", "application/json",
+            Map.of(CONTENT_TYPE, "application/json",
                    "uri", "/json",
                    "body", "{\"say\":\"Hello world\"}"),
             
-            Map.of("content-type", "application/octet-stream",
+            Map.of(CONTENT_TYPE, "application/octet-stream",
                    "uri", "/octet-stream",
                    "body", "Hello World"));
     
     var routeDescriptors =
         routes.stream()
-              .map(entry -> routeForContentType(entry.get("uri"), entry.get("content-type"))
+              .map(entry -> routeForContentType(entry.get("uri"), entry.get(CONTENT_TYPE))
                   .handler(ctx -> ctx.response().end(entry.get("body"))))
               .toArray(RouteDescriptor[]::new);
     
@@ -98,11 +99,11 @@ class ContentTypeHandlerTest {
     
     routes.forEach(
         v -> client.request(GET, getDefaultAddress(), v.get("uri"))
-                   .putHeader("Accept", v.get("content-type"))
+                   .putHeader("Accept", v.get(CONTENT_TYPE))
                    .send(testContext.succeeding(response -> testContext.verify(() -> {
                      shutdownServerLatch.countDown();
                      assert200(response);
-                     assertEquals(v.get("content-type"), response.getHeader("content-type"));
+                     assertEquals(v.get(CONTENT_TYPE), response.getHeader(CONTENT_TYPE.toString()));
                      assertEquals(v.get("body"), response.bodyAsString());
                      responsesReceived.flag();
                    }))));

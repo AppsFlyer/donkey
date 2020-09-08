@@ -6,11 +6,8 @@ import com.appsflyer.donkey.ValueExtractor;
 import com.appsflyer.donkey.route.ring.HttpMethodMapping;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import org.jetbrains.annotations.Nullable;
-
-import static com.appsflyer.donkey.util.TypeConverter.toBuffer;
 
 /**
  * The Enum class encapsulates the logic of extracting data from a Clojure client request.
@@ -21,6 +18,7 @@ import static com.appsflyer.donkey.util.TypeConverter.toBuffer;
 public enum RingRequestField implements ValueExtractor<IPersistentMap> {
   
   METHOD("method") {
+    @Nullable
     @Override
     public HttpMethod from(IPersistentMap req) {
       return HttpMethodMapping.get((Keyword) req.valAt(keyword(), null));
@@ -33,18 +31,20 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     }
   },
   HOST("host") {
+    @Nullable
     @Override
     public String from(IPersistentMap req) {
       return (String) req.valAt(keyword(), null);
     }
   },
   PORT("port") {
+    @Nullable
     @Override
     public Integer from(IPersistentMap req) {
       return (Integer) req.valAt(keyword(), null);
     }
   },
-  TIMEOUT("timeout-milliseconds") {
+  TIMEOUT("idle-timeout-seconds") {
     @Nullable
     @Override
     public Long from(IPersistentMap req) {
@@ -56,6 +56,7 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     }
   },
   BEARER_TOKEN("bearer-token") {
+    @Nullable
     @Override
     public String from(IPersistentMap req) {
       return (String) req.valAt(keyword(), null);
@@ -65,20 +66,25 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     @Nullable
     @Override
     public IPersistentMap from(IPersistentMap req) {
-      var credentials = req.valAt(keyword(), null);
-      if (credentials != null) {
-        return (IPersistentMap) credentials;
-      }
-      return null;
+      return (IPersistentMap) req.valAt(keyword(), null);
     }
   },
   QUERY_PARAMS("query-params") {
+    @Nullable
+    @Override
+    public IPersistentMap from(IPersistentMap req) {
+      return (IPersistentMap) req.valAt(keyword(), null);
+    }
+  },
+  FORM_PARAMS("form-params") {
+    @Nullable
     @Override
     public IPersistentMap from(IPersistentMap req) {
       return (IPersistentMap) req.valAt(keyword(), null);
     }
   },
   HEADERS("headers") {
+    @Nullable
     @Override
     public IPersistentMap from(IPersistentMap req) {
       return (IPersistentMap) req.valAt(keyword(), null);
@@ -96,12 +102,8 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
   BODY("body") {
     @Nullable
     @Override
-    public Buffer from(IPersistentMap req) {
-      var body = req.valAt(keyword(), null);
-      if (body != null) {
-        return toBuffer(body);
-      }
-      return null;
+    public Object from(IPersistentMap req) {
+      return req.valAt(keyword(), null);
     }
   };
   

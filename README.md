@@ -2,12 +2,16 @@
 
 
 ## TODO
+- Look into implementing JSON serialization / deserialization middleware
+- Look into functional builder pattern rather than using a configuration map.
+Examples:
+https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
+https://github.com/AppsFlyer/unleash-client-clojure/blob/master/test/unleash_client_clojure/builder_test.clj
 - Go over donkey-spec with Ben, work on dependant types.  
 - See about adding health check support.
 It's probably going to be simple enough to create an "alive" health check
 without user interference (or with minimal such as port and uri).
 A "healthy" health check would require the user to provide a handler. 
-- Add metrics documentation
 - Clean up the middleware code in route.clj
 - Add more middleware tests
 - TESTS!
@@ -20,6 +24,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Add metrics documentation
 - Explore having the metrics implementation pluggable by the user.
 This is a feature that can be added at a later stage. It's not required in the near future.
 - Consider going completely data oriented. The config is just json, and the handlers 
