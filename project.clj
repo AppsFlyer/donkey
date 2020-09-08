@@ -32,7 +32,8 @@
                                         [org.hamcrest/hamcrest-library "2.2"]
                                         [org.junit.jupiter/junit-jupiter ~junit-version]
                                         [org.mockito/mockito-junit-jupiter "3.4.6"]
-                                        [criterium "0.4.6"]]
+                                        [criterium "0.4.6"]
+                                        [clj-http "3.10.2"]]
                        :resource-paths ["src/test/resources"]
                        :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
                                                   "-Dvertx.disableContextTimings=false"]

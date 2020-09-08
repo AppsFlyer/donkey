@@ -31,13 +31,14 @@ import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
 public enum RingRequestField implements ValueExtractor<RoutingContext> {
   
   BODY("body") {
+    @Nullable
     @Override
     public byte[] from(RoutingContext ctx) {
       Buffer body = ctx.getBody();
       if (body != null) {
         return body.getBytes();
       }
-      return BYTES;
+      return null;
     }
   },
   CLIENT_CERT("ssl-client-cert") {

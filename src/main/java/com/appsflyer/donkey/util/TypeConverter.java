@@ -1,9 +1,6 @@
 package com.appsflyer.donkey.util;
 
-import clojure.lang.IPersistentMap;
-import clojure.lang.IPersistentVector;
-import clojure.lang.LazilyPersistentVector;
-import clojure.lang.RT;
+import clojure.lang.*;
 import com.appsflyer.donkey.client.exception.UnsupportedDataTypeException;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -13,6 +10,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public final class TypeConverter {
@@ -80,5 +78,15 @@ public final class TypeConverter {
   
   public static Buffer toBuffer(Object obj) {
     return Buffer.buffer(toBytes(obj));
+  }
+  
+  public static MultiMap toMultiMap(IPersistentMap map) {
+    Objects.requireNonNull(map);
+    MultiMap res = MultiMap.caseInsensitiveMultiMap();
+    for (var obj : map) {
+      var entry = (IMapEntry) obj;
+      res.add((String) entry.key(), (String) entry.val());
+    }
+    return res;
   }
 }

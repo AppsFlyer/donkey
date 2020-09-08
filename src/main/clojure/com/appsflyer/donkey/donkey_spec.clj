@@ -2,7 +2,8 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string])
   (:import (com.codahale.metrics MetricRegistry)
-           (io.vertx.core.impl.cpu CpuCoreSensor)))
+           (io.vertx.core.impl.cpu CpuCoreSensor)
+           (java.io InputStream)))
 
 
 ;; ------- Donkey Specification ------- ;;
@@ -64,7 +65,7 @@
 (s/def ::date-header boolean?)
 (s/def ::content-type-header boolean?)
 (s/def ::server-header boolean?)
-(s/def ::idle-timeout-seconds (s/and int? #(or (zero? %) (pos? %))))
+(s/def ::idle-timeout-seconds (s/and int? #(<= 0 %)))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 
 (s/def ::server-config (s/keys :req-un [::port]
@@ -114,8 +115,8 @@
                                         ::keep-alive
                                         ::keep-alive-timeout-seconds
                                         ::connect-timeout-seconds
-                                        ::max-redirects
                                         ::idle-timeout-seconds
+                                        ::max-redirects
                                         ::user-agent
                                         ::enable-user-agent
                                         ::proxy]))
@@ -123,9 +124,9 @@
 (comment
   (let [config {:keep-alive                 false
                 :keep-alive-timeout-seconds 60
-                :debug                      false
                 :idle-timeout-seconds       0
                 :connect-timeout-seconds    60
+                :debug                      false
                 :default-port               80
                 :default-host               "localhost"
                 :max-redirects              16
@@ -136,3 +137,27 @@
                                              :type :http|:sock4|:sock5}
                 :compression                false
                 :middleware                 []}]))
+
+
+;; ------- Client Request Specification ------- ;;
+
+
+(s/def ::uri ::not-blank)
+(s/def ::bearer-token ::not-blank)
+(s/def ::basic-auth (s/map-of #{"id" "password"} ::not-blank))
+(s/def ::query-params (s/every string? :kind map?))
+(s/def ::headers (s/every string? :kind map?))
+(s/def ::body (some-fn bytes? string? #(instance? InputStream %)))
+
+(s/def ::client-request (s/keys :req-un [::method ::handler]
+                                :opt-un [::uri
+                                         ::host
+                                         ::port
+                                         ::idle-timeout-seconds
+                                         ::bearer-token
+                                         ::basic-auth
+                                         ::query-params
+                                         ::headers
+                                         ::body]))
+
+

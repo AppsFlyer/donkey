@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 import static com.appsflyer.donkey.client.ring.RingRequestField.*;
+import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
 
 public class RingClientImpl implements RingClient {
   
@@ -28,7 +29,7 @@ public class RingClientImpl implements RingClient {
   }
   
   @Override
-  public void request(IPersistentMap opts) {
+  public RingClientRequest request(IPersistentMap opts) {
     var method = (HttpMethod) METHOD.from(opts);
     Objects.requireNonNull(method, "HTTP request method is missing");
     
@@ -44,6 +45,8 @@ public class RingClientImpl implements RingClient {
     
     HttpRequest<Buffer> request = client.request(method, (String) URI.from(opts));
     
+    //todo: Change the API so there is a `send` method after `request` and the user can supply the body. Then we can have sendForm, sendJson, etc'.
+    
     try {
       addPort(request, opts);
       addHost(request, opts);
@@ -57,10 +60,21 @@ public class RingClientImpl implements RingClient {
       promise.fail(ex);
       return;
     }
+  
+    var body = BODY.from(opts);
+    if (body == null) {
+      request.send(new RingResponseAdapter(promise));
+      return;
+    }
     
-    Buffer body;
+    String contentType = request.headers().get(CONTENT_TYPE);
+//    if (isFormUrlEncoded(contentType)) {
+//      if
+//      request.sendForm(MultiMap.caseInsensitiveMultiMap().addAll(FORM_PARAMS.from(opts)));
+//    }
+    
+    
     try {
-      body = (Buffer) BODY.from(opts);
     } catch (UnsupportedDataTypeException ex) {
       logger.error(ex.getMessage());
       promise.fail(ex);
@@ -70,7 +84,7 @@ public class RingClientImpl implements RingClient {
     if (body == null) {
       request.send(new RingResponseAdapter(promise));
     } else {
-      request.sendBuffer(body, new RingResponseAdapter(promise));
+      request.sendBuffer((Buffer) body, new RingResponseAdapter(promise));
     }
   }
   
@@ -96,7 +110,7 @@ public class RingClientImpl implements RingClient {
   private void addTimeout(HttpRequest<Buffer> request, IPersistentMap opts) {
     var timeout = (Long) TIMEOUT.from(opts);
     if (timeout != null) {
-      request.timeout(timeout);
+      request.timeout(timeout * 1000);
     }
   }
   
