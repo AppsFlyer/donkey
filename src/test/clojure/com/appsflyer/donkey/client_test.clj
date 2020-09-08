@@ -2,7 +2,7 @@
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [clj-http.client :as clj-http]
             [com.appsflyer.donkey.client :as client]
-            [com.appsflyer.donkey.test-helper :as util]
+            [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.routes :as routes])
   (:import (io.netty.handler.codec.http HttpResponseStatus)
            (clojure.lang ExceptionInfo)
@@ -16,14 +16,14 @@
    routes/explicit-produces-json])
 
 (use-fixtures :once
-              util/init-donkey
-              (fn [test-fn] (util/init-donkey-server test-fn route-descriptors))
-              util/init-donkey-client)
+              helper/init-donkey
+              (fn [test-fn] (helper/init-donkey-server test-fn route-descriptors))
+              helper/init-donkey-client)
 
 (defn- make-request [opts]
   (let [-promise (promise)]
     (client/request
-      util/donkey-client
+      helper/donkey-client
       (assoc opts :handler (fn [res ex] (deliver -promise {:res res :ex ex}))))
     -promise))
 
