@@ -6,5 +6,4 @@
     ([request]
      (handler (MiddlewareProvider/keywordizeQueryParams request)))
     ([request respond raise]
-     (respond
-       (handler (MiddlewareProvider/keywordizeQueryParams request) respond raise)))))
+     (handler (MiddlewareProvider/keywordizeQueryParams request) respond raise))))

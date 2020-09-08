@@ -1,4 +1,4 @@
-(ns com.appsflyer.donkey.util
+(ns com.appsflyer.donkey.test-helper
   (:require [clojure.test :refer [is]]
             [com.appsflyer.donkey.core :as donkey]
             [com.appsflyer.donkey.server :as server]
@@ -18,7 +18,7 @@
 (def ^:const DEFAULT-PORT 16969)
 
 (def ^:const
-  default-server-options {:port DEFAULT-PORT :metrics-enabled true})
+  default-server-options {:port DEFAULT-PORT})
 
 (def ^:const
   default-client-options {:default-host DEFAULT-HOST :default-port DEFAULT-PORT})
@@ -59,9 +59,13 @@
     (test-fn)
     (.close vertx-client)))
 
-(defn init
-  "Initializes the server and client instances that are used in the test"
-  ([test-fn routes] (init test-fn routes nil))
+(defn run-with-server-and-client
+  "Run `test-fn` under the context of a new DonkeyServer and Vertx WebClient.
+  Creates a server instance according to the given `routes` and optional `middleware`,
+  and a default client. Both will be closed after the `test-fn` returns.
+  The server and client are available inside the test as
+  `donkey-server` and `vertx-client` respectively."
+  ([test-fn routes] (run-with-server-and-client test-fn routes nil))
   ([test-fn routes middleware]
    (let [^Donkey donkey-instance (donkey/create-donkey default-donkey-options)]
      (binding [donkey-server (launch-server donkey-instance {:routes routes :middleware middleware})]
@@ -93,5 +97,21 @@
   "Create a handler that resolves `response-promise` when the client receives a response"
   [response-promise]
   (server/->EventHandler (fn [^Future res] (deliver response-promise res))))
+
+(defn make-pre-processing-middleware [fun]
+  (fn [handler]
+    (fn
+      ([req]
+       (handler (fun req)))
+      ([req respond raise]
+       (fun req (fn [res] (respond (handler res respond raise))) raise)))))
+
+(defn make-post-processing-middleware [fun]
+  (fn [handler]
+    (fn
+      ([req respond raise]
+       (handler req (fn [res] (respond (fun res respond raise))) raise))
+      ([req]
+       (fun (handler req))))))
 
 

@@ -1,4 +1,5 @@
-(ns com.appsflyer.donkey.routes)
+(ns com.appsflyer.donkey.routes
+  (:require [com.appsflyer.donkey.test-helper :as helper]))
 
 (defn return-request
   ([req]
@@ -26,13 +27,11 @@
 
 (def echo-route
   {:path         "/echo"
-   :methods      [:get]
    :handler-mode :blocking
    :handler      return-request})
 
 (def echo-route-non-blocking
   {:path    "/echo/non-blocking"
-   :methods [:get]
    :handler return-request})
 
 (def ring-spec
@@ -90,71 +89,51 @@
    :handler-mode :blocking
    :handler      (fn [_req & _args] {})})
 
-(defn- make-pre-processing-blocking-middleware [fun]
-  (fn [handler]
-    (fn [req]
-      (handler (fun req)))))
-
-(defn- make-post-processing-blocking-middleware [fun]
-  (fn [handler]
-    (fn [req]
-      (fun (handler req)))))
-
-(defn- make-pre-processing-middleware [fun]
-  (fn [handler]
-    (fn [req respond raise]
-      (fun req (fn [res] (respond (handler res respond raise))) raise))))
-
-(defn- make-post-processing-middleware [fun]
-  (fn [handler]
-    (fn [req respond raise]
-      (handler req (fn [res] (respond (fun res respond raise))) raise))))
-
 (def blocking-middleware-handlers
   {:path         "/route/middleware/blocking"
    :methods      [:get]
    :handler-mode :blocking
-   :middleware   [(make-pre-processing-blocking-middleware
+   :middleware   [(helper/make-pre-processing-middleware
                     #(assoc % :counter 1))
-                  (make-pre-processing-blocking-middleware
+                  (helper/make-pre-processing-middleware
                     #(update % :counter inc))
-                  (make-pre-processing-blocking-middleware
+                  (helper/make-pre-processing-middleware
                     #(update % :counter inc))
-                  (make-post-processing-blocking-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res]
                       (update res :body #(str "{\"counter\":" (:counter %)
                                               ",\"success\":" (boolean (:success %)) "}"))))
-                  (make-post-processing-blocking-middleware
+                  (helper/make-post-processing-middleware
                     #(update-in % [:body :success] str "e"))
-                  (make-post-processing-blocking-middleware
+                  (helper/make-post-processing-middleware
                     #(update-in % [:body :success] str "u"))
-                  (make-post-processing-blocking-middleware
+                  (helper/make-post-processing-middleware
                     #(update-in % [:body :success] str "r"))
-                  (make-post-processing-blocking-middleware
+                  (helper/make-post-processing-middleware
                     #(update-in % [:body :success] str "t"))]
    :handler      (fn [req] {:status 200 :body {:counter (:counter req) :success ""}})})
 
-(def async-middleware-handlers
-  {:path         "/route/middleware/async"
+(def non-blocking-middleware-handlers
+  {:path         "/route/middleware/non-blocking"
    :methods      [:get]
    :handler-mode :non-blocking
-   :middleware   [(make-pre-processing-middleware
+   :middleware   [(helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (assoc req :counter 1))))
-                  (make-pre-processing-middleware
+                  (helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (update req :counter inc))))
-                  (make-pre-processing-middleware
+                  (helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (update req :counter inc))))
-                  (make-post-processing-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res respond _raise]
                       (respond (update res :body #(str "{\"counter\":" (:counter %)
                                                        ",\"success\":" (boolean (:success %)) "}")))))
-                  (make-post-processing-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res respond _raise] (respond (update-in res [:body :success] str "e"))))
-                  (make-post-processing-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res respond _raise] (respond (update-in res [:body :success] str "u"))))
-                  (make-post-processing-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res respond _raise] (respond (update-in res [:body :success] str "r"))))
-                  (make-post-processing-middleware
+                  (helper/make-post-processing-middleware
                     (fn [res respond _raise] (respond (update-in res [:body :success] str "t"))))]
    :handler      (fn [req respond _raise] (respond {:status 200 :body {:counter (:counter req) :success ""}}))})
 
@@ -163,27 +142,27 @@
   {:path         "/route/middleware/blocking/exception"
    :methods      [:get]
    :handler-mode :blocking
-   :middleware   [(make-pre-processing-blocking-middleware #(assoc % :counter 1))
-                  (make-pre-processing-blocking-middleware #(update % :counter inc))
-                  (make-pre-processing-blocking-middleware #(update % :counter str))
-                  (make-pre-processing-blocking-middleware #(update % :counter inc))
+   :middleware   [(helper/make-pre-processing-middleware #(assoc % :counter 1))
+                  (helper/make-pre-processing-middleware #(update % :counter inc))
+                  (helper/make-pre-processing-middleware #(update % :counter str))
+                  (helper/make-pre-processing-middleware #(update % :counter inc))
                   ; Should not be called
-                  (make-pre-processing-blocking-middleware #(update % :counter inc))]
+                  (helper/make-pre-processing-middleware #(update % :counter inc))]
    ; Should not be called
    :handler      (fn [req]
                    {:status 200 :body (-> req :counter str .getBytes)})})
 
-(def async-exceptional-middleware-handlers
-  {:path         "/route/middleware/async/exception"
+(def non-blocking-exceptional-middleware-handlers
+  {:path         "/route/middleware/non-blocking/exception"
    :methods      [:get]
    :handler-mode :non-blocking
-   :middleware   [(make-pre-processing-middleware
+   :middleware   [(helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (assoc req :counter 1))))
-                  (make-pre-processing-middleware
+                  (helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (update req :counter inc))))
-                  (make-pre-processing-middleware
+                  (helper/make-pre-processing-middleware
                     (fn [req respond _raise] (respond (update req :counter str))))
-                  (make-pre-processing-middleware
+                  (helper/make-pre-processing-middleware
                     (fn [req respond raise]
                       (try
                         (respond (update req :counter inc))
