@@ -9,8 +9,7 @@
   (:import (com.appsflyer.donkey.server Server DonkeyServer)
            (io.vertx.core Vertx VertxOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
-           (com.appsflyer.donkey.client.ring RingClient)
-           (com.appsflyer.donkey.client DonkeyClient)))
+           (com.appsflyer.donkey.client.ring RingClient)))
 
 (comment
   ;;; Server API
@@ -57,8 +56,8 @@
   )
 
 (defprotocol IDonkey
-  (^DonkeyServer create-server [_this opts])
-  (^DonkeyClient create-client [_this opts]))
+  (create-server [_this opts])
+  (create-client [_this opts]))
 
 (deftype Donkey [^Vertx vertx]
   IDonkey
@@ -103,7 +102,7 @@
       respond
       raise)))
 
-(defn ^DonkeyServer new-server [^Donkey donkey]
+(defn- ^DonkeyServer new-server [^Donkey donkey]
   (create-server
     donkey
     {:port                8080

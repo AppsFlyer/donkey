@@ -1,13 +1,12 @@
 (ns com.appsflyer.donkey.client
-  (:import (io.vertx.core AsyncResult Handler)
+  (:import (io.vertx.core AsyncResult Handler Future)
            (com.appsflyer.donkey.client ClientConfig)
            (com.appsflyer.donkey.util DebugUtil)
            (io.vertx.core.http HttpClientOptions)
            (io.vertx.core.net ProxyOptions ProxyType)
-           (io.vertx.ext.web.client WebClientOptions)
+           (io.vertx.ext.web.client WebClientOptions HttpRequest)
            (com.appsflyer.donkey.client.ring RingClient)
            (clojure.lang IPersistentMap)))
-
 
 (defn- ^ProxyType keyword->ProxyType [type]
   (ProxyType/valueOf (-> type name .toUpperCase)))
@@ -20,10 +19,11 @@
 
 (defn- ^HttpClientOptions get-client-options
   "Creates and returns an HttpClientOptions object from the opts map.
-  The client options are used to define things such as default host / port
-  when they are not present per request, and different connection settings."
+  The client options are used to define global default settings that will be applied
+  to each request. Some of these settings can be overridden on each request."
   [opts]
   (let [client-options (WebClientOptions.)]
+    (.setForceSni client-options (boolean (:force-sni opts true)))
     (when-let [keep-alive (:keep-alive opts)]
       (.setKeepAlive client-options ^boolean keep-alive)
       (when-let [timeout (:keep-alive-timeout-seconds)]
@@ -40,11 +40,10 @@
       (.setConnectTimeout client-options (int (* 1000 connect-timeout))))
     (when-let [idle-timeout (:idle-timeout-seconds opts)]
       (.setIdleTimeout client-options (int idle-timeout)))
-    (when-let [enable-user-agent (:enable-user-agent opts false)]
-      (.setUserAgentEnabled client-options enable-user-agent)
-      (if-let [user-agent (:user-agent opts)]
-        (.setUserAgent client-options user-agent)
-        (.setUserAgent client-options "Donkey-Client")))
+    (.setUserAgentEnabled client-options (:enable-user-agent opts false))
+    (if-let [user-agent (:user-agent opts)]
+      (.setUserAgent client-options user-agent)
+      (.setUserAgent client-options "Donkey-Client"))
     (when (:debug opts)
       (.setLogActivity client-options true))
     (when (:compression opts)
@@ -66,12 +65,77 @@
       (DebugUtil/enable))
     config))
 
-(deftype ClientResponseHandler [impl]
+(deftype CompleteHandler [fun]
   Handler
   (handle [_this event]
     (if (.succeeded ^AsyncResult event)
-      (impl (.result ^AsyncResult event) nil)
-      (impl nil (ex-info (-> ^AsyncResult event .cause .getMessage) {} (.cause ^AsyncResult event))))))
+      (fun (.result ^AsyncResult event) nil)
+      (fun nil (ex-info (-> ^AsyncResult event .cause .getMessage) {} (.cause ^AsyncResult event))))))
+
+(deftype SuccessHandler [fun]
+  Handler
+  (handle [_this event]
+    (fun (.result ^AsyncResult event))))
+
+(deftype FailureHandler [fun]
+  Handler
+  (handle [_this event]
+    (fun (.cause ^AsyncResult event))))
+
+(defprotocol IFuture
+  (on-complete [this fun])
+  (on-success [this fun])
+  (on-fail [this fun]))
+
+(deftype FutureResult [^Future impl]
+  IFuture
+  (on-complete [this fun]
+    (.onComplete ^Future impl (->CompleteHandler fun))
+    this)
+  (on-success [this fun]
+    (.onSuccess ^Future impl (->SuccessHandler fun))
+    this)
+  (on-fail [this fun]
+    (.onFailure ^Future impl (->FailureHandler fun))
+    this))
+
+(defprotocol IRequest
+  (submit [this] [this body])
+  (submit-form [this body]
+    "Submit a request as `application/x-www-form-urlencoded`. A content-type
+    header will be added to the request. If a `multipart/form-data` content-type
+    header already exists it will be used instead.
+    `body` is a map where all keys and values should be of type string.
+    The body will be urlencoded when it's submitted.")
+  (submit-multipart-form [this body]
+    "Submit a request as `multipart/form-data`. A content-type header will be
+    added to the request. You may use this function to send attributes and
+    upload files.
+    `body` is a map where all keys should be of type string. The values can be
+    either string for simple attributes, or a map of file options when uploading
+    a file.
+
+    The file options map should include the following values:
+    - filename: The name of the file, for example - image.png
+    - pathname: The absolute path of the file.
+      For example: /var/www/html/public/images/image.png
+    - media-type: The MimeType of the file. For example - image/png
+    - upload-as: Upload the file as `binary` or `text`. Default is `binary`"))
+
+(deftype AsyncRequest [^RingClient client ^HttpRequest req]
+  IRequest
+  (submit [_this]
+    (->FutureResult
+      (.send ^RingClient client ^HttpRequest req)))
+  (submit [_this body]
+    (->FutureResult
+      (.send ^RingClient client ^HttpRequest req body)))
+  (submit-form [_this body]
+    (->FutureResult
+      (.sendForm ^RingClient client ^HttpRequest req ^IPersistentMap body)))
+  (submit-multipart-form [_this body]
+    (->FutureResult
+      (.sendMultiPartForm ^RingClient client ^HttpRequest req ^IPersistentMap body))))
 
 (defprotocol HttpClient
   (request [this opts]
@@ -82,11 +146,17 @@
 (deftype DonkeyClient [^RingClient impl]
   HttpClient
   (request [_this opts]
-    (when-not (:handler opts)
-      (throw (ex-info ":handler missing from request options" opts)))
-    (.request
-      ^RingClient impl
-      ^IPersistentMap (update opts :handler ->ClientResponseHandler)))
+    (->AsyncRequest impl (.request ^RingClient impl ^IPersistentMap opts)))
   (stop [_this]
     (.shutdown impl)))
 
+
+(comment
+  (->
+    (client/request {:method :get :uri "/foo"})             ; => Request object
+    (request/send)                                          ; => Future like object
+    (on-complete (fn [res ex] (println "completed")))       ; => Future like object
+    (on-success (fn [res] (println "success")))             ; => Future like object
+    (on-fail (fn [ex] (println "failed"))))                 ; => Future like object
+
+  )
