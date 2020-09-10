@@ -7,9 +7,9 @@
             [com.appsflyer.donkey.middleware.params :as middleware]
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
   (:import (com.appsflyer.donkey.server Server DonkeyServer)
+           (com.appsflyer.donkey.client.ring RingClient)
            (io.vertx.core Vertx VertxOptions)
-           (io.vertx.core.impl.cpu CpuCoreSensor)
-           (com.appsflyer.donkey.client.ring RingClient)))
+           (io.vertx.core.impl.cpu CpuCoreSensor)))
 
 (comment
   ;;; Server API
@@ -56,8 +56,10 @@
   )
 
 (defprotocol IDonkey
-  (create-server [_this opts])
-  (create-client [_this opts]))
+  (create-server [_this opts]
+    "Create an instance of DonkeyServer with the supplied options")
+  (create-client [_this opts]
+    "Create an instance of DonkeyClient with the supplied options"))
 
 (deftype Donkey [^Vertx vertx]
   IDonkey
@@ -89,40 +91,47 @@
       (.setMetricsOptions vertx-options (metrics/get-metrics-options opts)))
     vertx-options))
 
-(defn- print-query-params-and-headers [req respond _raise]
-  (respond
-    {:body (format "Query parameters: %s. Headers: %s"
-                   (apply str (seq (:query-params req)))
-                   (apply str (seq (:headers req))))}))
-
-(defn- add-headers [handler]
-  (fn [req respond raise]
-    (handler
-      (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")
-      respond
-      raise)))
-
-(defn- ^DonkeyServer new-server [^Donkey donkey]
-  (create-server
-    donkey
-    {:port                8080
-     :middleware          [middleware/keywordize-query-params add-headers]
-     :debug               false
-     :date-header         true
-     :content-type-header true
-     :server-header       true
-     :routes              [{:path     "/plaintext"
-                            :methods  [:get]
-                            :produces ["text/plain"]
-                            :handler  (fn [_req res _err] (res {:body "Hello, world!"}))}
-                           {:path    "/benchmark"
-                            :methods [:get]
-                            :handler print-query-params-and-headers}]}))
-
 (defn ^Donkey create-donkey
+  "Create a Donkey factory. Use the factory to create an HTTP server or client"
   ([] create-donkey {})
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
        get-vertx-options
        Vertx/vertx
        ->Donkey)))
+
+;;;;;;;;;; Example ;;;;;;;;;;
+
+(comment
+  (defn- print-query-params-and-headers [req respond _raise]
+    (respond
+      {:body (format "Query parameters: %s. Headers: %s"
+                     (apply str (seq (:query-params req)))
+                     (apply str (seq (:headers req))))}))
+
+  (defn- add-headers [handler]
+    (fn [req respond raise]
+      (handler
+        (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")
+        respond
+        raise)))
+
+  (defn- ^DonkeyServer new-server [^Donkey donkey]
+    (create-server
+      donkey
+      {:port                8080
+       :middleware          [middleware/keywordize-query-params add-headers]
+       :debug               false
+       :date-header         true
+       :content-type-header true
+       :server-header       true
+       :routes              [{:path     "/plaintext"
+                              :methods  [:get]
+                              :produces ["text/plain"]
+                              :handler  (fn [_req res _err] (res {:body "Hello, world!"}))}
+                             {:path    "/benchmark"
+                              :methods [:get]
+                              :handler print-query-params-and-headers}]})))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+

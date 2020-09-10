@@ -1,12 +1,13 @@
 (ns com.appsflyer.donkey.client
+  (:require [com.appsflyer.donkey.request])
   (:import (com.appsflyer.donkey.client ClientConfig)
            (com.appsflyer.donkey.client.ring RingClient)
+           (com.appsflyer.donkey.request AsyncRequest)
            (com.appsflyer.donkey.util DebugUtil)
-           (io.vertx.core AsyncResult Handler Future)
            (io.vertx.core.http HttpClientOptions)
            (io.vertx.core.net ProxyOptions ProxyType)
-           (io.vertx.ext.web.client WebClientOptions HttpRequest)
-           (clojure.lang IPersistentMap IDeref)))
+           (io.vertx.ext.web.client WebClientOptions)
+           (clojure.lang IPersistentMap)))
 
 (defn- ^ProxyType keyword->ProxyType [type]
   (ProxyType/valueOf (-> type name .toUpperCase)))
@@ -65,113 +66,26 @@
       (DebugUtil/enable))
     config))
 
-(deftype CompleteHandler [fun]
-  Handler
-  (handle [_this event]
-    (if (.succeeded ^AsyncResult event)
-      (fun (.result ^AsyncResult event) nil)
-      (fun nil (ex-info (-> ^AsyncResult event .cause .getMessage) {} (.cause ^AsyncResult event))))))
-
-(deftype SuccessHandler [fun]
-  Handler
-  (handle [_this event]
-    (fun (.result ^AsyncResult event))))
-
-(deftype FailureHandler [fun]
-  Handler
-  (handle [_this event]
-    (fun (.cause ^AsyncResult event))))
-
-(defprotocol IFuture
-  (on-complete [this fun])
-  (on-success [this fun])
-  (on-fail [this fun]))
-
-(deftype FutureResult [^Future impl]
-  IFuture
-  (on-complete [this fun]
-    (.onComplete ^Future impl (->CompleteHandler fun))
-    this)
-  (on-success [this fun]
-    (.onSuccess ^Future impl (->SuccessHandler fun))
-    this)
-  (on-fail [this fun]
-    (.onFailure ^Future impl (->FailureHandler fun))
-    this)
-
-  IDeref
-  (deref [_this]
-    (let [p (promise)]
-      (.onComplete ^Future impl (->CompleteHandler (fn [res ex] (deliver p (or res ex)))))
-      @p)))
-
-(defprotocol IRequest
-  (submit [this] [this body]
-    "Submit an asynchronous request with an optional body. The body should be a
-    string a byte[].
-    Returns an AsyncResult that will be notified if the request if succeeds or
-    fails.")
-  (submit-form [this body]
-    "Submit an asynchronous request as `application/x-www-form-urlencoded`. A
-    content-type header will be added to the request. If a `multipart/form-data`
-    content-type header already exists it will be used instead.
-    `body` is a map where all keys and values should be of type string.
-    The body will be urlencoded when it's submitted.
-    Returns an AsyncResult that will be notified if the request if succeeds or
-    fails.")
-  (submit-multipart-form [this body]
-    "Submit an asynchronous request as `multipart/form-data`. A content-type
-    header will be added to the request. You may use this function to send
-    attributes and upload files.
-    `body` is a map where all keys should be of type string. The values can be
-    either string for simple attributes, or a map of file options when uploading
-    a file.
-
-    The file options map should include the following values:
-    - filename: The name of the file, for example - image.png
-    - pathname: The absolute path of the file.
-      For example: /var/www/html/public/images/image.png
-    - media-type: The MimeType of the file. For example - image/png
-    - upload-as: Upload the file as `binary` or `text`. Default is `binary`
-
-    Returns an AsyncResult that will be notified if the request if succeeds or
-    fails."))
-
-(deftype AsyncRequest [^RingClient client ^HttpRequest req]
-  IRequest
-  (submit [_this]
-    (->FutureResult
-      (.send ^RingClient client ^HttpRequest req)))
-  (submit [_this body]
-    (->FutureResult
-      (.send ^RingClient client ^HttpRequest req body)))
-  (submit-form [_this body]
-    (->FutureResult
-      (.sendForm ^RingClient client ^HttpRequest req ^IPersistentMap body)))
-  (submit-multipart-form [_this body]
-    (->FutureResult
-      (.sendMultiPartForm ^RingClient client ^HttpRequest req ^IPersistentMap body))))
-
 (defprotocol HttpClient
   (request [this opts]
-    "Make an asynchronous HTTP request.")
+    "Creates an asynchronous HTTP request.
+    Returns an instance of AsyncRequest")
   (stop [this]
     "Stops the client and releases any resources associated with it."))
 
 (deftype DonkeyClient [^RingClient impl]
   HttpClient
   (request [_this opts]
-    (->AsyncRequest impl (.request ^RingClient impl ^IPersistentMap opts)))
+    (AsyncRequest. impl (.request ^RingClient impl ^IPersistentMap opts)))
   (stop [_this]
     (.shutdown impl)))
-
 
 (comment
   (->
     (request {:method :get :uri "/foo"})                    ; => Create a request. Request not sent yet. Returns Request object
-    (submit #_optional-body)                                ; => Send the request. Returns an AsyncResult.
-    (on-complete (fn [res ex] (println "success or fail"))) ; => Triggers when the request completes. Returns an AsyncResult.
-    (on-success (fn [res] (println "success")))             ; => Triggers when the request is successful. Returns an AsyncResult.
-    (on-fail (fn [ex] (println "fail"))))                   ; => Triggers when the request fails. Returns an AsyncResult.
+    (submit #_optional-body)                                ; => Send the request. Returns a FutureResult.
+    (on-complete (fn [res ex] (println "success or fail"))) ; => Triggers when the request completes. Returns a FutureResult.
+    (on-success (fn [res] (println "success")))             ; => Triggers when the request is successful. Returns a FutureResult.
+    (on-fail (fn [ex] (println "fail"))))                   ; => Triggers when the request fails. Returns a FutureResult.
 
   )

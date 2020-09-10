@@ -3,11 +3,11 @@
             [clojure.set]
             [com.appsflyer.donkey.routes :as routes]
             [com.appsflyer.donkey.test-helper :as helper])
-  (:import (io.vertx.ext.web.client HttpRequest)
-           (clojure.lang ILookup)
+  (:import (clojure.lang ILookup)
+           (io.netty.handler.codec.http HttpResponseStatus)
            (io.vertx.core.json JsonObject)
            (io.vertx.core MultiMap)
-           (io.netty.handler.codec.http HttpResponseStatus)
+           (io.vertx.ext.web.client HttpRequest)
            (io.vertx.ext.web.multipart MultipartForm)
            (io.vertx.core.buffer Buffer)))
 

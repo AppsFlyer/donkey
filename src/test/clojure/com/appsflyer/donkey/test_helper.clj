@@ -2,6 +2,7 @@
   (:require [clojure.test :refer [is]]
             [com.appsflyer.donkey.core :as donkey]
             [com.appsflyer.donkey.server :as server]
+            [com.appsflyer.donkey.request :as request]
             [com.appsflyer.donkey.client :as client])
   (:import (io.vertx.ext.web.client WebClient WebClientOptions HttpResponse)
            (io.vertx.core Vertx Future Handler)
@@ -96,7 +97,9 @@
 (defn ^Handler create-client-handler
   "Create a handler that resolves `response-promise` when the client receives a response"
   [response-promise]
-  (server/->EventHandler (fn [^Future res] (deliver response-promise res))))
+  (reify Handler
+    (handle [_this res]
+      (deliver response-promise ^Future res))))
 
 (defn make-pre-processing-middleware [fun]
   (fn [handler]
@@ -118,20 +121,20 @@
   ([opts]
    (->
      (client/request donkey-client opts)
-     (client/submit)))
+     (request/submit)))
   ([opts body]
    (->
      (client/request donkey-client opts)
-     (client/submit body))))
+     (request/submit body))))
 
 (defn submit-form [opts body]
   (->
     (client/request donkey-client opts)
-    (client/submit-form body)))
+    (request/submit-form body)))
 
 (defn submit-multi-part-form [opts body]
   (->
     (client/request donkey-client opts)
-    (client/submit-multipart-form body)))
+    (request/submit-multipart-form body)))
 
 
