@@ -1,12 +1,12 @@
 (ns com.appsflyer.donkey.client
-  (:import (io.vertx.core AsyncResult Handler Future)
-           (com.appsflyer.donkey.client ClientConfig)
+  (:import (com.appsflyer.donkey.client ClientConfig)
+           (com.appsflyer.donkey.client.ring RingClient)
            (com.appsflyer.donkey.util DebugUtil)
+           (io.vertx.core AsyncResult Handler Future)
            (io.vertx.core.http HttpClientOptions)
            (io.vertx.core.net ProxyOptions ProxyType)
            (io.vertx.ext.web.client WebClientOptions HttpRequest)
-           (com.appsflyer.donkey.client.ring RingClient)
-           (clojure.lang IPersistentMap)))
+           (clojure.lang IPersistentMap IDeref)))
 
 (defn- ^ProxyType keyword->ProxyType [type]
   (ProxyType/valueOf (-> type name .toUpperCase)))
@@ -97,7 +97,13 @@
     this)
   (on-fail [this fun]
     (.onFailure ^Future impl (->FailureHandler fun))
-    this))
+    this)
+
+  IDeref
+  (deref [_this]
+    (let [p (promise)]
+      (.onComplete ^Future impl (->CompleteHandler (fn [res ex] (deliver p (or res ex)))))
+      @p)))
 
 (defprotocol IRequest
   (submit [this] [this body])
@@ -153,10 +159,10 @@
 
 (comment
   (->
-    (client/request {:method :get :uri "/foo"})             ; => Request object
-    (request/send)                                          ; => Future like object
-    (on-complete (fn [res ex] (println "completed")))       ; => Future like object
-    (on-success (fn [res] (println "success")))             ; => Future like object
-    (on-fail (fn [ex] (println "failed"))))                 ; => Future like object
+    (request {:method :get :uri "/foo"})                    ; => Create a request. Request not sent yet. Returns Request object
+    (submit #_optional-body)                                ; => Send the request. Returns an AsyncResult.
+    (on-complete (fn [res ex] (println "success or fail"))) ; => Triggers when the request completes. Returns an AsyncResult.
+    (on-success (fn [res] (println "success")))             ; => Triggers when the request is successful. Returns an AsyncResult.
+    (on-fail (fn [ex] (println "fail"))))                   ; => Triggers when the request fails. Returns an AsyncResult.
 
   )
