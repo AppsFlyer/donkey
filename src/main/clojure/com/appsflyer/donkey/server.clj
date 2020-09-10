@@ -1,12 +1,13 @@
 (ns com.appsflyer.donkey.server
-  (:require [com.appsflyer.donkey.route :refer [get-router-definition]])
-  (:import (io.vertx.core AsyncResult Handler)
-           (io.vertx.core.http HttpServerOptions)
+  (:require [com.appsflyer.donkey.route :refer [get-router-definition]]
+            [com.appsflyer.donkey.future])
+  (:import (io.vertx.core.http HttpServerOptions)
+           (io.vertx.core.impl.cpu CpuCoreSensor)
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
            (com.appsflyer.donkey.util DebugUtil)
-           (io.vertx.core.impl.cpu CpuCoreSensor)))
+           (com.appsflyer.donkey.future FutureResult)))
 
 (defn- ^HttpServerOptions get-server-options
   "Creates and returns an HttpServerOptions object from the opts map.
@@ -42,70 +43,37 @@
       (DebugUtil/enable))
     config))
 
-(deftype EventHandler [impl]
-  Handler
-  (handle [_this event]
-    (impl event)))
-
 (defprotocol HttpServer
   (start [this]
     "Start the server asynchronously.
-    Returns a promise that will be resolved with an
-    ExceptionInfo if the operation failed.
-    Otherwise resolved with nil.")
+    Returns a FutureResult that will be resolved with an ExceptionInfo if the
+    operation failed. Otherwise resolved with nil.")
   (start-sync [this]
     "Start the server synchronously.
     Blocks the calling thread until server initialization completes.
     Throws an ExceptionInfo if the operation failed.")
   (stop [this]
     "Stop the server asynchronously.
-    Returns a promise that will be resolved with an
-    ExceptionInfo if the operation failed.
-    Otherwise resolved with nil.")
+    Returns a FutureResult that will be resolved with an ExceptionInfo if the
+    operation failed. Otherwise resolved with nil.")
   (stop-sync [this]
     "Stop the server synchronously.
     Blocks the calling thread until all server resources are terminated.
-    Throws an ExceptionInfo if the operation failed.")
-  (await-termination [this]
-    "Blocks the calling thread until a shutdown signal is received
-    by the JVM. Useful in order to prevent exiting the '-main' function.
-    Throws an InterruptedException."))
+    Throws an ExceptionInfo if the operation failed."))
 
 (deftype DonkeyServer [^Server impl]
   HttpServer
   (start [_this]
-    (let [res (promise)]
-      (.onComplete
-        (.start ^Server impl)
-        (->EventHandler
-          (fn [^AsyncResult async-res]
-            (if (.failed async-res)
-              (deliver res (ex-info "Server initialization failed" {} (.cause async-res)))
-              (deliver res nil)))))
-      res))
-
+    (FutureResult. (.start ^Server impl)))
+  (stop [_this]
+    (FutureResult. (.shutdown ^Server impl)))
   (start-sync [_this]
     (try
       (.startSync impl)
       (catch ServerInitializationException ex
         (throw (ex-info (.getMessage ex) {} ex)))))
-
-  (stop [_this]
-    (let [res (promise)]
-      (.onComplete
-        (.shutdown ^Server impl)
-        (->EventHandler
-          (fn [^AsyncResult async-res]
-            (if (.failed async-res)
-              (deliver res (ex-info "Server shutdown failed" {} (.cause async-res)))
-              (deliver res nil)))))
-      res))
-
   (stop-sync [_this]
     (try
       (.shutdownSync impl)
       (catch ServerShutdownException ex
-        (throw (ex-info (.getMessage ex) ex)))))
-
-  (await-termination [_this]
-    (.awaitTermination ^Server impl)))
+        (throw (ex-info (.getMessage ex) ex))))))
