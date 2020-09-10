@@ -116,38 +116,22 @@
 
 (defn make-request
   ([opts]
-   (let [-promise (promise)]
-     (->
-       (client/request donkey-client opts)
-       (client/submit)
-       (client/on-complete
-         (fn [res ex] (deliver -promise {:res res :ex ex}))))
-     -promise))
+   (->
+     (client/request donkey-client opts)
+     (client/submit)))
   ([opts body]
-   (let [-promise (promise)]
-     (->
-       (client/request donkey-client opts)
-       (client/submit body)
-       (client/on-complete
-         (fn [res ex] (deliver -promise {:res res :ex ex}))))
-     -promise)))
+   (->
+     (client/request donkey-client opts)
+     (client/submit body))))
 
 (defn submit-form [opts body]
-  (let [-promise (promise)]
-    (->
-      (client/request donkey-client opts)
-      (client/submit-form body)
-      (client/on-complete
-        (fn [res ex] (deliver -promise {:res res :ex ex}))))
-    -promise))
+  (->
+    (client/request donkey-client opts)
+    (client/submit-form body)))
 
 (defn submit-multi-part-form [opts body]
-  (let [-promise (promise)]
-    (->
-      (client/request donkey-client opts)
-      (client/submit-multipart-form body)
-      (client/on-complete
-        (fn [res ex] (deliver -promise {:res res :ex ex}))))
-    -promise))
+  (->
+    (client/request donkey-client opts)
+    (client/submit-multipart-form body)))
 
 

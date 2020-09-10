@@ -20,64 +20,56 @@
 
 (deftest test-basic-functionality
   (testing "it should get a 200 response code"
-    (let [{:keys [res ex]} @(helper/make-request {:method :get :uri "/"})]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method :get :uri "/"})]
       (is (= 200 (:status res))))))
 
 (deftest test-ring-compliant-response
   (testing "The response should include at least :status, :headers, and :body fields"
-    (let [{:keys [res ex]} @(helper/make-request {:method :get :uri "/echo"})]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method :get :uri "/echo"})]
       (is (= 200 (:status res)))
       (is (< 0 (Integer/valueOf ^String (get-in res [:headers "content-length"]))))
       (is (bytes? (:body res))))))
 
 (deftest test-not-found-status-code
   (testing "it should return a NOT FOUND response when a route doesn't exist"
-    (let [{:keys [res ex]} @(helper/make-request {:method :post :uri "/foo"})]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method :post :uri "/foo"})]
       (is (= (.code HttpResponseStatus/NOT_FOUND) (:status res))))))
 
 (deftest test-method-not-allowed-status-code
   (testing "it should return a METHOD NOT ALLOWED response when an HTTP verb is not supported"
-    (let [{:keys [res ex]} @(helper/make-request {:method :post :uri "/"})]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method :post :uri "/"})]
       (is (= (.code HttpResponseStatus/METHOD_NOT_ALLOWED) (:status res))))))
 
 (deftest test-not-acceptable-status-code
   (testing "it should return a NOT ACCEPTABLE response when a route does
   not produce an acceptable request mime type"
-    (let [{:keys [res ex]} @(helper/make-request {:method  :get
-                                                  :uri     "/produces/json"
-                                                  :headers {"accept" "text/html"}})]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method  :get
+                                     :uri     "/produces/json"
+                                     :headers {"accept" "text/html"}})]
       (is (= (.code HttpResponseStatus/NOT_ACCEPTABLE) (:status res))))))
 
 (deftest test-unsupported-media-type-status-code
   (testing "it should return a UNSUPPORTED MEDIA TYPE response when a route does
   not consume the requests mime type"
-    (let [{:keys [res ex]} @(helper/make-request {:method  :post
-                                                  :uri     "/consumes/json"
-                                                  :headers {"content-type" "text/plain"}}
-                                                 "Hello world!")]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method  :post
+                                     :uri     "/consumes/json"
+                                     :headers {"content-type" "text/plain"}}
+                                    "Hello world!")]
       (is (= (.code HttpResponseStatus/UNSUPPORTED_MEDIA_TYPE) (:status res))))))
 
 (deftest test-bad-request-status-code
   (testing "it should return a BAD REQUEST response when the route consumes a mime type
   and the request doesn't have a content-type"
-    (let [{:keys [res ex]} @(helper/make-request {:method :post
-                                                  :uri    "/consumes/json"}
-                                                 "{\"foo\":\"bar\"}")]
-      (is (nil? ex))
+    (let [res @(helper/make-request {:method :post
+                                     :uri    "/consumes/json"}
+                                    "{\"foo\":\"bar\"}")]
       (is (= (.code HttpResponseStatus/BAD_REQUEST) (:status res))))))
 
 (deftest test-unsupported-data-type-exception
   (testing "the operation should fail when the body is not a string or byte[]"
-    (let [{:keys [res ex]} @(helper/make-request {:method :get
-                                                  :uri    "/"}
-                                                 {:foo "bar"})]
-      (is (nil? res))
+    (let [ex @(helper/make-request {:method :get
+                                    :uri    "/"}
+                                   {:foo "bar"})]
       (is (instance? ExceptionInfo ex))
       (is (instance? UnsupportedDataTypeException (ex-cause ex))))))
 
@@ -91,16 +83,14 @@
   (let [params "baz=3&foo=bar"
         expected {"baz" "3" "foo" "bar"}]
     (testing "it should parse query parameters in the uri"
-      (let [{:keys [res ex]} @(helper/make-request {:method :get, :uri (str "/echo?" params)})
+      (let [res @(helper/make-request {:method :get, :uri (str "/echo?" params)})
             body (parse-response-body res)]
-        (is (nil? ex))
         (is (= params (:query-string body)))
         (is (= expected (:query-params body)))))
 
     (testing "it should parse query parameters in the configuration"
-      (let [{:keys [res ex]} @(helper/make-request {:method :get, :uri "/echo", :query-params expected})
+      (let [res @(helper/make-request {:method :get, :uri "/echo", :query-params expected})
             body (parse-response-body res)]
-        (is (nil? ex))
         (is (= params (:query-string body)))
         (is (= expected (:query-params body)))))))
 
@@ -109,12 +99,10 @@
         encoded "%E9%AB%98%E6%80%A7%E8%83%BDHTTPServer%E5%92%8CClient"]
 
     (testing "it should decode urlencoded strings in the url and body"
-      (let [{:keys [res ex]} @(helper/make-request {:method :get, :uri (str "/echo?str=" encoded)})]
-        (is (nil? ex))
+      (let [res @(helper/make-request {:method :get, :uri (str "/echo?str=" encoded)})]
         (is (= expected (get-in (parse-response-body res) [:query-params "str"]))))
 
-      (let [{:keys [res ex]} @(helper/submit-form {:method :post :uri "/echo"} {"str" encoded})]
-        (is (nil? ex))
+      (let [res @(helper/submit-form {:method :post :uri "/echo"} {"str" encoded})]
         (is (= expected (get-in (parse-response-body res) [:form-params "str"])))))))
 
 (deftest test-urlencoded-forms
@@ -123,8 +111,7 @@
     (let [fields {"name"  "John Smith"
                   "email" "john@smithcorp.com"
                   "text"  "Hey! I am John -> {how} about & this?"}]
-      (let [{:keys [res ex]} @(helper/submit-form {:method :post :uri "/echo"} fields)]
-        (is (nil? ex))
+      (let [res @(helper/submit-form {:method :post :uri "/echo"} fields)]
         (let [body (parse-response-body res)]
           (is (= "application/x-www-form-urlencoded" (get-in body [:headers "content-type"])))
           (is (= fields (:form-params body))))))))
@@ -134,8 +121,7 @@
 ;                   "pathname"   (str (System/getProperty "user.dir") "/src/test/resources/upload-text.json")
 ;                   "media-type" "application/json"
 ;                   "upload-as"  "text"}]
-;    (let [{:keys [res ex]} @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
-;      (is (nil? ex))
+;    (let [res @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
 ;      (let [body (parse-response-body res)]
 ;        (is (.startsWith ^String (get-in body [:headers "content-type"]) "multipart/form-data")))))
 ;
@@ -143,7 +129,6 @@
 ;                   "pathname"   (str (System/getProperty "user.dir") "/src/test/resources/donkey.png")
 ;                   "media-type" "image/png"
 ;                   "upload-as"  "binary"}]
-;    (let [{:keys [res ex]} @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
-;      (is (nil? ex))
+;    (let [res @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
 ;      (let [body (parse-response-body res)]
 ;        (is (.startsWith ^String (get-in body [:headers "content-type"]) "multipart/form-data"))))))
