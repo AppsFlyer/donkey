@@ -106,17 +106,23 @@
       @p)))
 
 (defprotocol IRequest
-  (submit [this] [this body])
+  (submit [this] [this body]
+    "Submit an asynchronous request with an optional body. The body should be a
+    string a byte[].
+    Returns an AsyncResult that will be notified if the request if succeeds or
+    fails.")
   (submit-form [this body]
-    "Submit a request as `application/x-www-form-urlencoded`. A content-type
-    header will be added to the request. If a `multipart/form-data` content-type
-    header already exists it will be used instead.
+    "Submit an asynchronous request as `application/x-www-form-urlencoded`. A
+    content-type header will be added to the request. If a `multipart/form-data`
+    content-type header already exists it will be used instead.
     `body` is a map where all keys and values should be of type string.
-    The body will be urlencoded when it's submitted.")
+    The body will be urlencoded when it's submitted.
+    Returns an AsyncResult that will be notified if the request if succeeds or
+    fails.")
   (submit-multipart-form [this body]
-    "Submit a request as `multipart/form-data`. A content-type header will be
-    added to the request. You may use this function to send attributes and
-    upload files.
+    "Submit an asynchronous request as `multipart/form-data`. A content-type
+    header will be added to the request. You may use this function to send
+    attributes and upload files.
     `body` is a map where all keys should be of type string. The values can be
     either string for simple attributes, or a map of file options when uploading
     a file.
@@ -126,7 +132,10 @@
     - pathname: The absolute path of the file.
       For example: /var/www/html/public/images/image.png
     - media-type: The MimeType of the file. For example - image/png
-    - upload-as: Upload the file as `binary` or `text`. Default is `binary`"))
+    - upload-as: Upload the file as `binary` or `text`. Default is `binary`
+
+    Returns an AsyncResult that will be notified if the request if succeeds or
+    fails."))
 
 (deftype AsyncRequest [^RingClient client ^HttpRequest req]
   IRequest
