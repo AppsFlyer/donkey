@@ -2,6 +2,7 @@
 
 
 ## TODO
+- Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
 https://vertx.io/docs/vertx-web-client/java/#response-predicates
 - Look into implementing JSON serialization / deserialization middleware
@@ -288,18 +289,79 @@ are exposed via JMX.
 
 ## Usage
 
-All the examples assume the following `require`d and `import`ed namespaces
-as well as defined vars:
-
+The following examples assume these required namespaces
 ```clojure
 (:require [com.appsflyer.donkey.core :as donkey]
-          [com.appsflyer.donkey.client :refer [request]]
+          [com.appsflyer.donkey.client :refer [request stop]]
           [com.appsflyer.donkey.result :refer [on-complete on-success on-fail]]
           [com.appsflyer.donkey.request :refer [submit submit-form submit-multipart-form]])
+```
 
+Creating a client is as simple as this
+
+```clojure
+(let [donkey-core (donkey/create-donkey)
+    donkey-client (donkey/create-client donkey-core)])
+```
+
+We can set up the client with some default options, so we won't need to supply
+them on every request
+
+```clojure
+(let [donkey-core (donkey/create-donkey)
+      donkey-client (donkey/create-client 
+                      donkey-core 
+                        {:default-host               "reqres.in"
+                         :default-port               443
+                         :debug                      true
+                         :ssl                        true
+                         :keep-alive                 true
+                         :keep-alive-timeout-seconds 30
+                         :connect-timeout-seconds    10
+                         :idle-timeout-seconds       20
+                         :enable-user-agent          true
+                         :user-agent                 "ClientX-v24.4.98673"
+                         :compression                true})]
+    (-> donkey-client
+        (request {:method :get
+                  :uri    "/api/users"})
+        submit
+        (on-complete 
+          (fn [res ex] 
+            (println (if ex "Failed!" "Success!"))))))
+```
+
+Once we're done with a client we should always stop it. This will release all 
+the resources being held by the client, such as connections, event loops, etc'.
+You should reuse a single client throughout the lifetime of the application,
+and stop it only if it won't be used again. Once stopped it should not be used
+again.
+ 
+```clojure
+(stop donkey-client)
+```
+
+The rest of the examples assume the following vars are defined
+
+```clojure
 (def donkey-core (donkey/create-donkey))
 (def donkey-client (donkey/create-client donkey-core)
 ```  
+
+- Stopping the client
+- The FutureResult object - how to use.
+- Simplest GET request
+- GET request with parameters
+- POST request with raw body
+- POST request urlencoded
+- POST request multipart with file upload
+- Overriding host + port
+- SSL request
+- Proxy request
+- Basic authentication
+- Bearer token (OAuth2)
+ 
+ 
 
 HTTPS request. Set `:ssl` to `true`. The port can be omitted and will default to
 443 if you haven't set a default port for the client.

@@ -21,7 +21,8 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     @Nullable
     @Override
     public HttpMethod from(IPersistentMap req) {
-      return HttpMethodMapping.get((Keyword) req.valAt(keyword(), null));
+      var method = req.valAt(keyword(), null);
+      return method == null ? null : HttpMethodMapping.get((Keyword) method);
     }
   },
   URI("uri") {
