@@ -11,12 +11,10 @@
 (s/def ::metrics-enabled boolean?)
 (s/def ::metrics-prefix string?)
 (s/def ::metric-registry #(instance? MetricRegistry %))
-(s/def ::instances #(s/int-in-range? 1 500 %))
 (s/def ::worker-threads #(s/int-in-range? 1 500 %))
 (s/def ::event-loops #(s/int-in-range? 1 (CpuCoreSensor/availableProcessors) %))
 
-(s/def ::donkey-config (s/keys :opt-un [::instances
-                                        ::metrics-prefix
+(s/def ::donkey-config (s/keys :opt-un [::metrics-prefix
                                         ::metric-registry
                                         ::metrics-enabled
                                         ::worker-threads
@@ -58,6 +56,7 @@
 
 ;; ------- Server Specification ------- ;;
 
+(s/def ::instances #(s/int-in-range? 1 500 %))
 (s/def ::port #(s/int-in-range? 1 65536 %))
 (s/def ::compression boolean?)
 (s/def ::host ::not-blank)
@@ -69,7 +68,8 @@
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 
 (s/def ::server-config (s/keys :req-un [::port]
-                               :opt-un [::middleware
+                               :opt-un [::instances
+                                        ::middleware
                                         ::compression
                                         ::host
                                         ::debug
@@ -82,13 +82,10 @@
   (let [config {:port                 8080
                 :compression          false
                 :host                 "localhost"
-                :metrics-enabled      true
-                :metrics-prefix       "donkey"
-                :worker-threads       20
                 :debug                false
-                ::date-header         false
-                ::content-type-header false
-                ::server-header       false
+                :date-header          false
+                :content-type-header  false
+                :server-header        false
                 :idle-timeout-seconds 0
                 :routes               [{:middleware [identity]
                                         :handler    [identity]}]}]))
