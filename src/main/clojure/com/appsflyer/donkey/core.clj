@@ -58,7 +58,7 @@
 (defprotocol IDonkey
   (create-server [_this opts]
     "Create an instance of DonkeyServer with the supplied options")
-  (create-client [_this opts]
+  (create-client [_this] [_this opts]
     "Create an instance of DonkeyClient with the supplied options"))
 
 (deftype Donkey [^Vertx vertx]
@@ -69,6 +69,8 @@
         server/get-server-config
         Server/create
         server/->DonkeyServer))
+  (create-client [this]
+    (create-client this {}))
   (create-client [_this opts]
     (-> (spec/assert ::donkey-spec/client-config opts)
         (assoc :vertx vertx)

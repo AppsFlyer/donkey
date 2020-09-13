@@ -1,8 +1,8 @@
 (ns com.appsflyer.donkey.request
-  (:require [com.appsflyer.donkey.future])
+  (:require [com.appsflyer.donkey.result])
   (:import (clojure.lang IPersistentMap)
            (io.vertx.ext.web.client HttpRequest)
-           (com.appsflyer.donkey.future FutureResult)
+           (com.appsflyer.donkey.result FutureResult)
            (com.appsflyer.donkey.client.ring RingClient)))
 
 (defprotocol IRequest

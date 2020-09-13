@@ -8,7 +8,8 @@
            (io.vertx.core Vertx Future Handler)
            (com.appsflyer.donkey.server DonkeyServer)
            (com.appsflyer.donkey.core Donkey)
-           (com.appsflyer.donkey.client DonkeyClient)))
+           (com.appsflyer.donkey.client DonkeyClient)
+           (com.appsflyer.donkey.result FutureResult)))
 
 (def ^:dynamic ^Donkey donkey-core)
 (def ^:dynamic ^DonkeyServer donkey-server)
@@ -117,7 +118,7 @@
       ([req]
        (fun (handler req))))))
 
-(defn make-request
+(defn ^FutureResult make-request
   ([opts]
    (->
      (client/request donkey-client opts)
@@ -127,12 +128,12 @@
      (client/request donkey-client opts)
      (request/submit body))))
 
-(defn submit-form [opts body]
+(defn ^FutureResult submit-form [opts body]
   (->
     (client/request donkey-client opts)
     (request/submit-form body)))
 
-(defn submit-multi-part-form [opts body]
+(defn ^FutureResult submit-multi-part-form [opts body]
   (->
     (client/request donkey-client opts)
     (request/submit-multipart-form body)))

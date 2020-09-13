@@ -1,13 +1,13 @@
 (ns com.appsflyer.donkey.server
   (:require [com.appsflyer.donkey.route :refer [get-router-definition]]
-            [com.appsflyer.donkey.future])
+            [com.appsflyer.donkey.result])
   (:import (io.vertx.core.http HttpServerOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
            (com.appsflyer.donkey.util DebugUtil)
-           (com.appsflyer.donkey.future FutureResult)))
+           (com.appsflyer.donkey.result FutureResult)))
 
 (defn- ^HttpServerOptions get-server-options
   "Creates and returns an HttpServerOptions object from the opts map.
