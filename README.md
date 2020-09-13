@@ -351,6 +351,49 @@ again.
 
 ---
 
+#### Submitting a Request
+
+Calling `(def async-request (request donkey-client opts))` creates an 
+`AsyncRequest` but does not submit the request yet. You can reuse an 
+`AsyncRequest` instance to make the same request multiple times. There are 
+several ways a request can be submitted:
+
+- `(submit async-request)` submits a request without a body. This is usually 
+the case when doing a `GET` request.
+- `(submit async-request body)` submits a request with a raw body. `body` can
+be either a string, or a byte array. A typical use case would be `POST`ing
+serialized data such as JSON. Another common use case is sending binary data 
+by also adding a `Content-Type: application/octet-stream` header to the request. 
+- `(submit-form async-request body)` submits a urlencoded form. A 
+`Content-Type: application/x-www-form-urlencoded` header will automatically be 
+added to the request, and the body will be urlencoded. `body` is a map of string
+key-value pairs. 
+For example, this is how you would typically submit a sign in form on a website:
+```clojure
+(submit-form async-request {"email"    "frankies15@example.com" 
+                            "password" "only-on-ssl"})
+```
+- `(submit-multipart-form async-request body)` submits a multipart form. A 
+`Content-Type: multipart/form-data` header will automatically be added to the 
+request. Multipart forms can be used to send simple key-value attribute pairs, 
+and uploading files. For example, you can upload a file from the filesystem along
+with some attributes like this:
+```clojure
+(submit-multipart-form 
+  async-request 
+    {"Lyrics"     "Phil Silvers"
+     "Music"      "Jimmy Van Heusen"
+     "Title"      "Nancy (with the Laughing Face)"
+     "Media Type" "MP3"
+     "Media"      {
+                   "filename"       "nancy.mp3"
+                   "pathname"       "/home/bill/Music/Sinatra/Best of Columbia/nancy.mp3"
+                   "media-type"     "audio/mpeg"
+                   "upload-as"      "binary" 
+                  }
+   })
+```  
+
 The rest of the examples assume the following vars are defined
 
 ```clojure
