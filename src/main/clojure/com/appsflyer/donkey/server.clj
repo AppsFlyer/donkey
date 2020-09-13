@@ -39,8 +39,9 @@
         config (.build builder)]
     ; We need to initialize debug logging before a Logger
     ; is created, so SLF4J will use Logback instead of another provider.
-    (when (.debug config)
-      (DebugUtil/enable))
+    (if (.debug config)
+      (DebugUtil/enable)
+      (DebugUtil/disable))
     config))
 
 (defprotocol HttpServer

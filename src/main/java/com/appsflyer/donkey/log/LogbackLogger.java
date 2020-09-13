@@ -9,6 +9,14 @@ public class LogbackLogger extends Logger {
     super(delegate);
   }
   
+  public String getName() {
+    return ((LogbackLogDelegate) getDelegate()).getName();
+  }
+  
+  public String getLevel() {
+    return ((LogbackLogDelegate) getDelegate()).getLevel().toString();
+  }
+  
   public void setLevel(String level) {
     ((LogbackLogDelegate) getDelegate()).setLevel(level);
   }
