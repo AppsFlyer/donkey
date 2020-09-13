@@ -14,6 +14,14 @@ public class LogbackLogDelegate extends SLF4JLogDelegate {
     super(logger);
   }
   
+  public String getName() {
+    return ((org.slf4j.Logger) unwrap()).getName();
+  }
+  
+  public Level getLevel() {
+    return ((Logger) unwrap()).getLevel();
+  }
+  
   public void setLevel(String level) {
     ((Logger) unwrap()).setLevel(Level.toLevel(level));
   }
