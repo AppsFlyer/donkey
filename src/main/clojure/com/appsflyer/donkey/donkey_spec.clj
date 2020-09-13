@@ -106,12 +106,14 @@
 (s/def ::enable-user-agent boolean?)
 (s/def ::proxy-type #{:http :sock4 :sock5})
 (s/def ::proxy (s/keys :req-un [::host ::port ::proxy-type]))
+(s/def ::force-sni boolean?)
+(s/def ::ssl boolean?)
 
-(s/def ::client-config (s/keys :opt-un [::middleware
-                                        ::compression
+(s/def ::client-config (s/keys :opt-un [::compression
                                         ::default-host
                                         ::default-port
                                         ::debug
+                                        ::force-sni
                                         ::keep-alive
                                         ::keep-alive-timeout-seconds
                                         ::connect-timeout-seconds
@@ -119,7 +121,8 @@
                                         ::max-redirects
                                         ::user-agent
                                         ::enable-user-agent
-                                        ::proxy]))
+                                        ::proxy
+                                        ::ssl]))
 
 (comment
   (let [config {:keep-alive                 false
@@ -159,5 +162,3 @@
                                          ::query-params
                                          ::headers
                                          ::body]))
-
-
