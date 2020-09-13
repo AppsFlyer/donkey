@@ -15,7 +15,7 @@
   the server should listen to, as well as lower level connection parameters."
   [opts]
   (doto (HttpServerOptions.)
-    (.setPort (int (:port opts 8080)))
+    (.setPort (int (:port opts)))
     (.setHost ^String (:host opts "0.0.0.0"))
     (.setLogActivity ^boolean (:debug opts false))
     (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))

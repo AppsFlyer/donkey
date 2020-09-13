@@ -56,7 +56,49 @@
 
 (defprotocol IDonkey
   (create-server [_this opts]
-    "Create an instance of DonkeyServer with the supplied options")
+    "Create an instance of DonkeyServer with the supplied options.
+    `opts` map description (all values are optional unless stated otherwise):
+
+    :port [int] Required. The port the server will listen to.
+
+    :instances [int] The number of server instances to deploy. Each instance
+      is assigned to an event loop. Therefore there is a direct relation between
+      the number of :event-loops set when creating a Donkey instance, and the
+      number of server instances. If the number of server instances is greater
+      than the number of event loops then some will have to share.
+      Also note that the function returns a *single* DonkeyServer. The number
+      of instances only determines the amount of concurrency that will be used
+      to serve requests.
+
+    :middleware [fn [,fn]*] Sequence of functions that will be applied before
+      a request is processed by a handler. Each function should accept a handler
+      function as its only argument, and return a function that accepts 1 or 3
+      arguments (blocking vs. non blocking mode). The middleware is responsible
+      calling the handler before or after the handler processes the request.
+
+    :compression [boolean] Include support for gzip  request / response inflate /
+      deflate. Defaults to false.
+
+    :host [string] The hostname or ip the server will listen to incoming
+      connections. Defaults to '0.0.0.0'.
+
+    :idle-timeout-seconds [int] Set the duration of time in seconds where a
+      connection will timeout and be closed if no data is received. Defaults to
+      never.
+
+    :debug [boolean] Enable debug mode. Debug mode is not suitable for
+      production use since it outputs a large amount of logs. Use with
+      discretion. Defaults to false.
+
+    :date-header [boolean] Include the 'Date' header in the response. Defaults
+      to false.
+
+    :server-header [boolean] Include the 'Server' header in the response.
+      Defaults to false.
+
+    :content-type-header [boolean] Sets the response content type automatically
+      according to the best 'Accept' header match. Defaults to false.
+    ")
   (create-client [_this] [_this opts]
     "Create an instance of DonkeyClient with the supplied options"))
 
@@ -80,8 +122,8 @@
 (defn- ^VertxOptions get-vertx-options
   "Creates and returns a VertxOptions object from the opts map.
   The vertx options are used to initialise the Vertx object which is an
-  integral part of the server. It allows configuring thread pools,
-  clustering, and metrics."
+  integral part of the server and client. It allows configuring thread pools
+  and metrics."
   [opts]
   (let [vertx-options (VertxOptions.)]
     (.setPreferNativeTransport vertx-options true)
@@ -94,21 +136,26 @@
 
 (defn ^Donkey create-donkey
   "Create a Donkey factory. Use the factory to create an HTTP server or client.
-  Options map:
+  `opts` map description (all values are optional unless stated otherwise):
+
   :event-loops [int] The number of event loops that will be used by this
-    instance. An event loop correlates to a single OS thread. Every server and
+    instance. An event loop corresponds to a single OS thread. Every server and
     client created by this Donkey instance will share its event loops. It is
     recommended to have at least one event loop per available CPU core, which is
     also the default setting.
-  :worker-threads [int] The number of worker threads that will be created when
+
+  :worker-threads [int] The number of worker threads that will be used when
     :handler-mode is :blocking. In blocking mode all user code will be executed
     off the event loop by a worker thread. It is not recommended to run blocking
     handlers, unless absolutely necessary. It is necessary to experiment
     with the size of :worker-threads until you reach the desired application
     requirements.
+
   :metrics-enabled [boolean] Enable metrics collection. Disabled by default.
+
   :metrics-prefix [string] A prefix that will be added to all metrics. Can be used
-    to differentiate between different projects. Default to 'donkey'.
+    to differentiate between different projects. Defaults to 'donkey'.
+
   :metric-registry [MetricRegistry] By default a new MetricRegistry is created
     that can be used during development. In production you should implement
     the reporting logic and supply an instance of the registry.
