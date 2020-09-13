@@ -297,11 +297,12 @@ The following examples assume these required namespaces
           [com.appsflyer.donkey.request :refer [submit submit-form submit-multipart-form]])
 ```
 
+##### Creating a Client
 Creating a client is as simple as this
 
 ```clojure
 (let [donkey-core (donkey/create-donkey)
-    donkey-client (donkey/create-client donkey-core)])
+      donkey-client (donkey/create-client donkey-core)])
 ```
 
 We can set up the client with some default options, so we won't need to supply
@@ -331,6 +332,13 @@ them on every request
             (println (if ex "Failed!" "Success!"))))))
 ```
 
+The previous example made an HTTPS request to some REST api and printed out 
+"Failed!" if an exception was received, or "Success!" if we got a response
+from the server. We'll discuss how submitting requests and handling responses
+work shortly.  
+
+##### Stopping a Client
+
 Once we're done with a client we should always stop it. This will release all 
 the resources being held by the client, such as connections, event loops, etc'.
 You should reuse a single client throughout the lifetime of the application,
@@ -341,6 +349,8 @@ again.
 (stop donkey-client)
 ```
 
+---
+
 The rest of the examples assume the following vars are defined
 
 ```clojure
@@ -348,7 +358,6 @@ The rest of the examples assume the following vars are defined
 (def donkey-client (donkey/create-client donkey-core)
 ```  
 
-- Stopping the client
 - The FutureResult object - how to use.
 - Simplest GET request
 - GET request with parameters
