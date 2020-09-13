@@ -5,10 +5,11 @@
            (com.appsflyer.donkey.result FutureResult)
            (com.appsflyer.donkey.client.ring RingClient)))
 
-(defprotocol IRequest
+(defprotocol Submittable
   (submit [this] [this body]
     "Submit an asynchronous request with an optional body. The body should be a
     string or a byte[].
+
     Returns a FutureResult that will be notified if the request succeeds or
     fails.")
   (submit-form [this body]
@@ -17,6 +18,7 @@
     content-type header already exists it will be used instead.
     `body` is a map where all keys and values should be of type string.
     The body will be urlencoded when it's submitted.
+
     Returns a FutureResult that will be notified if the request succeeds or
     fails.")
   (submit-multipart-form [this body]
@@ -38,7 +40,7 @@
     fails."))
 
 (deftype AsyncRequest [^RingClient client ^HttpRequest req]
-  IRequest
+  Submittable
   (submit [_this]
     (FutureResult.
       (.send ^RingClient client ^HttpRequest req)))

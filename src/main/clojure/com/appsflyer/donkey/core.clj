@@ -213,7 +213,7 @@
     that can be used during development. In production you should implement
     the reporting logic and supply an instance of the registry.
   "
-  ([] create-donkey {})
+  ([] (create-donkey {}))
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
        get-vertx-options
