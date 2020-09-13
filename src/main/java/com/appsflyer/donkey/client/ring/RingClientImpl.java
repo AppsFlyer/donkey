@@ -3,25 +3,22 @@ package com.appsflyer.donkey.client.ring;
 import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentMap;
 import com.appsflyer.donkey.client.ClientConfig;
-import com.appsflyer.donkey.client.exception.UnsupportedDataTypeException;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.Objects;
 
 import static com.appsflyer.donkey.client.ring.RingRequestField.*;
-import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
+import static com.appsflyer.donkey.util.TypeConverter.*;
 
 public class RingClientImpl implements RingClient {
   
-  private static final Logger logger = LoggerFactory.getLogger(RingClientImpl.class.getName());
   private final WebClient client;
   
   RingClientImpl(ClientConfig config) {
@@ -29,63 +26,73 @@ public class RingClientImpl implements RingClient {
   }
   
   @Override
-  public RingClientRequest request(IPersistentMap opts) {
+  public HttpRequest<Buffer> request(IPersistentMap opts) {
     var method = (HttpMethod) METHOD.from(opts);
     Objects.requireNonNull(method, "HTTP request method is missing");
     
-    //It's OK to suppress the warning here because a ClassCastException
-    //would have been thrown during the call to `HANDLER`.
-    @SuppressWarnings("unchecked")
-    var handler =
-        (Handler<AsyncResult<IPersistentMap>>) HANDLER.from(opts);
-    Objects.requireNonNull(handler, "HTTP request handler is missing");
-    
-    Promise<IPersistentMap> promise = Promise.promise();
-    promise.future().onComplete(handler);
-    
     HttpRequest<Buffer> request = client.request(method, (String) URI.from(opts));
     
-    //todo: Change the API so there is a `send` method after `request` and the user can supply the body. Then we can have sendForm, sendJson, etc'.
+    addPort(request, opts);
+    addHost(request, opts);
+    addSsl(request, opts);
+    addQueryParams(request, opts);
+    addHeaders(request, opts);
+    addBasicAuth(request, opts);
+    addBearerToken(request, opts);
+    addTimeout(request, opts);
     
-    try {
-      addPort(request, opts);
-      addHost(request, opts);
-      addQueryParams(request, opts);
-      addHeaders(request, opts);
-      addBasicAuth(request, opts);
-      addBearerToken(request, opts);
-      addTimeout(request, opts);
-    } catch (RuntimeException ex) {
-      logger.error("Client request processing failed", ex);
-      promise.fail(ex);
-      return;
-    }
+    return request;
+  }
   
-    var body = BODY.from(opts);
-    if (body == null) {
-      request.send(new RingResponseAdapter(promise));
-      return;
-    }
-    
-    String contentType = request.headers().get(CONTENT_TYPE);
-//    if (isFormUrlEncoded(contentType)) {
-//      if
-//      request.sendForm(MultiMap.caseInsensitiveMultiMap().addAll(FORM_PARAMS.from(opts)));
-//    }
-    
-    
+  @Override
+  public Future<IPersistentMap> send(HttpRequest<Buffer> request) {
+    Promise<IPersistentMap> promise = Promise.promise();
+    request.send(new RingResponseAdapter(promise));
+    return promise.future();
+  }
+  
+  @Override
+  public Future<IPersistentMap> send(HttpRequest<Buffer> request, Object body) {
+    Buffer buffer;
     try {
-    } catch (UnsupportedDataTypeException ex) {
-      logger.error(ex.getMessage());
+      buffer = toBuffer(body);
+    } catch (Throwable ex) {
+      Promise<IPersistentMap> promise = Promise.promise();
       promise.fail(ex);
-      return;
+      return promise.future();
     }
-    
-    if (body == null) {
-      request.send(new RingResponseAdapter(promise));
-    } else {
-      request.sendBuffer((Buffer) body, new RingResponseAdapter(promise));
-    }
+    return send(request, buffer);
+  }
+  
+  @Override
+  public Future<IPersistentMap> send(HttpRequest<Buffer> request, Buffer body) {
+    Promise<IPersistentMap> promise = Promise.promise();
+    request.sendBuffer(body, new RingResponseAdapter(promise));
+    return promise.future();
+  }
+  
+  @Override
+  public Future<IPersistentMap> sendForm(HttpRequest<Buffer> request, IPersistentMap body) {
+    return sendForm(request, toMultiMap(body));
+  }
+  
+  @Override
+  public Future<IPersistentMap> sendForm(HttpRequest<Buffer> request, MultiMap body) {
+    Promise<IPersistentMap> promise = Promise.promise();
+    request.sendForm(body, new RingResponseAdapter(promise));
+    return promise.future();
+  }
+  
+  @Override
+  public Future<IPersistentMap> sendMultiPartForm(HttpRequest<Buffer> request, IPersistentMap body) {
+    return sendMultiPartForm(request, toMultipartForm(body));
+  }
+  
+  @Override
+  public Future<IPersistentMap> sendMultiPartForm(HttpRequest<Buffer> request, MultipartForm body) {
+    Promise<IPersistentMap> promise = Promise.promise();
+    request.sendMultipartForm(body, new RingResponseAdapter(promise));
+    return promise.future();
   }
   
   @Override
@@ -104,6 +111,13 @@ public class RingClientImpl implements RingClient {
     var host = (String) HOST.from(opts);
     if (host != null) {
       request.host(host);
+    }
+  }
+  
+  private void addSsl(HttpRequest<Buffer> request, IPersistentMap opts) {
+    var ssl = (Boolean) SSL.from(opts);
+    if (ssl != null) {
+      request.ssl(ssl);
     }
   }
   

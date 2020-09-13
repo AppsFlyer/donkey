@@ -1,9 +1,13 @@
 (ns ^:integration com.appsflyer.donkey.client-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.test-helper :as helper]
-            [com.appsflyer.donkey.routes :as routes])
+    #_[com.appsflyer.donkey.result :as result]
+            [com.appsflyer.donkey.routes :as routes]
+    #_[com.appsflyer.donkey.client :as client]
+    #_[com.appsflyer.donkey.request :as request])
   (:import (io.netty.handler.codec.http HttpResponseStatus)
            (clojure.lang ExceptionInfo)
+    #_(java.util.concurrent CountDownLatch TimeUnit)
            (com.appsflyer.donkey.client.exception UnsupportedDataTypeException)))
 
 
@@ -115,6 +119,20 @@
         (let [body (parse-response-body res)]
           (is (= "application/x-www-form-urlencoded" (get-in body [:headers "content-type"])))
           (is (= fields (:form-params body))))))))
+
+#_(deftest test-https-endpoint
+    (let [latch (CountDownLatch. 1)]
+      (->
+        (client/request helper/donkey-client {:host   "reqres.in"
+                                              :port   443
+                                              :ssl    true
+                                              :uri    "/api/users?page=2"
+                                              :method :get})
+        (request/submit)
+        (result/on-success (fn [res] (println res) (.countDown latch)))
+        (result/on-fail (fn [ex] (println ex) (.countDown latch))))
+
+      (.await latch 3 TimeUnit/SECONDS)))
 
 ;(deftest test-json-file-upload
 ;  (let [file-opts {"filename"   "upload-text.json"

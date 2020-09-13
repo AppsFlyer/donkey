@@ -41,7 +41,15 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     @Nullable
     @Override
     public Integer from(IPersistentMap req) {
-      return (Integer) req.valAt(keyword(), null);
+      var port = (Number) req.valAt(keyword(), null);
+      return port == null ? null : port.intValue();
+    }
+  },
+  SSL("ssl") {
+    @Nullable
+    @Override
+    public Boolean from(IPersistentMap req) {
+      return (Boolean) req.valAt(keyword(), null);
     }
   },
   TIMEOUT("idle-timeout-seconds") {
@@ -49,10 +57,7 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
     @Override
     public Long from(IPersistentMap req) {
       var timeout = (Number) req.valAt(keyword(), null);
-      if (timeout != null) {
-        return timeout.longValue();
-      }
-      return null;
+      return timeout == null ? null : timeout.longValue();
     }
   },
   BEARER_TOKEN("bearer-token") {

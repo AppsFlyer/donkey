@@ -49,6 +49,8 @@
       (.setLogActivity client-options true))
     (when (:compression opts)
       (.setTryUseCompression client-options true))
+    (when (:ssl opts)
+      (.setSsl client-options true))
     client-options))
 
 (defn ^ClientConfig get-client-config
