@@ -2,6 +2,8 @@
 
 
 ## TODO
+- Look at response validation (expectation)
+https://vertx.io/docs/vertx-web-client/java/#response-predicates
 - Look into implementing JSON serialization / deserialization middleware
 - Look into functional builder pattern rather than using a configuration map.
 Examples:
@@ -15,7 +17,6 @@ A "healthy" health check would require the user to provide a handler.
 - Clean up the middleware code in route.clj
 - Add more middleware tests
 - TESTS!
-- Client implementation
 - Documentation
 - Examples
 - README
@@ -24,6 +25,8 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Client SSL support
+- Client implementation
 - Add metrics documentation
 - Explore having the metrics implementation pluggable by the user.
 This is a feature that can be added at a later stage. It's not required in the near future.
@@ -58,6 +61,8 @@ It says it's not needed in vertx, but I turn it to "simple" mode when :debug is 
 
 ## Future releases
 - SSL support
+
+## Server
 
 ## Usage
 
@@ -276,6 +281,46 @@ threshold which will indicate the code should be examined.
 - `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
 used by the blocked thread checker. It does _**not**_ disable execution metrics that 
 are exposed via JMX.  
+
+
+
+## Client
+
+## Usage
+
+All the examples assume the following `require`d and `import`ed namespaces
+as well as defined vars:
+
+```clojure
+(:require [com.appsflyer.donkey.core :as donkey]
+          [com.appsflyer.donkey.client :refer [request]]
+          [com.appsflyer.donkey.result :refer [on-complete on-success on-fail]]
+          [com.appsflyer.donkey.request :refer [submit submit-form submit-multipart-form]])
+
+(def donkey-core (donkey/create-donkey))
+(def donkey-client (donkey/create-client donkey-core)
+```  
+
+HTTPS request. Set `:ssl` to `true`. The port can be omitted and will default to
+443 if you haven't set a default port for the client.
+
+
+```clojure
+(->
+  (request donkey-client {:host   "reqres.in"
+                          :port   443
+                          :ssl    true
+                          :uri    "/api/users?page=2"
+                          :method :get})
+  (submit)
+  (on-success (fn [res] (println res)))
+  (on-fail (fn [ex] (println ex))))
+
+(comment
+  Will output something like this:
+  `{:status 200, :headers {Age 365, Access-Control-Allow-Origin *, CF-Cache-Status HIT, Via 1.1 vegur, Set-Cookie __cfduid=deb7baeea854619ab27bf36abf222b4dc1599922248; expires=Mon, 12-Oct-20 14:50:48 GMT; path=/; domain=.reqres.in; HttpOnly; SameSite=Lax; Secure, Date Sat, 12 Sep 2020 14:50:48 GMT, Accept-Ranges bytes, cf-request-id 05246533bf0000ad73b62fa200000001, Expect-CT max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct", Cache-Control max-age=14400, Content-Length 1245, Server cloudflare, Content-Type application/json; charset=utf-8, Connection keep-alive, Etag W/"4dd-IPv5LdOOb6s5S9E3i59wBCJ1k/0", X-Powered-By Express, CF-RAY 5d1a7165fa2cad73-TLV}, :body #object[[B 0x7be7d50c [B@7be7d50c]}`
+)
+```
    
 
 ## License

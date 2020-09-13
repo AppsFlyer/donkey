@@ -1,4 +1,4 @@
-(ns com.appsflyer.donkey.future
+(ns com.appsflyer.donkey.result
   (:import (io.vertx.core Future AsyncResult Handler)
            (clojure.lang IDeref)))
 
@@ -11,21 +11,21 @@
 
 (deftype SuccessHandler [fun]
   Handler
-  (handle [_this event]
-    (fun (.result ^AsyncResult event))))
+  (handle [_this response]
+    (fun response)))
 
 (deftype FailureHandler [fun]
   Handler
-  (handle [_this event]
-    (fun (.cause ^AsyncResult event))))
+  (handle [_this ex]
+    (fun ^Throwable ex)))
 
-(defprotocol IFuture
+(defprotocol IResult
   (on-complete [this fun])
   (on-success [this fun])
   (on-fail [this fun]))
 
 (deftype FutureResult [^Future impl]
-  IFuture
+  IResult
   (on-complete [this fun]
     (.onComplete ^Future impl (->CompleteHandler fun))
     this)
