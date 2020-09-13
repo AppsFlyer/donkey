@@ -100,7 +100,60 @@
       according to the best 'Accept' header match. Defaults to false.
     ")
   (create-client [_this] [_this opts]
-    "Create an instance of DonkeyClient with the supplied options"))
+    "Create an instance of DonkeyClient with the supplied options.
+    `opts` map description (all values are optional unless stated otherwise):
+
+    :default-host [string] The default host to use for all requests. Can be
+      overridden on per request basis.
+
+    :default-port [int] The default port to use for all requests. Can be
+      overridden on per request basis.
+
+    :ssl [boolean] Enable SSL handling for all requests. Can be overridden on
+      per request basis.
+
+    :debug [boolean] Enable debug mode. Debug mode is not suitable for
+      production use since it outputs a large amount of logs. Use with
+      discretion. Defaults to false.
+
+    :compression [boolean] Enable client side compression. Defaults to false.
+
+    :force-sni [boolean] Enable support for Server-Name-Indication. When an SSL
+      connection is attempted, the client will send the hostname it is
+      attempting to connect to during the handshake process. Defaults to true.
+
+    :keep-alive [boolean] Enable keep alive connections. When enabled multiple
+      requests will be transmitted on the same connection rather than opening
+      and closing a connection for each request. It is recommended to use this
+      option when it is known that multiple consecutive requests will be made
+      to the same host. The amount of time a connection is kept alive can be
+      configured with :keep-alive-timeout-seconds. Defaults to false.
+
+    :keep-alive-timeout-seconds [int] The duration of seconds to keep a
+      connection alive. Ignored if :keep-alive is false. Defaults to 60 seconds.
+
+    :connect-timeout-seconds [int] The duration of seconds to allow for a
+      connection to be established. Defaults to 60 seconds.
+
+    :idle-timeout-seconds [int] The duration of seconds after which the
+      connection will be closed if no data was received. Defaults to never.
+
+    :max-redirects [int] The maximum number of times to follow 3xx redirects.
+      Defaults to 16.
+
+    :user-agent-enabled [boolean] Indicates whether to include a 'User-Agent'
+      header in the request. Defaults to false.
+
+    :user-agent [string] The value of the 'User-Agent' header sent in the
+      request. Ignored if :user-agent-enabled is set to false. Defaults to
+      'Donkey-Client'.
+
+    :proxy [map] Options for connecting to a proxy client. All values are
+      required.
+      :host [string] The host to connect to.
+      :port [int] The port to connect to.
+      :proxy-type [keyword] :http, :socks4, or :socks5
+    "))
 
 (deftype Donkey [^Vertx vertx]
   IDonkey
