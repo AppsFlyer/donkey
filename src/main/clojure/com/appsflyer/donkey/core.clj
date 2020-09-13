@@ -51,8 +51,7 @@
                                 :port 3128
                                 :type :http|:sock4|:sock5}
    :compression                false
-   :middleware                 []}
-
+   :ssl                        false}
   )
 
 (defprotocol IDonkey
@@ -94,7 +93,26 @@
     vertx-options))
 
 (defn ^Donkey create-donkey
-  "Create a Donkey factory. Use the factory to create an HTTP server or client"
+  "Create a Donkey factory. Use the factory to create an HTTP server or client.
+  Options map:
+  :event-loops [int] The number of event loops that will be used by this
+    instance. An event loop correlates to a single OS thread. Every server and
+    client created by this Donkey instance will share its event loops. It is
+    recommended to have at least one event loop per available CPU core, which is
+    also the default setting.
+  :worker-threads [int] The number of worker threads that will be created when
+    :handler-mode is :blocking. In blocking mode all user code will be executed
+    off the event loop by a worker thread. It is not recommended to run blocking
+    handlers, unless absolutely necessary. It is necessary to experiment
+    with the size of :worker-threads until you reach the desired application
+    requirements.
+  :metrics-enabled [boolean] Enable metrics collection. Disabled by default.
+  :metrics-prefix [string] A prefix that will be added to all metrics. Can be used
+    to differentiate between different projects. Default to 'donkey'.
+  :metric-registry [MetricRegistry] By default a new MetricRegistry is created
+    that can be used during development. In production you should implement
+    the reporting logic and supply an instance of the registry.
+  "
   ([] create-donkey {})
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
