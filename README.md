@@ -2,6 +2,7 @@
 
 
 ## TODO
+- Consider removing the JMX support for metrics - make it the user problem.
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
 https://vertx.io/docs/vertx-web-client/java/#response-predicates
@@ -151,6 +152,129 @@ where the body of the response is "Hello, world!".
 
 If you run the example and open a browser on `http://localhost:8080` you will
 see a page with "Hello, World!".
+
+#### Routes
+
+In Donkey HTTP requests are routed to handlers. When you initialise a server
+you define a set of routes that it should be able to handle. When a request 
+arrives the server checks if one of the routes can handle the request. If no 
+matching route is found, then a `404 Not Found` response is returned to the 
+client.
+
+Let's see a route example:
+```clojure
+{
+  :handler      (fn [request respond raise] ...)
+  :handler-mode :non-blocking
+  :path         "/api/v2"
+  :match-type   :simple
+  :methods      [:get :put :post :delete]
+  :consumes     ["application/json"]
+  :produces     ["application/json"]
+  :middleware   [(fn [handler] (fn [request respond raise] (handler request respond raise)))]
+}
+```   
+`:handler` A function that accepts 1 or 3 arguments (depending on 
+`:handler-mode`). The function will be called if a request matches the route. 
+This is where you call your application code. 
+
+`:handler-mode` To better understand the use of the `:handler-mode`, we need
+to first get some background about Donkey. Donkey is an abstraction built on top 
+of a web tool-kit called [Vert.x](https://vertx.io/), which in turn is built on
+a very popular and performant networking library called 
+[Netty](https://netty.io/). Netty uses an interesting threading model that is 
+based on the concept of a single threaded event loop that serve requests. An 
+event loop is conceptually a long-running task with a queue of events it needs 
+to dispatch. As long as the events dispatch quickly and don't occupy too much of
+the event loop's time, it can dispatch events at a very high rate. Because it
+is single threaded, or in other words serial, during the time it takes to 
+dispatch one event, no other event can be dispatched. Therefore, it's extremely 
+important *not to block the event loop*.
+
+The `:handler-mode` is a contract where you declare the type of handling your
+route does - `:blocking` or `:non-blocking` (default). 
+`:non-blocking` means
+that the handler is either doing a very quick computational work, or that the
+work will offloaded to a separate thread. In both cases the guarantee is that it
+will *not block the event loop*. In this case the `:handler` must accept 3 
+arguments.
+Sometimes reality has it that we have to deal with legacy code that is doing
+some blocking operations that we just cannot change easily. For these occasions
+we have `:blocking` handler mode. In this case, the handler will be called on a 
+separate worker thread pool without needing to worry about blocking the event 
+loop. The worker thread pool size can be configured when creating a 
+[`Donkey`](#creating-a-donkey) instance by setting the `:worker-threads` option.
+
+`:path` is the first thing a route is matched on. It is the part after the 
+hostname in a URI that identifies a resource on the host the client is trying to 
+access. The way the path is matched depends on the `:match-type`.
+
+`:match-type` can be either `:simple` or `:regex`.
+
+`:simple` match type will match in two ways:
+1. Exact match. In the example above it means the route will only match requests 
+to `http://localhost:8080/api/v2`. It will _not_ match requests to 
+- `http://localhost:8080/api` 
+- `http://localhost:8080/api/v3` 
+- `http://localhost:8080/api/v2/user`
+2. Path variables. Take for example the path `/api/v2/user/:id/address`. `:id`
+is a path variable that matches on any sub-path. All the following paths
+will match:
+- `/api/v2/user/1035/address`   
+- `/api/v2/user/2/address`   
+- `/api/v2/user/foo/address`   
+The really nice thing about path variables is that you get the value that was in
+the path when it matched, in the request. The value will be available in the 
+`:path-params` map. If we take the first example, the request will look like 
+this:
+```clojure
+{
+... regular request fields
+  :path-params {"id" "1035"}
+... more request fields 
+}
+```        
+`:regex` match type will match on arbitrary regular expressions. For example, if
+wanted to only match the `/api/v2/user/:id/address` path if `:id` is a number,
+then we could use `:match-type :regex` and supply this path:
+`/api/v2/user/[0-9]+/address`. In this case the route will only match if a 
+client requests the path with a numeric id, but we won't have access to the id
+in the `:path-params` map. If we wanted the id we could fix it by adding 
+capturing groups: `/api/v2/user/([0-9]+)/address`. Now everything within the 
+parenthesis will be available in `:path-params`. 
+```clojure
+{
+... regular request fields
+  :path-params {"param0" "1035"}
+... more request fields 
+}
+```
+We can also add multiple capturing groups, for example the path
+`/api/v(\d+\.\d{1})/user/([0-9]+)/address` will match `/api/v4.7/user/9/address`
+and `:path-params` will include both capturing groups.
+```clojure
+{
+... regular request fields
+  :path-params {"param0" "4.7" "param1" "9"}
+... more request fields 
+}
+```
+
+`:methods` is a vector of HTTP methods the route supports, such as GET, POST, 
+etc'. By default, any method will match the route.
+
+`:consumes` is a vector of media types that the handler can consume. If a route
+matches but the `Content-Type` header of the request doesn't match one of the
+supported media types, then the request will be rejected with a 
+`415 Unsupported Media Type` code.
+
+`:produces` is a vector of media types that the handler produces. If a route
+matches but the `Accept` header of the request doesn't match one of the
+supported media types, then the request will be rejected with a 
+`406 Not Acceptable` code.  
+
+`:middleware` 
+
 
 - Using reitit
 - Using compojure
@@ -493,8 +617,8 @@ with some attributes like this:
 #### FutureResult
 
 Requests are submitted asynchronously, meaning the request is executed on 
-a background thread, and calls to `submit[-xxx]*` return an `FutureResult` 
-immediately. You can think of an `FutureResult` as a way to subscribe to an event
+a background thread, and calls to `submit[-xxx]*` return a `FutureResult` 
+immediately. You can think of a `FutureResult` as a way to subscribe to an event
 that may have happened or will happen some time in the future. The api is very 
 simple:
 - `(on-success async-result (fn [result]))` will call the supplied function
@@ -516,7 +640,7 @@ It's possible for multiple parties to be notified on the completion of
 called zero or more times. If the response is irrelevant as is the case in "call 
 and forget" type requests, then the result can be ignored:
 ```clojure
-(submit async-request) ; => The `AsyncRequest` returned is ignored
+(submit async-request) ; => The `FutureResult` returned is ignored
 ... do the rest of your application logic
 ```
 
