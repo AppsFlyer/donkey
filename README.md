@@ -394,11 +394,11 @@ with some attributes like this:
    })
 ```  
 
-#### AsyncResult
+#### FutureResult
 
 Requests are submitted asynchronously, meaning the request is executed on 
-a background thread, and calls to `submit[-xxx]*` return an `AsyncResult` 
-immediately. You can think of an `AsyncResult` as a way to subscribe to an event
+a background thread, and calls to `submit[-xxx]*` return an `FutureResult` 
+immediately. You can think of an `FutureResult` as a way to subscribe to an event
 that may have happened or will happen some time in the future. The api is very 
 simple:
 - `(on-success async-result (fn [result]))` will call the supplied function
@@ -416,7 +416,7 @@ be called with `result` being `nil`. The two are mutually exclusive which makes
 it simple to check the outcome of the request.
 
 It's possible for multiple parties to be notified on the completion of 
-`AsyncResult` - each of the `on-success`, `on-fail`, and `on-complete` can be
+`FutureResult` - each of the `on-success`, `on-fail`, and `on-complete` can be
 called zero or more times. If the response is irrelevant as is the case in "call 
 and forget" type requests, then the result can be ignored:
 ```clojure
