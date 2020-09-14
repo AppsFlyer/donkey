@@ -61,9 +61,105 @@ It says it's not needed in vertx, but I turn it to "simple" mode when :debug is 
 
 
 ## Future releases
-- SSL support
+- SSL support on the server
+- HTTP2
+
+
+## Donkey
+
+##### Creating a Donkey
+
+In Donkey, you create HTTP servers and clients using a - `Donkey`.
+Creating a `Donkey` is simple:
+```clojure
+(ns com.appsflyer.sample-app
+  (:require [com.appsflyer.donkey.core :refer [create-donkey]]))
+
+  (def ^Donkey donkey-core (create-donkey))
+```  
+
+We can also configure our donkey instance:
+```clojure
+(ns com.appsflyer.sample-app
+  (:require [com.appsflyer.donkey.core :refer [create-donkey]]))
+
+  (def donkey-core (create-donkey {:event-loops     4
+                                   :metrics-enabled true
+                                   :metrics-prefix  "sample-app"}))
+```
+There should only be a single `Donkey` instance per application. That's because 
+the client and server will share the same resources making them very efficient.
+`Donkey` is a factory for creating server(s) and client(s) (you _can_ create multiple 
+servers and clients with a `Donkey`, but in almost all cases you will only want 
+a single server and / or client per application).
 
 ## Server
+
+##### Creating a Server
+
+Creating a server is done using a `Donkey` instance. For example, this is how 
+you would create a simple server listening for requests on port 8080.
+```clojure
+(ns com.appsflyer.sample-app
+  (:require [com.appsflyer.donkey.core :refer [create-donkey create-server]]
+            [com.appsflyer.donkey.server :refer [start]]))
+
+  (let [donkey-core (create-donkey)]
+    (->         
+      (create-server donkey-core {:port 8080}))
+      start
+      (on-success (fn [_] (println "Server started listening on port 8080"))))
+``` 
+Note that the call to `start` is asynchronous and therefore will return before
+the server actually started listening for incoming connections. It's possible
+to block the current thread execution until the server is running by calling 
+`start-sync` or by derefing the arrow macro.
+
+At this point the server won't actually do much, because we haven't defined any
+[routes](). Let's define a route and create a basic "Hello world" server.
+
+```clojure
+(ns com.appsflyer.sample-app
+  (:require [com.appsflyer.donkey.core :refer [create-donkey create-server]]
+            [com.appsflyer.donkey.server :refer [start]]))
+
+  (let [donkey-core (create-donkey)]
+    (-> 
+      (create-server donkey-core {:port   8080
+                                  :routes [{:handler (fn [_req res _err] 
+                                                       (res {:body "Hello, world!"}))}]}))
+      start
+      (on-success (fn [_] (println "Server started listening on port 8080"))))
+``` 
+
+As you can see we added a `:routes` key to the options map used to initialise 
+the server. A route is just a map that defines how and when a route should be 
+handled. The only required key is `:handler`, which will be called when a 
+request matches a route. In the example above we're saying that we would like
+any request to be handled by our handler function. 
+
+Our handler is a Ring compliant asynchronous handler. If you are not familiar 
+with the [Ring](https://github.com/ring-clojure/ring/blob/master/SPEC) 
+async handler specification, here's an excerpt:
+>An asynchronous handler takes 3 arguments: a request map, a callback function
+ for sending a response and a callback function for raising an exception. The
+ response callback takes a response map as its argument. The exception callback
+ takes an exception as its argument.
+  
+In the handler we are calling the response callback `res` with a response map
+where the body of the response is "Hello, world!".
+
+If you run the example and open a browser on `http://localhost:8080` you will
+see a page with "Hello, World!".
+
+- Using reitit
+- Using compojure
+- Simplest GET request
+- GET request with parameters
+- POST request with raw body
+- POST request urlencoded
+- POST request multipart with file upload
+
 
 ## Usage
 
