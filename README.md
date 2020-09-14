@@ -394,30 +394,80 @@ with some attributes like this:
    })
 ```  
 
-The rest of the examples assume the following vars are defined
+#### AsyncResult
 
+Requests are submitted asynchronously, meaning the request is executed on 
+a background thread, and calls to `submit[-xxx]*` return an `AsyncResult` 
+immediately. You can think of an `AsyncResult` as a way to subscribe to an event
+that may have happened or will happen some time in the future. The api is very 
+simple:
+- `(on-success async-result (fn [result]))` will call the supplied function
+with a response map from the server, iff there were no client side errors while 
+executing the request. Client side errors include an unhandled exception, or 
+problems connecting with the server. It does not include server errors such as 
+4xx or 5xx response status codes. The response will have the usual Ring fields - 
+`:status`, `:body`, and optional `:headers`.
+- `(on-fail async-result (fn [ex]))` will call the supplied function
+with an `ExceptionInfo` indicating the request failed due to a client error.
+- `(on-complete async-result (fn [result ex]))` will always call the
+supplied function whether the request was successful or not. A successful 
+request will be called with `ex` being `nil`, and a failed request will
+be called with `result` being `nil`. The two are mutually exclusive which makes
+it simple to check the outcome of the request.
+
+It's possible for multiple parties to be notified on the completion of 
+`AsyncResult` - each of the `on-success`, `on-fail`, and `on-complete` can be
+called zero or more times. If the response is irrelevant as is the case in "call 
+and forget" type requests, then the result can be ignored:
 ```clojure
-(def donkey-core (donkey/create-donkey))
-(def donkey-client (donkey/create-client donkey-core)
-```  
+(submit async-request) ; => The `AsyncRequest` returned is ignored
+... do the rest of your application logic
+```
 
-- The FutureResult object - how to use.
+Or if you are only interested to know if the request failed:
+```clojure
+(-> 
+  (submit async-request)
+  (on-fail (fn [ex] (println (str "Oh, no. That was not expected - " (ex-message ex)))))
+... do the rest of your application logic
+```
+
+Although it is not recommended, results can also be derefed:
+```clojure
+(let [result @(submit async-request)]
+  (if (map? result)
+    (println "Yea!")
+    (println "Nay :(")))
+``` 
+In this case the call to `submit` will block the calling thread until a result
+is available. The result may be either a response map, if the request was 
+successful, or an `ExceptionInfo` if it wasn't.            
+
+
 - Simplest GET request
 - GET request with parameters
 - POST request with raw body
 - POST request urlencoded
 - POST request multipart with file upload
 - Overriding host + port
-- SSL request
 - Proxy request
 - Basic authentication
 - Bearer token (OAuth2)
- 
- 
 
-HTTPS request. Set `:ssl` to `true`. The port can be omitted and will default to
-443 if you haven't set a default port for the client.
 
+The rest of the examples assume the following vars are defined
+ 
+```clojure
+(def donkey-core (donkey/create-donkey))
+(def donkey-client (donkey/create-client donkey-core)
+```  
+ 
+#### HTTPS Requests
+
+Making HTTPS requests requires only setting `:ssl` to `true` when creating the 
+client or the request. The port can be omitted and will default to 443. If 
+you've already set a default-port when creating the client, then you must 
+override it when creating the request.
 
 ```clojure
 (->
@@ -426,14 +476,15 @@ HTTPS request. Set `:ssl` to `true`. The port can be omitted and will default to
                           :ssl    true
                           :uri    "/api/users?page=2"
                           :method :get})
-  (submit)
+  submit
   (on-success (fn [res] (println res)))
   (on-fail (fn [ex] (println ex))))
 
-(comment
-  Will output something like this:
-  `{:status 200, :headers {Age 365, Access-Control-Allow-Origin *, CF-Cache-Status HIT, Via 1.1 vegur, Set-Cookie __cfduid=deb7baeea854619ab27bf36abf222b4dc1599922248; expires=Mon, 12-Oct-20 14:50:48 GMT; path=/; domain=.reqres.in; HttpOnly; SameSite=Lax; Secure, Date Sat, 12 Sep 2020 14:50:48 GMT, Accept-Ranges bytes, cf-request-id 05246533bf0000ad73b62fa200000001, Expect-CT max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct", Cache-Control max-age=14400, Content-Length 1245, Server cloudflare, Content-Type application/json; charset=utf-8, Connection keep-alive, Etag W/"4dd-IPv5LdOOb6s5S9E3i59wBCJ1k/0", X-Powered-By Express, CF-RAY 5d1a7165fa2cad73-TLV}, :body #object[[B 0x7be7d50c [B@7be7d50c]}`
-)
+ ;  Will output something like this:
+ ; `{:status 200, 
+     :headers {Age 365, Access-Control-Allow-Origin *, CF-Cache-Status HIT, Via 1.1 vegur, Set-Cookie __cfduid=deb7baeea854619ab27bf36abf222b4dc1599922248; expires=Mon, 12-Oct-20 14:50:48 GMT; path=/; domain=.reqres.in; HttpOnly; SameSite=Lax; Secure, Date Sat, 12 Sep 2020 14:50:48 GMT, Accept-Ranges bytes, cf-request-id 05246533bf0000ad73b62fa200000001, Expect-CT max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct", Cache-Control max-age=14400, Content-Length 1245, Server cloudflare, Content-Type application/json; charset=utf-8, Connection keep-alive, Etag W/"4dd-IPv5LdOOb6s5S9E3i59wBCJ1k/0", X-Powered-By Express, CF-RAY 5d1a7165fa2cad73-TLV}, 
+     :body #object[[B 0x7be7d50c [B@7be7d50c]}`
+
 ```
    
 
