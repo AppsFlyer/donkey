@@ -1,9 +1,9 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.RouteCreatorSupplier;
-import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.RouterDefinition;
-import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
+import com.appsflyer.donkey.server.route.RouteCreatorFactory;
+import com.appsflyer.donkey.server.route.RouteDescriptor;
+import com.appsflyer.donkey.server.router.RouterDefinition;
+import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import org.junit.jupiter.api.Test;
@@ -17,14 +17,14 @@ class ServerConfigTest {
   void testRequiredOptions() {
     var vertx = Vertx.vertx();
     var serverOptions = new HttpServerOptions();
-    RouteCreatorSupplier routeCreatorSupplier = new RingRouteCreatorSupplier();
+    RouteCreatorFactory routeCreatorFactory = new RingRouteCreatorFactory();
     var routerDefinition = RouterDefinition.from(RouteDescriptor.create());
   
     assertDoesNotThrow(() -> ServerConfig.builder()
                                          .vertx(vertx)
                                          .instances(1)
                                          .serverOptions(serverOptions)
-                                         .routeCreatorSupplier(routeCreatorSupplier)
+                                         .routeCreatorFactory(routeCreatorFactory)
                                          .routerDefinition(routerDefinition)
                                          .build());
   
@@ -33,7 +33,7 @@ class ServerConfigTest {
                                    .vertx(null)
                                    .instances(1)
                                    .serverOptions(serverOptions)
-                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routeCreatorFactory(routeCreatorFactory)
                                    .routerDefinition(routerDefinition)
                                    .build());
   
@@ -42,7 +42,7 @@ class ServerConfigTest {
                                    .vertx(null)
                                    .instances(0)
                                    .serverOptions(serverOptions)
-                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routeCreatorFactory(routeCreatorFactory)
                                    .routerDefinition(routerDefinition)
                                    .build());
     
@@ -51,7 +51,7 @@ class ServerConfigTest {
                                    .vertx(vertx)
                                    .instances(1)
                                    .serverOptions(null)
-                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routeCreatorFactory(routeCreatorFactory)
                                    .routerDefinition(routerDefinition)
                                    .build());
     
@@ -60,7 +60,7 @@ class ServerConfigTest {
                                    .vertx(vertx)
                                    .instances(1)
                                    .serverOptions(serverOptions)
-                                   .routeCreatorSupplier(routeCreatorSupplier)
+                                   .routeCreatorFactory(routeCreatorFactory)
                                    .routerDefinition(null)
                                    .build());
   }

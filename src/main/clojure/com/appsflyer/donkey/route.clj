@@ -3,13 +3,12 @@
            (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (com.appsflyer.donkey.route RouterDefinition
-                                       PathDescriptor$MatchType
-                                       HandlerMode
-                                       PathDescriptor
-                                       RouteDescriptor)
-           (com.appsflyer.donkey.route.handler Constants)
-           (com.appsflyer.donkey.route.handler.ring RingHandler)))
+           (com.appsflyer.donkey.server.router RouterDefinition)
+           (com.appsflyer.donkey.server.route PathDescriptor$MatchType
+                                              HandlerMode
+                                              PathDescriptor
+                                              RouteDescriptor)
+           (com.appsflyer.donkey.server.ring.handler RingHandler)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
@@ -51,17 +50,17 @@
   route)
 
 (defn- get-last-handler-response [^RoutingContext ctx]
-  (if-let [last-response (.get ctx Constants/LAST_HANDLER_RESPONSE_FIELD)]
+  (if-let [last-response (.get ctx RingHandler/LAST_HANDLER_RESPONSE_FIELD)]
     last-response
     (throw (IllegalStateException.
              (format "Could not find '%s' in RoutingContext"
-                     Constants/LAST_HANDLER_RESPONSE_FIELD)))))
+                     RingHandler/LAST_HANDLER_RESPONSE_FIELD)))))
 
 (defn- response-handler [^RoutingContext ctx res]
   (let [failed (.failed ctx)
         ended (-> ctx .response .ended)]
     (when-not (or failed ended)
-      (.next (.put ctx Constants/LAST_HANDLER_RESPONSE_FIELD res)))))
+      (.next (.put ctx RingHandler/LAST_HANDLER_RESPONSE_FIELD res)))))
 
 (deftype RouteHandler [impl]
   RingHandler
@@ -78,7 +77,7 @@
   (handle [_this ctx]
     (try
       (-> ^RoutingContext ctx
-          (.put Constants/LAST_HANDLER_RESPONSE_FIELD
+          (.put RingHandler/LAST_HANDLER_RESPONSE_FIELD
                 (impl (get-last-handler-response ^RoutingContext ctx)))
           .next)
       (catch Throwable ex

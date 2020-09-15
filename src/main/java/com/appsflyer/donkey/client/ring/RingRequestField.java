@@ -3,7 +3,7 @@ package com.appsflyer.donkey.client.ring;
 import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
 import com.appsflyer.donkey.ValueExtractor;
-import com.appsflyer.donkey.route.ring.HttpMethodMapping;
+import com.appsflyer.donkey.server.ring.handler.HttpMethodMapping;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;

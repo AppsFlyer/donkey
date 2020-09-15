@@ -1,8 +1,8 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.RouterDefinition;
-import com.appsflyer.donkey.route.ring.RingRouteCreatorSupplier;
+import com.appsflyer.donkey.server.route.RouteDescriptor;
+import com.appsflyer.donkey.server.router.RouterDefinition;
+import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.Vertx;
@@ -79,7 +79,7 @@ class ServerTest {
                        .vertx(vertx)
                        .instances(4)
                        .serverOptions(new HttpServerOptions().setPort(port))
-                       .routeCreatorSupplier(new RingRouteCreatorSupplier())
+                       .routeCreatorFactory(new RingRouteCreatorFactory())
                        .routerDefinition(RouterDefinition.from(routeDescriptor))
                        .build();
   }
