@@ -134,10 +134,11 @@ At this point the server won't actually do much, because we haven't defined any
 ``` 
 
 As you can see we added a `:routes` key to the options map used to initialise 
-the server. A route is just a map that defines how and when a route should be 
-handled. The only required key is `:handler`, which will be called when a 
-request matches a route. In the example above we're saying that we would like
-any request to be handled by our handler function. 
+the server. A route is just a map that describes what kind of requests are 
+handled at a specific resource address (or `:path`), and how to handle them. The 
+only required key is `:handler`, which will be called when a request matches a 
+route. In the example above we're saying that we would like any request to be 
+handled by our handler function. 
 
 Our handler is a Ring compliant asynchronous handler. If you are not familiar 
 with the [Ring](https://github.com/ring-clojure/ring/blob/master/SPEC) 
