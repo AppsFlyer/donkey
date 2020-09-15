@@ -1,9 +1,9 @@
 package com.appsflyer.donkey;
 
-import com.appsflyer.donkey.route.AbstractRouteCreator;
-import com.appsflyer.donkey.route.RouteCreator;
-import com.appsflyer.donkey.route.RouteDescriptor;
-import com.appsflyer.donkey.route.RouterDefinition;
+import com.appsflyer.donkey.server.route.AbstractRouteCreator;
+import com.appsflyer.donkey.server.route.RouteCreator;
+import com.appsflyer.donkey.server.route.RouteDescriptor;
+import com.appsflyer.donkey.server.router.RouterDefinition;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
 import io.vertx.core.*;
@@ -95,7 +95,7 @@ public final class TestUtil {
                        .instances(1)
                        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
                        .routerDefinition(defaultRouterDefinition())
-                       .routeCreatorSupplier(TestUtil::newRouteCreator);
+                       .routeCreatorFactory(TestUtil::newRouteCreator);
   }
   
   private static RouterDefinition defaultRouterDefinition() {

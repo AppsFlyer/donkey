@@ -1,7 +1,7 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.RouteCreatorSupplier;
-import com.appsflyer.donkey.route.RouterDefinition;
+import com.appsflyer.donkey.server.route.RouteCreatorFactory;
+import com.appsflyer.donkey.server.router.RouterDefinition;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 
@@ -15,7 +15,7 @@ public interface ServerConfigBuilder {
   
   ServerConfigBuilder serverOptions(HttpServerOptions serverOptions);
   
-  ServerConfigBuilder routeCreatorSupplier(RouteCreatorSupplier routeCreatorSupplier);
+  ServerConfigBuilder routeCreatorFactory(RouteCreatorFactory routeCreatorFactory);
   
   ServerConfigBuilder routerDefinition(RouterDefinition routerDefinition);
   

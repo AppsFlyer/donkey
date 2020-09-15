@@ -154,6 +154,10 @@ where the body of the response is "Hello, world!".
 If you run the example and open a browser on `http://localhost:8080` you will
 see a page with "Hello, World!".
 
+##### Server options
+
+
+
 #### Routes
 
 In Donkey HTTP requests are routed to handlers. When you initialise a server
@@ -214,7 +218,7 @@ access. The way the path is matched depends on the `:match-type`.
 
 `:simple` match type will match in two ways:
 1. Exact match. In the example above it means the route will only match requests 
-to `http://localhost:8080/api/v2`. It will _not_ match requests to 
+to `http://localhost:8080/api/v2`. It will _not_ match requests to: 
 - `http://localhost:8080/api` 
 - `http://localhost:8080/api/v3` 
 - `http://localhost:8080/api/v2/user`
@@ -429,7 +433,7 @@ the metrics reported to some monitoring service such as [Prometheus](https://pro
 or [graphite](https://graphiteapp.org/).
 A pre instantiated instance of `MetricRegistry` can be provided by setting `:metrc-registry instance`
 in the configuration. 
-As later described, metrics are named using a `.` as a separator. By default all metrics 
+As later described, metrics are named using a `.` as a separator. By default, all metrics 
 are prefixed with `donkey`, but it's possible to set `:metrics-prefix` to use a different string.    
 
 ### List of Exposed Metrics
@@ -597,7 +601,7 @@ the case when doing a `GET` request.
 be either a string, or a byte array. A typical use case would be `POST`ing
 serialized data such as JSON. Another common use case is sending binary data 
 by also adding a `Content-Type: application/octet-stream` header to the request. 
-- `(submit-form async-request body)` submits a urlencoded form. A 
+- `(submit-form async-request body)` submits an urlencoded form. A 
 `Content-Type: application/x-www-form-urlencoded` header will automatically be 
 added to the request, and the body will be urlencoded. `body` is a map of string
 key-value pairs. 

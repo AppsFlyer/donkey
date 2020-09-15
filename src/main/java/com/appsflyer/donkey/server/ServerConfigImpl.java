@@ -1,41 +1,20 @@
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.route.RouteCreatorSupplier;
-import com.appsflyer.donkey.route.RouterDefinition;
+import com.appsflyer.donkey.server.route.RouteCreatorFactory;
+import com.appsflyer.donkey.server.router.RouterDefinition;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 
 import java.util.Objects;
 
-//@todo fix doc string
-
 /**
- * A DTO object used for initializing a {@link ServerImpl}.
- * It is comprised of the following building blocks:
- * <br><br>
- * <p>
- * {@link VertxOptions} vertxOptions - Used to configure and control the {@link io.vertx.core.Vertx}
- * instance associated with the server. See the
- * <a href="https://vertx.io/docs/apidocs/io/vertx/core/VertxOptions.html">documentation</a>
- * for the different options.
- * <br><br>
- * <p>
- * {@link HttpServerOptions} serverOptions - Used to configure HTTP related settings of the server.
- * See the
- * <a href="https://vertx.io/docs/apidocs/io/vertx/core/http/HttpServerOptions.html">documentation</a>
- * for the different options.
- * <br><br>
- * <p>
- *
- * <br><br>
- * <p>
+ * @see com.appsflyer.donkey.server.ServerConfig
  */
 public final class ServerConfigImpl implements ServerConfig {
   
   private Vertx vertx;
   private HttpServerOptions serverOptions;
-  private RouteCreatorSupplier routeCreatorSupplier;
+  private RouteCreatorFactory routeCreatorFactory;
   private RouterDefinition routerDefinition;
   private int instances;
   private boolean debug;
@@ -56,8 +35,8 @@ public final class ServerConfigImpl implements ServerConfig {
   }
   
   @Override
-  public RouteCreatorSupplier routeFactoryCreator() {
-    return routeCreatorSupplier;
+  public RouteCreatorFactory routeCreatorFactory() {
+    return routeCreatorFactory;
   }
   
   @Override
@@ -109,10 +88,10 @@ public final class ServerConfigImpl implements ServerConfig {
       instance.serverOptions = serverOptions;
       return this;
     }
-    
+  
     @Override
-    public ServerConfigBuilder routeCreatorSupplier(RouteCreatorSupplier routeCreatorSupplier) {
-      instance.routeCreatorSupplier = routeCreatorSupplier;
+    public ServerConfigBuilder routeCreatorFactory(RouteCreatorFactory routeCreatorFactory) {
+      instance.routeCreatorFactory = routeCreatorFactory;
       return this;
     }
   
@@ -163,7 +142,7 @@ public final class ServerConfigImpl implements ServerConfig {
     private void assertValidState() {
       Objects.requireNonNull(instance.vertx, "Vert.x instance is missing");
       Objects.requireNonNull(instance.serverOptions, "Server options is missing");
-      Objects.requireNonNull(instance.routeCreatorSupplier, "Route creator supplier is missing");
+      Objects.requireNonNull(instance.routeCreatorFactory, "Route creator factory is missing");
       Objects.requireNonNull(instance.routerDefinition, "Router definition is missing");
       if (instance.instances < 1) {
         throw new IllegalArgumentException("Number of instances must be greater than 0");

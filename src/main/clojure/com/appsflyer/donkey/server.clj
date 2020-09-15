@@ -5,7 +5,7 @@
            (io.vertx.core.impl.cpu CpuCoreSensor)
            (com.appsflyer.donkey.server Server ServerConfig)
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
-           (com.appsflyer.donkey.route.ring RingRouteCreatorSupplier)
+           (com.appsflyer.donkey.server.ring.route RingRouteCreatorFactory)
            (com.appsflyer.donkey.util DebugUtil)
            (com.appsflyer.donkey.result FutureResult)))
 
@@ -29,7 +29,7 @@
   (let [builder (doto (ServerConfig/builder)
                   (.vertx (:vertx opts))
                   (.serverOptions (get-server-options opts))
-                  (.routeCreatorSupplier (RingRouteCreatorSupplier.))
+                  (.routeCreatorFactory (RingRouteCreatorFactory.))
                   (.routerDefinition (get-router-definition opts))
                   (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
                   (.debug (:debug opts false))
