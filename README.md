@@ -244,9 +244,7 @@ capturing groups: `/api/v2/user/([0-9]+)/address`. Now everything within the
 parenthesis will be available in `:path-params`. 
 ```clojure
 {
-... regular request fields
   :path-params {"param0" "1035"}
-... more request fields 
 }
 ```
 We can also add multiple capturing groups, for example the path
@@ -254,9 +252,8 @@ We can also add multiple capturing groups, for example the path
 and `:path-params` will include both capturing groups.
 ```clojure
 {
-... regular request fields
-  :path-params {"param0" "4.7" "param1" "9"}
-... more request fields 
+  :path-params {"param0" "4.7" 
+                "param1" "9"}
 }
 ```
 
@@ -273,7 +270,13 @@ matches but the `Accept` header of the request doesn't match one of the
 supported media types, then the request will be rejected with a 
 `406 Not Acceptable` code.  
 
-`:middleware` 
+`:middleware` is a vector of [middleware](#middleware) functions that will be
+applied to the route. It is also possible to supply a "global" 
+`:middleware` vector when [creating a server](#creating-a-server) that will be 
+applied to all the routes. In that case the global middleware will be applied 
+*first*, followed by the middleware specific to the route.  
+
+
 
 
 - Using reitit
@@ -331,18 +334,21 @@ of requests and responses.
 According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
 specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
 that accept one or more arguments, where the first argument is the next `handler` function, 
-and any optional arguments required by the middleware. 
+and any optional arguments required by the middleware. A `handler` in this 
+context can be either another middleware, or a [route](#routes) handler.
 The higher-order function should return a function that accepts one or three arguments:
-- One argument: Called with a `request` map argument when `:handler-mode` is `:blocking`.
-- Three arguments: Called with a `request` map, `respond` function, and `raise` function, 
-when `:handler-mode` is `:non-blocking`. The `respond` function should be called with the
-result of the next handler, and the `raise` function should be called when an exception is
-caught, and it is impossible to continue processing the request.
+- One argument: Called when `:handler-mode` is `:blocking` with a `request` map.
+- Three arguments: Called when `:handler-mode` is `:non-blocking` with a 
+`request` map, `respond` function, and `raise` function. The `respond` function 
+should be called with the result of the next handler, and the `raise` function 
+should be called when it is impossible to continue processing the request 
+because of an exception.
  
-The `handler` argument the higher-order function received has the same signature as the returned function.
-It is the middleware author's responsibility to call the next `handler` at some point.   
+The `handler` argument that was given to the higher-order function has the same 
+signature as the function being returned. It is the middleware author's 
+responsibility to call the next `handler` at some point.   
  
-Here's an example of a one argument arity middleware adding timestamp to the request:
+Here's an example of a one argument middleware adding a timestamp to a request:
 ```clojure
 (defn add-timestamp-middleware [handler]
   (fn [request] 
@@ -350,7 +356,7 @@ Here's an example of a one argument arity middleware adding timestamp to the req
       (assoc request :timestamp (System/currentTimeMillis)))))
 ```
 
-Here's an example of the same middleware with three argument arity:
+Here's an example of the same middleware with three arguments:
 ```clojure
 (defn add-timestamp-middleware [handler]
   (fn [request respond raise]
@@ -361,8 +367,10 @@ Here's an example of the same middleware with three argument arity:
         (raise ex)))))
 ```
 
-Finally, here is an example of a three argument arity middleware that adds 
-a `Content-Type` header to the _response_.
+In the last couple of examples we've been updating the request and calling
+the next handler with the transformed request. Middleware is not limited to
+only processing and transforming the request. Here is an example of a three 
+argument middleware that adds a `Content-Type` header to the _response_.
 ```clojure
 (defn add-content-type-middleware [handler]
   (fn [request respond raise]
@@ -376,28 +384,32 @@ a `Content-Type` header to the _response_.
       (handler request respond' raise))))
 ```
 
-As mentioned before, the three argument arity function is called when the `:handler-mode`
-is `:non-blocking`. Notice that we are doing the processing on the calling thread. 
-That's because there would be no benefit in off loading a simple `assoc` or `update` 
-to a separate thread. If for example we had a middleware that authenticates with a 
-remote database then we should run it on a separate thread.  
+As mentioned before, the three argument function is called when the 
+`:handler-mode` is `:non-blocking`. Notice that we are doing the processing on 
+the calling thread - the event loop. That's because the overhead of 
+[context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system), 
+and potentially spawning a new thread by offloading a simple `assoc` 
+or `update` to a separate thread pool would greatly outweigh the processing time
+on the event loop. However, if for example we had a middleware that 
+performs some operation on a remote database, then we would need to run it on a 
+separate thread.  
 
-In this example we authenticate a user with a remote service. We get back a
+In this example we authenticate a user with a remote service. For the sake of 
+the example, all we need to know is that we get back a 
 [CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
-that is executed on a different thread. When the future is complete, we check
+that is executed on a different thread. When the future completes, we check
 if we had an exception, and then either call the next `handler` with the updated
 request, or stop the execution by calling `raise`.
 ```clojure
 (defn user-authentication-middleware [handler]
   (fn [request respond raise]
-    (let [authentication-future ^CompletableFuture (authenticate-user request)]
-     (.whenComplete
-       authentication-future
-       (reify BiConsumer
-         (accept [this result exception]
-           (if (nil? exception)
-             (handler (assoc request :authenticated result) respond raise)
-             (raise exception))))))))
+    (.whenComplete
+      ^CompletableFuture (authenticate-user request)
+      (reify BiConsumer
+        (accept [this result exception]
+          (if (nil? exception)
+            (handler (assoc request :authenticated result) respond raise)
+            (raise exception)))))))
 ```
 
 ## Metrics
