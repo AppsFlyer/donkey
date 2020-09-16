@@ -66,9 +66,12 @@ It says it's not needed in vertx, but I turn it to "simple" mode when :debug is 
 - HTTP2
 
 
+--------------------
+
+
 ## Donkey
 
-##### Creating a Donkey
+### Creating a Donkey
 
 In Donkey, you create HTTP servers and clients using a - `Donkey`.
 Creating a `Donkey` is simple:
@@ -96,7 +99,7 @@ a single server and / or client per application).
 
 ## Server
 
-##### Creating a Server
+### Creating a Server
 
 Creating a server is done using a `Donkey` instance. For example, this is how 
 you would create a simple server listening for requests on port 8080.
@@ -154,11 +157,7 @@ where the body of the response is "Hello, world!".
 If you run the example and open a browser on `http://localhost:8080` you will
 see a page with "Hello, World!".
 
-##### Server options
-
-
-
-#### Routes
+### Routes
 
 In Donkey HTTP requests are routed to handlers. When you initialise a server
 you define a set of routes that it should be able to handle. When a request 
@@ -293,8 +292,8 @@ applied to all the routes. In that case the global middleware will be applied
 - POST request multipart with file upload
 
 
-## Usage
-
+### Usage
+The following examples 
 Blocking handler mode. 
 ```clojure
 (-> {:port   8080
@@ -497,14 +496,18 @@ Base name: `<:metrics-prefix>.http.clients`
 
    
 ## Debug mode
-Debug mode is activated when creating the server with `:debug true`.
-It will cause A LOT of logs to be written and therefore it is completely
-unsuitable for production, and should only be used while debugging in development.
+Debug mode is activated when creating a server or a client with `:debug true`.
+In this mode several loggers are set to log at the `trace` level. It means the
+logs will be *very* verbose. For that reason it is not suitable for production
+use, and should only be enabled in development as needed.
+
 The logs include:
-- Instantiation logs 
-- Byte level traffic
-- Request routing
-- library debug logs   
+- All of Netty's low level networking, system configuration, memory leak 
+detection logs and more. 
+- Hexadecimal representation of each batch of packets being transmitted to the 
+server. 
+- Request routing, which is useful to debug a route that is not being matched.
+- Donkey trace logs.   
 
   
 ## Logging
