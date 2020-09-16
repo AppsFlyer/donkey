@@ -35,10 +35,17 @@ public class RingResponseAdapter implements Handler<AsyncResult<HttpResponse<Buf
         if (v != null) {
           values[i] = field.keyword();
           values[i + 1] = v;
+          i += 2;
         }
-        i += 2;
       }
-      promise.complete(toPersistentMap(values));
+      if (i == values.length) {
+        promise.complete(toPersistentMap(values));
+      } else {
+        var copy = new Object[i];
+        System.arraycopy(values, 0, copy, 0, i);
+        promise.complete(toPersistentMap(copy));
+      }
+  
     } else {
       promise.fail(event.cause());
     }
