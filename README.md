@@ -99,20 +99,23 @@ a single server and / or client per application).
 
 ## Server
 
+The following examples assume these required namespaces
+
+```clojure
+(:require [com.appsflyer.donkey.core :refer [create-donkey create-server]]
+          [com.appsflyer.donkey.server :refer [start]])
+```
+
 ### Creating a Server
 
 Creating a server is done using a `Donkey` instance. For example, this is how 
 you would create a simple server listening for requests on port 8080.
 ```clojure
-(ns com.appsflyer.sample-app
-  (:require [com.appsflyer.donkey.core :refer [create-donkey create-server]]
-            [com.appsflyer.donkey.server :refer [start]]))
-
-  (let [donkey-core (create-donkey)]
-    (->         
-      (create-server donkey-core {:port 8080}))
-      start
-      (on-success (fn [_] (println "Server started listening on port 8080"))))
+(->         
+  (create-donkey)
+  (create-server {:port 8080}))
+  start
+  (on-success (fn [_] (println "Server started listening on port 8080")))
 ``` 
 Note that the call to `start` is asynchronous and therefore will return before
 the server actually started listening for incoming connections. It's possible
@@ -123,17 +126,13 @@ At this point the server won't actually do much, because we haven't defined any
 [routes](). Let's define a route and create a basic "Hello world" server.
 
 ```clojure
-(ns com.appsflyer.sample-app
-  (:require [com.appsflyer.donkey.core :refer [create-donkey create-server]]
-            [com.appsflyer.donkey.server :refer [start]]))
-
-  (let [donkey-core (create-donkey)]
-    (-> 
-      (create-server donkey-core {:port   8080
-                                  :routes [{:handler (fn [_req res _err] 
-                                                       (res {:body "Hello, world!"}))}]}))
-      start
-      (on-success (fn [_] (println "Server started listening on port 8080"))))
+(-> 
+  (create-donkey)
+  (create-server {:port   8080
+                  :routes [{:handler (fn [_req res _err] 
+                                       (res {:body "Hello, world!"}))}]}))
+  start
+  (on-success (fn [_] (println "Server started listening on port 8080")))
 ``` 
 
 As you can see we added a `:routes` key to the options map used to initialise 
@@ -160,10 +159,9 @@ see a page with "Hello, World!".
 ### Routes
 
 In Donkey HTTP requests are routed to handlers. When you initialise a server
-you define a set of routes that it should be able to handle. When a request 
-arrives the server checks if one of the routes can handle the request. If no 
-matching route is found, then a `404 Not Found` response is returned to the 
-client.
+you define a set of routes that it should handle. When a request arrives the 
+server checks if one of the routes can handle the request. If no matching route 
+is found, then a `404 Not Found` response is returned to the client.
 
 Let's see a route example:
 ```clojure
@@ -216,17 +214,17 @@ access. The way the path is matched depends on the `:match-type`.
 `:match-type` can be either `:simple` or `:regex`.
 
 `:simple` match type will match in two ways:
-1. Exact match. In the example above it means the route will only match requests 
+1) Exact match. In the example above it means the route will only match requests 
 to `http://localhost:8080/api/v2`. It will _not_ match requests to: 
-- `http://localhost:8080/api` 
-- `http://localhost:8080/api/v3` 
-- `http://localhost:8080/api/v2/user`
-2. Path variables. Take for example the path `/api/v2/user/:id/address`. `:id`
+    - `http://localhost:8080/api` 
+    - `http://localhost:8080/api/v3` 
+    - `http://localhost:8080/api/v2/user`
+2) Path variables. Take for example the path `/api/v2/user/:id/address`. `:id`
 is a path variable that matches on any sub-path. All the following paths
 will match:
-- `/api/v2/user/1035/address`   
-- `/api/v2/user/2/address`   
-- `/api/v2/user/foo/address`   
+    - `/api/v2/user/1035/address`   
+    - `/api/v2/user/2/address`   
+    - `/api/v2/user/foo/address`   
 The really nice thing about path variables is that you get the value that was in
 the path when it matched, in the request. The value will be available in the 
 `:path-params` map. If we take the first example, the request will look like 
@@ -280,21 +278,104 @@ applied to the route. It is also possible to supply a "global"
 applied to all the routes. In that case the global middleware will be applied 
 *first*, followed by the middleware specific to the route.  
 
+#### Support for Routing Libraries
+
+Sometimes we have an existing service using some HTTP server and
+routing libraries such as [Compojure](https://github.com/weavejester/compojure) 
+or [reitit](https://github.com/metosin/reitit), and we don't have time to 
+rewrite the routing logic right away. It's very easy to simply plug all your 
+existing routing logic to Donkey without changing a line of code.
+
+We'll use Compojure and reitit as examples, but the same goes for any other Ring
+compatible library you use.
+
+##### reitit
+
+Here is an excerpt from Metosin's reitit 
+[Ring-router](https://cljdoc.org/d/metosin/reitit/0.5.5/doc/introduction#ring-router)
+documentation, demonstrating how to create a simple router.
+
+```clojure
+(require '[reitit.ring :as ring])
+
+(defn handler [_]
+  {:status 200, :body "ok"})
+
+(defn wrap [handler id]
+  (fn [request]
+    (update (handler request) :wrap (fnil conj '()) id)))
+
+(def app
+  (ring/ring-handler
+    (ring/router
+      ["/api" {:middleware [[wrap :api]]}
+       ["/ping" {:get handler
+                 :name ::ping}]
+       ["/admin" {:middleware [[wrap :admin]]}
+        ["/users" {:get handler
+                   :post handler}]]])))
+```
+Now let's see how you would use this router with Donkey.
+
+```clojure
+(-> 
+  (create-donkey)
+  (create-server {:port 8080 
+                  :routes [{:handler app 
+                            :handler-mode :blocking}]})
+  start)
+```  
+That's it!
+
+Basically, we're creating a single route that will match any request to the server 
+and will delegate the routing logic and request handling to the reitit router. 
+You'll notice we had to add `:handler-mode :blocking` to the route. That's 
+because this particular example uses the one argument ring handler. If we add a 
+three argument arity to `handler` and `wrap`, then we'll be able to remove 
+`:handler-mode :blocking` and use the default non-blocking mode. 
+
+
+##### Compojure
+
+Here is an excerpt from James Reeves'
+[Compojure](https://github.com/weavejester/compojure) repository on GitHub, 
+demonstrating how to create a simple router.
+
+```clojure
+(ns hello-world.core
+  (:require [compojure.core :refer :all]
+            [compojure.route :as route]))
+
+(defroutes app
+  (GET "/" [] "<h1>Hello World</h1>")
+  (route/not-found "<h1>Page not found</h1>"))
+```
+To use this router with Donkey we do exactly the same thing we did for 
+[reitit](#reitit)'s router.
+
+```clojure
+(-> 
+  (create-donkey)
+  (create-server {:port 8080 
+                  :routes [{:handler app 
+                            :handler-mode :blocking}]})
+  start)
+```   
 
 
 
-- Using reitit
-- Using compojure
+
+
+TODO
 - Simplest GET request
 - GET request with parameters
 - POST request with raw body
 - POST request urlencoded
 - POST request multipart with file upload
 
-
 ### Usage
-The following examples 
-Blocking handler mode. 
+
+ 
 ```clojure
 (-> {:port   8080
      :routes [{:path         "/hello-world"
@@ -327,207 +408,7 @@ Non-blocking handler mode.
     server/start)
 ```
 
-## Middleware
-
-The term "middleware" is generally used in the context of HTTP frameworks
-as a pluggable unit of functionality that can examine or manipulate the flow of bytes
-between a client and a server. In other words, it allows users to do things such as 
-logging, compression, validation, authorization, and transformation (to name a few) 
-of requests and responses.
-
-According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
-specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
-that accept one or more arguments, where the first argument is the next `handler` function, 
-and any optional arguments required by the middleware. A `handler` in this 
-context can be either another middleware, or a [route](#routes) handler.
-The higher-order function should return a function that accepts one or three arguments:
-- One argument: Called when `:handler-mode` is `:blocking` with a `request` map.
-- Three arguments: Called when `:handler-mode` is `:non-blocking` with a 
-`request` map, `respond` function, and `raise` function. The `respond` function 
-should be called with the result of the next handler, and the `raise` function 
-should be called when it is impossible to continue processing the request 
-because of an exception.
- 
-The `handler` argument that was given to the higher-order function has the same 
-signature as the function being returned. It is the middleware author's 
-responsibility to call the next `handler` at some point.   
- 
-Here's an example of a one argument middleware adding a timestamp to a request:
-```clojure
-(defn add-timestamp-middleware [handler]
-  (fn [request] 
-    (handler 
-      (assoc request :timestamp (System/currentTimeMillis)))))
-```
-
-Here's an example of the same middleware with three arguments:
-```clojure
-(defn add-timestamp-middleware [handler]
-  (fn [request respond raise]
-    (try
-      (handler
-        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
-      (catch Exception ex
-        (raise ex)))))
-```
-
-In the last couple of examples we've been updating the request and calling
-the next handler with the transformed request. Middleware is not limited to
-only processing and transforming the request. Here is an example of a three 
-argument middleware that adds a `Content-Type` header to the _response_.
-```clojure
-(defn add-content-type-middleware [handler]
-  (fn [request respond raise]
-    (let [respond' (fn [response]
-                     (try
-                       (respond
-                         (update response :headers assoc "Content-Type" "text/plain"))
-                       (catch Exception ex
-                         (raise ex))))]
-        
-      (handler request respond' raise))))
-```
-
-As mentioned before, the three argument function is called when the 
-`:handler-mode` is `:non-blocking`. Notice that we are doing the processing on 
-the calling thread - the event loop. That's because the overhead of 
-[context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system), 
-and potentially spawning a new thread by offloading a simple `assoc` 
-or `update` to a separate thread pool would greatly outweigh the processing time
-on the event loop. However, if for example we had a middleware that 
-performs some operation on a remote database, then we would need to run it on a 
-separate thread.  
-
-In this example we authenticate a user with a remote service. For the sake of 
-the example, all we need to know is that we get back a 
-[CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
-that is executed on a different thread. When the future completes, we check
-if we had an exception, and then either call the next `handler` with the updated
-request, or stop the execution by calling `raise`.
-```clojure
-(defn user-authentication-middleware [handler]
-  (fn [request respond raise]
-    (.whenComplete
-      ^CompletableFuture (authenticate-user request)
-      (reify BiConsumer
-        (accept [this result exception]
-          (if (nil? exception)
-            (handler (assoc request :authenticated result) respond raise)
-            (raise exception)))))))
-```
-
-## Metrics
-
-The library uses Dropwizard to capture different metrics. The metrics can be largely 
-grouped into three categories: 
-- Thread Pool
-- Server
-- Client
-
-Metrics collection can be enabled by setting `:metrics-enabled true` when creating
-a server or client. By default, a new Dropwizard `MetricRegistry` is created and can be 
-viewed as managed beans in profilers such as [VisualVM](https://visualvm.github.io/).
-That might be enough for local development, but in production you'll want to have 
-the metrics reported to some monitoring service such as [Prometheus](https://prometheus.io/), 
-or [graphite](https://graphiteapp.org/).
-A pre instantiated instance of `MetricRegistry` can be provided by setting `:metrc-registry instance`
-in the configuration. 
-As later described, metrics are named using a `.` as a separator. By default, all metrics 
-are prefixed with `donkey`, but it's possible to set `:metrics-prefix` to use a different string.    
-
-### List of Exposed Metrics
-
-#### Thread Pool Metrics   
-
-Base name:  `<:metrics-prefix>`
-
-- `event-loop-size` - A Gauge of the number of threads in the event loop pool
-- `worker-pool-size` - A Gauge of the number of threads in the worker pool
-
-Base name:  `<:metrics-prefix>.pools.worker.vert.x-worker-thread`
- 
-- `queue-delay` - A Timer measuring the duration of the delay to obtain the resource, i.e the wait time in the queue
-- `queue-size` - A Counter of the actual number of waiters in the queue
-- `usage` - A Timer measuring the duration of the usage of the resource
-- `in-use` - A count of the actual number of resources used
-- `pool-ratio` - A ratio Gauge of the in use resource / pool size
-- `max-pool-size` - A Gauge of the max pool size
- 
-
-#### Server Metrics   
-
-Base name: `<:metrics-prefix>.http.servers.<host>:<port>`
-
-- `open-netsockets` - A Counter of the number of open net socket connections
-- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
-- `connections` - A Timer of a connection and the rate of its occurrence
-- `exceptions` - A Counter of the number of exceptions
-- `bytes-read` - A Histogram of the number of bytes read.
-- `bytes-written` - A Histogram of the number of bytes written.
-- `requests` - A Throughput Timer of a request and the rate of it’s occurrence
-- `<http-method>-requests` - A Throughput Timer of a specific HTTP method request, and the rate of its occurrence
-Examples: get-requests, post-requests
-- `responses-1xx` - A ThroughputMeter of the 1xx response code
-- `responses-2xx` - A ThroughputMeter of the 2xx response code
-- `responses-3xx` - A ThroughputMeter of the 3xx response code
-- `responses-4xx` - A ThroughputMeter of the 4xx response code
-- `responses-5xx` - A ThroughputMeter of the 5xx response code
-
-#### Client Metrics
-
-Base name: `<:metrics-prefix>.http.clients`
-
-- `open-netsockets` - A Counter of the number of open net socket connections
-- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
-- `connections` - A Timer of a connection and the rate of its occurrence
-- `exceptions` - A Counter of the number of exceptions
-- `bytes-read` - A Histogram of the number of bytes read.
-- `bytes-written` - A Histogram of the number of bytes written.
-- `connections.max-pool-size` - A Gauge of the max connection pool size
-- `connections.pool-ratio` - A ratio Gauge of the open connections / max connection pool size
-- `responses-1xx` - A Meter of the 1xx response code
-- `responses-2xx` - A Meter of the 2xx response code
-- `responses-3xx` - A Meter of the 3xx response code
-- `responses-4xx` - A Meter of the 4xx response code
-- `responses-5xx` - A Meter of the 5xx response code
-
-
-
-
-   
-## Debug mode
-Debug mode is activated when creating a server or a client with `:debug true`.
-In this mode several loggers are set to log at the `trace` level. It means the
-logs will be *very* verbose. For that reason it is not suitable for production
-use, and should only be enabled in development as needed.
-
-The logs include:
-- All of Netty's low level networking, system configuration, memory leak 
-detection logs and more. 
-- Hexadecimal representation of each batch of packets being transmitted to the 
-server. 
-- Request routing, which is useful to debug a route that is not being matched.
-- Donkey trace logs.   
-
-  
-## Logging
-- Uses SLF4J
-- For debug logging you need to have logback on your classpath.
-
-## Start up options
-JVM system properties that can be supplied when running the application
-- `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
-warn the user if an event loop or worker thread is being occupied above a certain 
-threshold which will indicate the code should be examined. 
-- `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
-used by the blocked thread checker. It does _**not**_ disable execution metrics that 
-are exposed via JMX.  
-
-
-
 ## Client
-
-## Usage
 
 The following examples assume these required namespaces
 ```clojure
@@ -727,6 +608,202 @@ override it when creating the request.
 
 ```
    
+## Middleware
+
+The term "middleware" is generally used in the context of HTTP frameworks
+as a pluggable unit of functionality that can examine or manipulate the flow of bytes
+between a client and a server. In other words, it allows users to do things such as 
+logging, compression, validation, authorization, and transformation (to name a few) 
+of requests and responses.
+
+According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
+specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
+that accept one or more arguments, where the first argument is the next `handler` function, 
+and any optional arguments required by the middleware. A `handler` in this 
+context can be either another middleware, or a [route](#routes) handler.
+The higher-order function should return a function that accepts one or three arguments:
+- One argument: Called when `:handler-mode` is `:blocking` with a `request` map.
+- Three arguments: Called when `:handler-mode` is `:non-blocking` with a 
+`request` map, `respond` function, and `raise` function. The `respond` function 
+should be called with the result of the next handler, and the `raise` function 
+should be called when it is impossible to continue processing the request 
+because of an exception.
+ 
+The `handler` argument that was given to the higher-order function has the same 
+signature as the function being returned. It is the middleware author's 
+responsibility to call the next `handler` at some point.   
+ 
+Here's an example of a one argument middleware adding a timestamp to a request:
+```clojure
+(defn add-timestamp-middleware [handler]
+  (fn [request] 
+    (handler 
+      (assoc request :timestamp (System/currentTimeMillis)))))
+```
+
+Here's an example of the same middleware with three arguments:
+```clojure
+(defn add-timestamp-middleware [handler]
+  (fn [request respond raise]
+    (try
+      (handler
+        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
+      (catch Exception ex
+        (raise ex)))))
+```
+
+In the last couple of examples we've been updating the request and calling
+the next handler with the transformed request. Middleware is not limited to
+only processing and transforming the request. Here is an example of a three 
+argument middleware that adds a `Content-Type` header to the _response_.
+```clojure
+(defn add-content-type-middleware [handler]
+  (fn [request respond raise]
+    (let [respond' (fn [response]
+                     (try
+                       (respond
+                         (update response :headers assoc "Content-Type" "text/plain"))
+                       (catch Exception ex
+                         (raise ex))))]
+        
+      (handler request respond' raise))))
+```
+
+As mentioned before, the three argument function is called when the 
+`:handler-mode` is `:non-blocking`. Notice that we are doing the processing on 
+the calling thread - the event loop. That's because the overhead of 
+[context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system), 
+and potentially spawning a new thread by offloading a simple `assoc` 
+or `update` to a separate thread pool would greatly outweigh the processing time
+on the event loop. However, if for example we had a middleware that 
+performs some operation on a remote database, then we would need to run it on a 
+separate thread.  
+
+In this example we authenticate a user with a remote service. For the sake of 
+the example, all we need to know is that we get back a 
+[CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
+that is executed on a different thread. When the future completes, we check
+if we had an exception, and then either call the next `handler` with the updated
+request, or stop the execution by calling `raise`.
+```clojure
+(defn user-authentication-middleware [handler]
+  (fn [request respond raise]
+    (.whenComplete
+      ^CompletableFuture (authenticate-user request)
+      (reify BiConsumer
+        (accept [this result exception]
+          (if (nil? exception)
+            (handler (assoc request :authenticated result) respond raise)
+            (raise exception)))))))
+```
+
+## Metrics
+
+The library uses Dropwizard to capture different metrics. The metrics can be largely 
+grouped into three categories: 
+- Thread Pool
+- Server
+- Client
+
+Metrics collection can be enabled by setting `:metrics-enabled true` when creating
+a server or client. By default, a new Dropwizard `MetricRegistry` is created and can be 
+viewed as managed beans in profilers such as [VisualVM](https://visualvm.github.io/).
+That might be enough for local development, but in production you'll want to have 
+the metrics reported to some monitoring service such as [Prometheus](https://prometheus.io/), 
+or [graphite](https://graphiteapp.org/).
+A pre instantiated instance of `MetricRegistry` can be provided by setting `:metrc-registry instance`
+in the configuration. 
+As later described, metrics are named using a `.` as a separator. By default, all metrics 
+are prefixed with `donkey`, but it's possible to set `:metrics-prefix` to use a different string.    
+
+### List of Exposed Metrics
+
+#### Thread Pool Metrics   
+
+Base name:  `<:metrics-prefix>`
+
+- `event-loop-size` - A Gauge of the number of threads in the event loop pool
+- `worker-pool-size` - A Gauge of the number of threads in the worker pool
+
+Base name:  `<:metrics-prefix>.pools.worker.vert.x-worker-thread`
+ 
+- `queue-delay` - A Timer measuring the duration of the delay to obtain the resource, i.e the wait time in the queue
+- `queue-size` - A Counter of the actual number of waiters in the queue
+- `usage` - A Timer measuring the duration of the usage of the resource
+- `in-use` - A count of the actual number of resources used
+- `pool-ratio` - A ratio Gauge of the in use resource / pool size
+- `max-pool-size` - A Gauge of the max pool size
+ 
+
+#### Server Metrics   
+
+Base name: `<:metrics-prefix>.http.servers.<host>:<port>`
+
+- `open-netsockets` - A Counter of the number of open net socket connections
+- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
+- `connections` - A Timer of a connection and the rate of its occurrence
+- `exceptions` - A Counter of the number of exceptions
+- `bytes-read` - A Histogram of the number of bytes read.
+- `bytes-written` - A Histogram of the number of bytes written.
+- `requests` - A Throughput Timer of a request and the rate of it’s occurrence
+- `<http-method>-requests` - A Throughput Timer of a specific HTTP method request, and the rate of its occurrence
+Examples: get-requests, post-requests
+- `responses-1xx` - A ThroughputMeter of the 1xx response code
+- `responses-2xx` - A ThroughputMeter of the 2xx response code
+- `responses-3xx` - A ThroughputMeter of the 3xx response code
+- `responses-4xx` - A ThroughputMeter of the 4xx response code
+- `responses-5xx` - A ThroughputMeter of the 5xx response code
+
+#### Client Metrics
+
+Base name: `<:metrics-prefix>.http.clients`
+
+- `open-netsockets` - A Counter of the number of open net socket connections
+- `open-netsockets.<remote-host>` - A Counter of the number of open net socket connections for a particular remote host
+- `connections` - A Timer of a connection and the rate of its occurrence
+- `exceptions` - A Counter of the number of exceptions
+- `bytes-read` - A Histogram of the number of bytes read.
+- `bytes-written` - A Histogram of the number of bytes written.
+- `connections.max-pool-size` - A Gauge of the max connection pool size
+- `connections.pool-ratio` - A ratio Gauge of the open connections / max connection pool size
+- `responses-1xx` - A Meter of the 1xx response code
+- `responses-2xx` - A Meter of the 2xx response code
+- `responses-3xx` - A Meter of the 3xx response code
+- `responses-4xx` - A Meter of the 4xx response code
+- `responses-5xx` - A Meter of the 5xx response code
+
+
+
+
+   
+## Debug mode
+Debug mode is activated when creating a server or a client with `:debug true`.
+In this mode several loggers are set to log at the `trace` level. It means the
+logs will be *very* verbose. For that reason it is not suitable for production
+use, and should only be enabled in development as needed.
+
+The logs include:
+- All of Netty's low level networking, system configuration, memory leak 
+detection logs and more. 
+- Hexadecimal representation of each batch of packets being transmitted to the 
+server. 
+- Request routing, which is useful to debug a route that is not being matched.
+- Donkey trace logs.   
+
+  
+## Logging
+- Uses SLF4J
+- For debug logging you need to have logback on your classpath.
+
+## Start up options
+JVM system properties that can be supplied when running the application
+- `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
+warn the user if an event loop or worker thread is being occupied above a certain 
+threshold which will indicate the code should be examined. 
+- `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
+used by the blocked thread checker. It does _**not**_ disable execution metrics that 
+are exposed via JMX.  
+
 
 ## License
 
