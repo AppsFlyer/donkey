@@ -24,10 +24,18 @@ public class RingRequestAdapter implements Handler<RoutingContext> {
       if (v != null) {
         values[i] = field.keyword();
         values[i + 1] = v;
+        i += 2;
       }
-      i += 2;
     }
   
-    ctx.put(LAST_HANDLER_RESPONSE_FIELD, toPersistentMap(values)).next();
+    if (i == values.length) {
+      ctx.put(LAST_HANDLER_RESPONSE_FIELD, toPersistentMap(values));
+    } else {
+      var copy = new Object[i];
+      System.arraycopy(values, 0, copy, 0, i);
+      ctx.put(LAST_HANDLER_RESPONSE_FIELD, toPersistentMap(copy));
+    }
+  
+    ctx.next();
   }
 }
