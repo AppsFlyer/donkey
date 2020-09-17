@@ -363,6 +363,60 @@ To use this router with Donkey we do exactly the same thing we did for
   start)
 ```   
 
+### Common Middleware
+
+We get more into writing middleware in [this section](#middleware), but there
+are some common operations that Donkey provides as pre-made middleware.
+A very common use case is inspecting the query parameters sent by a client in
+the url of a GET request. By default, the query parameters are available in 
+the request as a string under `:query-string`. It would be much more useful 
+if we also had a map of name value pairs we can easily use.
+
+```clojure
+(:require [com.appsflyer.donkey.middleware.params :refer [parse-query-params]])
+
+(->
+  (create-donkey)
+  (create-server {:port   8080
+                  :routes [{:path       "/greet"
+                            :methods    [:get]    
+                            :handler    (fn [req res _err]
+                                          (res {:body (str "Hello, "
+                                                           (get-in req [:query-params "fname"])
+                                                           " "
+                                                           (get-in req [:query-params "lname"]))}))
+                            :middleware [parse-query-params]}]})
+  start)
+```
+ 
+In this example we are using the `parse-query-params` middleware, that does
+exactly that. Now if we make a `GET` request 
+`http://localhost:8080/greet?fname=foo&lname=bar` we'll get back: 
+>Hello, foo bar
+
+Another common use case is converting the names of each query parameter into 
+a keyword. We can achieve both objectives with one middleware:
+
+```clojure
+(:require [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params]])
+
+(->
+  (create-donkey)
+  (create-server {:port   8080
+                  :routes [{:path       "/greet"
+                            :methods    [:get]    
+                            :handler    (fn [req res _err]
+                                          (res {:body (str "Hello, "
+                                                           (-> req :query-params :fname)
+                                                           " "
+                                                           (-> req :query-params :lname))}))
+                            :middleware [keywordize-query-params]}]})
+  start)
+```
+
+`keywordize-query-params` will first parse the query string if it wasn't parsed 
+before, and then turn each parameter name into a keyword.
+
 
 
 
@@ -611,6 +665,8 @@ override it when creating the request.
    
 ## Middleware
 
+### Overview
+
 The term "middleware" is generally used in the context of HTTP frameworks
 as a pluggable unit of functionality that can examine or manipulate the flow of bytes
 between a client and a server. In other words, it allows users to do things such as 
@@ -634,7 +690,9 @@ The `handler` argument that was given to the higher-order function has the same
 signature as the function being returned. It is the middleware author's 
 responsibility to call the next `handler` at some point.   
  
-Here's an example of a one argument middleware adding a timestamp to a request:
+### Examples
+ 
+Let's start with a one argument middleware that adds a timestamp to a request:
 ```clojure
 (defn add-timestamp-middleware [handler]
   (fn [request] 
@@ -642,7 +700,7 @@ Here's an example of a one argument middleware adding a timestamp to a request:
       (assoc request :timestamp (System/currentTimeMillis)))))
 ```
 
-Here's an example of the same middleware with three arguments:
+Now the same middleware with the non-blocking three arguments variant:
 ```clojure
 (defn add-timestamp-middleware [handler]
   (fn [request respond raise]
@@ -653,7 +711,7 @@ Here's an example of the same middleware with three arguments:
         (raise ex)))))
 ```
 
-In the last couple of examples we've been updating the request and calling
+In the last examples we've been updating the request and calling
 the next handler with the transformed request. Middleware is not limited to
 only processing and transforming the request. Here is an example of a three 
 argument middleware that adds a `Content-Type` header to the _response_.
