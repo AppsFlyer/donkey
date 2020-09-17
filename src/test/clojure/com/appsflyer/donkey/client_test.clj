@@ -1,5 +1,6 @@
 (ns ^:integration com.appsflyer.donkey.client-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
+            [com.appsflyer.donkey.middleware.params :as params]
             [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.routes :as routes])
   (:import (io.netty.handler.codec.http HttpResponseStatus)
@@ -15,7 +16,7 @@
 
 (use-fixtures :once
               helper/init-donkey
-              (fn [test-fn] (helper/init-donkey-server test-fn route-descriptors))
+              (fn [test-fn] (helper/init-donkey-server test-fn route-descriptors [params/parse-query-params]))
               helper/init-donkey-client)
 
 (deftest test-basic-functionality

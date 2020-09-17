@@ -43,8 +43,8 @@
         (execute-keywordize-params-test "/echo")
         (execute-keywordize-params-test "/echo/non-blocking"))
       [routes/echo-route routes/echo-route-non-blocking]
-      [(make-query-param-counter-middleware "added-by-middleware")
-       keywordize-query-params
+      [keywordize-query-params
+       (make-query-param-counter-middleware :added-by-middleware)
        (make-query-param-counter-middleware :added-by-middleware)])))
 
 (defn- execute-multiple-middleware-per-route-test [uri]
