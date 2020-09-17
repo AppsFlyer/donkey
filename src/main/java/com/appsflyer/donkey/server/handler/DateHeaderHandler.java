@@ -10,22 +10,12 @@ import java.util.function.Supplier;
 
 public final class DateHeaderHandler implements Handler<RoutingContext>, PeriodicTask, Supplier<String> {
   
-  private static final Object mutex = new Object();
-  private static volatile DateHeaderHandler instance;
   private final Vertx vertx;
   private String date;
   private Long id;
   
-  public static DateHeaderHandler getInstance(Vertx vertx) {
-    if (instance == null) {
-      //noinspection SynchronizationOnStaticField There shouldn't be any contention here because the method is called once.
-      synchronized (mutex) {
-        if (instance == null) {
-          instance = new DateHeaderHandler(vertx).start();
-        }
-      }
-    }
-    return instance;
+  public static DateHeaderHandler create(Vertx vertx) {
+    return new DateHeaderHandler(vertx).start();
   }
   
   private DateHeaderHandler(Vertx vertx) {

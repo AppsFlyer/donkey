@@ -36,7 +36,7 @@ public final class ServerImpl implements Server {
       handlers.add(LoggerHandler.create());
     }
     if (config.addDateHeader()) {
-      handlers.add(DateHeaderHandler.getInstance(config.vertx()));
+      handlers.add(DateHeaderHandler.create(config.vertx()));
     }
     if (config.addContentTypeHeader()) {
       handlers.add(ResponseContentTypeHandler.create());
