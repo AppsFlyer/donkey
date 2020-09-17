@@ -64,31 +64,13 @@
         (is (re-find #"127\.0\.0\.1:\d+" (:remote-addr res)))
         (is (= "/ring-spec" (:uri res)))
         (is (= "foo=bar" (:query-string res)))
-        (is (= "bar" (-> res :query-params (get "foo"))))
         (is (= :http (:scheme res)))
         (is (= :get (:request-method res)))
         (is (= "HTTP/1.1" (:protocol res)))
         (is (= 3 (count
                    (clojure.set/intersection
                      #{"user-agent" "DNT" "host"}
-                     (into #{} (keys (:headers res))))))))))
-
-  (testing "it should include the raw and parsed query parameters"
-    (let [query-string "foo=bar&count=6&valid=true&empty=false&version=4.0.9&ratio=2.4"
-          response-promise (promise)]
-
-      (-> helper/vertx-client
-          ^HttpRequest (.get (str "/ring-spec?" query-string))
-          (.send (helper/create-client-handler response-promise)))
-
-      (let [res (helper/parse-response-body-when-resolved response-promise)]
-        (is (= query-string (:query-string res)))
-        (is (= "bar" (-> res :query-params (get "foo"))))
-        (is (= "6" (-> res :query-params (get "count"))))
-        (is (= "true" (-> res :query-params (get "valid"))))
-        (is (= "false" (-> res :query-params (get "empty"))))
-        (is (= "4.0.9" (-> res :query-params (get "version"))))
-        (is (= "2.4" (-> res :query-params (get "ratio"))))))))
+                     (into #{} (keys (:headers res)))))))))))
 
 (deftest path-variables-test
   (testing "it should parse path variables and includes them in the request"

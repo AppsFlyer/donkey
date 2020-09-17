@@ -2,6 +2,7 @@
 
 
 ## TODO
+- Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased? 
 - Consider removing the JMX support for metrics - make it the user problem.
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)

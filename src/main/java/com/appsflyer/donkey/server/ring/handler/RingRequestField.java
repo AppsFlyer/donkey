@@ -9,7 +9,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,18 +103,6 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
       return HttpProtocolMapping.get(ctx.request().version());
     }
   },
-  QUERY_PARAMS("query-params") {
-    @Nullable
-    @Override
-    public IPersistentMap from(RoutingContext ctx) {
-      try {
-        return toPersistentMap(ctx.queryParams());
-      } catch (HttpStatusException ex) {
-        logger.warn("{}. Raw query string: {}", ex.getMessage(), ctx.request().query());
-        return null;
-      }
-    }
-  },
   QUERY_STRING("query-string") {
     @Override
     public String from(RoutingContext ctx) {
@@ -191,7 +178,6 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
   };
   
   private static final Logger logger = LoggerFactory.getLogger(RingRequestField.class.getName());
-  private static final byte[] BYTES = new byte[0];
   private final Keyword keyword;
   
   RingRequestField(String field) {
