@@ -2,19 +2,17 @@ package com.appsflyer.donkey.server.ring.handler;
 
 import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentMap;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-import static com.appsflyer.donkey.server.ring.handler.RingHandler.LAST_HANDLER_RESPONSE_FIELD;
 import static com.appsflyer.donkey.server.ring.handler.RingResponseField.*;
 import static com.appsflyer.donkey.util.TypeConverter.toBuffer;
 
-public class RingResponseAdapter implements Handler<RoutingContext> {
+public class RingResponseAdapter implements RingHandler {
   
   @Override
   public void handle(RoutingContext ctx) {
-    IPersistentMap ringResponse = ctx.get(LAST_HANDLER_RESPONSE_FIELD);
+    IPersistentMap ringResponse = ctx.get(RING_HANDLER_RESULT);
     
     if (ringResponse == null) {
       ctx.response().end();
