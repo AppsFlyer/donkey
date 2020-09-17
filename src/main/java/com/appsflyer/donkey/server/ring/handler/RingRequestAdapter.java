@@ -1,9 +1,7 @@
 package com.appsflyer.donkey.server.ring.handler;
 
-import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
-import static com.appsflyer.donkey.server.ring.handler.RingHandler.LAST_HANDLER_RESPONSE_FIELD;
 import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
 
 /**
@@ -12,30 +10,32 @@ import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
  * <p></p>
  * See the Ring <a href="https://github.com/ring-clojure/ring/blob/master/SPEC">specification</a> for more details.
  */
-public class RingRequestAdapter implements Handler<RoutingContext> {
+public class RingRequestAdapter implements RingHandler {
   
   @Override
   public void handle(RoutingContext ctx) {
     RingRequestField[] fields = RingRequestField.values();
     var values = new Object[fields.length << 1];
-    var i = 0;
-    for (RingRequestField field : fields) {
+    
+    var j = 0;
+    for (int i = 0; i < fields.length; i++) {
+      var field = fields[i];
       Object v = field.from(ctx);
       if (v != null) {
-        values[i] = field.keyword();
-        values[i + 1] = v;
-        i += 2;
+        values[j] = field.keyword();
+        values[j + 1] = v;
+        j += 2;
       }
     }
-  
-    if (i == values.length) {
-      ctx.put(LAST_HANDLER_RESPONSE_FIELD, toPersistentMap(values));
+    
+    if (j == values.length) {
+      ctx.put(RING_HANDLER_RESULT, toPersistentMap(values));
     } else {
-      var copy = new Object[i];
-      System.arraycopy(values, 0, copy, 0, i);
-      ctx.put(LAST_HANDLER_RESPONSE_FIELD, toPersistentMap(copy));
+      var copy = new Object[j];
+      System.arraycopy(values, 0, copy, 0, j);
+      ctx.put(RING_HANDLER_RESULT, toPersistentMap(copy));
     }
-  
+    
     ctx.next();
   }
 }

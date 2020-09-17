@@ -50,35 +50,35 @@
   route)
 
 (defn- get-last-handler-response [^RoutingContext ctx]
-  (if-let [last-response (.get ctx RingHandler/LAST_HANDLER_RESPONSE_FIELD)]
+  (if-let [last-response (.get ctx RingHandler/RING_HANDLER_RESULT)]
     last-response
     (throw (IllegalStateException.
              (format "Could not find '%s' in RoutingContext"
-                     RingHandler/LAST_HANDLER_RESPONSE_FIELD)))))
+                     RingHandler/RING_HANDLER_RESULT)))))
 
 (defn- response-handler [^RoutingContext ctx res]
   (let [failed (.failed ctx)
         ended (-> ctx .response .ended)]
     (when-not (or failed ended)
-      (.next (.put ctx RingHandler/LAST_HANDLER_RESPONSE_FIELD res)))))
+      (.next (.put ctx RingHandler/RING_HANDLER_RESULT res)))))
 
-(deftype RouteHandler [impl]
+(deftype RouteHandler [fun]
   RingHandler
   (handle [_this ctx]
     (let [respond (partial response-handler ctx)
           raise (fn [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
       (try
-        (impl (get-last-handler-response ctx) respond raise)
+        (fun (get-last-handler-response ctx) respond raise)
         (catch Throwable ex
           (.fail ^RoutingContext ctx ^Throwable ex))))))
 
-(deftype BlockingRouteHandler [impl]
+(deftype BlockingRouteHandler [fun]
   RingHandler
   (handle [_this ctx]
     (try
       (-> ^RoutingContext ctx
-          (.put RingHandler/LAST_HANDLER_RESPONSE_FIELD
-                (impl (get-last-handler-response ^RoutingContext ctx)))
+          (.put RingHandler/RING_HANDLER_RESULT
+                (fun (get-last-handler-response ^RoutingContext ctx)))
           .next)
       (catch Throwable ex
         (.fail ^RoutingContext ctx ^Throwable ex)))))
