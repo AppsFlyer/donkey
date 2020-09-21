@@ -49,7 +49,7 @@
     (.addProduces route content-type))
   route)
 
-(defn- get-last-handler-response [^RoutingContext ctx]
+(defn- get-last-handler-result [^RoutingContext ctx]
   (if-let [last-response (.get ctx RingHandler/RING_HANDLER_RESULT)]
     last-response
     (throw (IllegalStateException.
@@ -68,7 +68,7 @@
     (let [respond (partial response-handler ctx)
           raise (fn [ex] (.fail ^RoutingContext ctx ^Throwable ex))]
       (try
-        (fun (get-last-handler-response ctx) respond raise)
+        (fun (get-last-handler-result ctx) respond raise)
         (catch Throwable ex
           (.fail ^RoutingContext ctx ^Throwable ex))))))
 
@@ -78,7 +78,7 @@
     (try
       (-> ^RoutingContext ctx
           (.put RingHandler/RING_HANDLER_RESULT
-                (fun (get-last-handler-response ^RoutingContext ctx)))
+                (fun (get-last-handler-result ^RoutingContext ctx)))
           .next)
       (catch Throwable ex
         (.fail ^RoutingContext ctx ^Throwable ex)))))
