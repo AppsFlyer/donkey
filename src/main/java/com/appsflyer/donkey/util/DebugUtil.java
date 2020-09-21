@@ -1,12 +1,15 @@
 package com.appsflyer.donkey.util;
 
 import com.appsflyer.donkey.log.LogbackLoggerFactory;
-import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+
+import static io.netty.util.ResourceLeakDetector.Level.DISABLED;
+import static io.netty.util.ResourceLeakDetector.Level.SIMPLE;
 
 public final class DebugUtil {
   
@@ -16,30 +19,36 @@ public final class DebugUtil {
   private static final AtomicBoolean logbackAvailable = new AtomicBoolean();
   private static final AtomicBoolean originalLevelsAvailable = new AtomicBoolean();
   private static final Map<String, String> originalLevels = new HashMap<>(4);
+  private static final String LEAK_DETECTOR_SIMPLE = SIMPLE.name().toLowerCase();
+  private static final String LEAK_DETECTOR_DISABLED = DISABLED.name().toLowerCase();
+  private static final String LOGGER_NETTY = "io.netty";
+  private static final String LOGGER_VERTX = "io.vertx";
+  private static final String LOGGER_APPSFLYER = "com.appsflyer";
+  
   
   private DebugUtil() {}
   
   public static void enable() {
     enableDebugLogging();
-    System.setProperty(LEAK_DETECTION_LEVEL, ResourceLeakDetector.Level.SIMPLE.name().toLowerCase());
+    System.setProperty(LEAK_DETECTION_LEVEL, LEAK_DETECTOR_SIMPLE);
   }
   
   public static void disable() {
     disableDebugLogging();
-    System.setProperty(LEAK_DETECTION_LEVEL, ResourceLeakDetector.Level.DISABLED.name().toLowerCase());
+    System.setProperty(LEAK_DETECTION_LEVEL, LEAK_DETECTOR_DISABLED);
   }
   
   private static void enableDebugLogging() {
-    checkLogbackAvailability();
+    checkLogbackAvailability(DebugUtil::isLogbackAvailableWithWarning);
     if (!logbackAvailable.get()) {
       return;
     }
-    
+  
     var root = LogbackLoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-    var vertx = LogbackLoggerFactory.getLogger("io.vertx");
-    var netty = LogbackLoggerFactory.getLogger("io.netty");
-    var appsflyer = LogbackLoggerFactory.getLogger("com.appsflyer");
-    
+    var vertx = LogbackLoggerFactory.getLogger(LOGGER_VERTX);
+    var netty = LogbackLoggerFactory.getLogger(LOGGER_NETTY);
+    var appsflyer = LogbackLoggerFactory.getLogger(LOGGER_APPSFLYER);
+  
     if (!originalLevelsAvailable.get()) {
       //This is not a contended block that is only called at startup.
       //noinspection SynchronizationOnStaticField
@@ -61,16 +70,16 @@ public final class DebugUtil {
   }
   
   private static void disableDebugLogging() {
-    checkLogbackAvailability();
+    checkLogbackAvailability(DebugUtil::isLogbackAvailable);
     if (!logbackAvailable.get()) {
       return;
     }
-    
+  
     var root = LogbackLoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-    var vertx = LogbackLoggerFactory.getLogger("io.vertx");
-    var netty = LogbackLoggerFactory.getLogger("io.netty");
-    var appsflyer = LogbackLoggerFactory.getLogger("com.appsflyer");
-    
+    var vertx = LogbackLoggerFactory.getLogger(LOGGER_VERTX);
+    var netty = LogbackLoggerFactory.getLogger(LOGGER_NETTY);
+    var appsflyer = LogbackLoggerFactory.getLogger(LOGGER_APPSFLYER);
+  
     if (originalLevelsAvailable.get()) {
       //This is not a contended block that is only called at startup.
       //noinspection SynchronizationOnStaticField
@@ -87,20 +96,32 @@ public final class DebugUtil {
     }
   }
   
-  private static void checkLogbackAvailability() {
+  private static void checkLogbackAvailability(Supplier<Boolean> availabilityCheck) {
     if (!logbackAvailabilityCheck.get()) {
-      if (isLogbackAvailable()) {
+      if (availabilityCheck.get()) {
         logbackAvailable.set(true);
       }
       logbackAvailabilityCheck.set(true);
     }
   }
   
-  private static boolean isLogbackAvailable() {
+  private static boolean loadLogback() throws ClassNotFoundException {
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
+    loader.loadClass(LOGBACK_LOGGER_FQCN);
+    return true;
+  }
+  
+  private static boolean isLogbackAvailable() {
     try {
-      loader.loadClass(LOGBACK_LOGGER_FQCN);
-      return true;
+      return loadLogback();
+    } catch (ClassNotFoundException ex) {
+      return false;
+    }
+  }
+  
+  private static boolean isLogbackAvailableWithWarning() {
+    try {
+      return loadLogback();
     } catch (ClassNotFoundException ex) {
       //noinspection UseOfSystemOutOrSystemErr // We couldn't find the logger implementation so we assume there is none, and therefore print to stderr.
       System.err.printf("%s - Warning! Did not find %s on classpath. Debug logging will be disabled.%n",
