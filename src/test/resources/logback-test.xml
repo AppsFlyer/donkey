@@ -13,7 +13,7 @@
     <logger name="com.appsflyer" level="off"/>
     <logger name="donkey" level="off"/>
 
-    <root level="error">
+    <root level="off">
         <appender-ref ref="STDOUT"/>
     </root>
 

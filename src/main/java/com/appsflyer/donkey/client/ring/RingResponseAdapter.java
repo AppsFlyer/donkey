@@ -28,7 +28,7 @@ public class RingResponseAdapter implements Handler<AsyncResult<HttpResponse<Buf
     if (event.succeeded()) {
       HttpResponse<Buffer> res = event.result();
       RingResponseField[] fields = RingResponseField.values();
-      var values = new Object[fields.length << 1];
+      var values = new Object[fields.length * 2];
       var j = 0;
       for (var i = 0; i < fields.length; i++) {
         var field = fields[i];

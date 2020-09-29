@@ -40,7 +40,7 @@ public class QueryParamsKeywordizer implements RingMiddleware {
     }
     
     IPersistentMap params = (IPersistentMap) queryParams;
-    Object[] res = new Object[params.count() << 1];
+    Object[] res = new Object[params.count() * 2];
     var iter = params.iterator();
     for (int i = 0; iter.hasNext(); i += 2) {
       var entry = (IMapEntry) iter.next();

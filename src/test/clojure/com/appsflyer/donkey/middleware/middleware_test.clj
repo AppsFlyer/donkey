@@ -2,7 +2,9 @@
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params]]
-            [com.appsflyer.donkey.routes :as routes])
+            [com.appsflyer.donkey.middleware.headers :refer [lowercase-header-name]]
+            [com.appsflyer.donkey.routes :as routes]
+            [clojure.string])
   (:import (io.vertx.ext.web.client HttpRequest)
            (clojure.lang Symbol Keyword)
            (io.netty.handler.codec.http HttpResponseStatus)))
@@ -90,6 +92,33 @@
           (:path routes/non-blocking-exceptional-middleware-handlers)))
       [routes/blocking-exceptional-middleware-handlers
        routes/non-blocking-exceptional-middleware-handlers])))
+
+(defn- execute-lowercase-header-name-test [uri]
+  (let [response-promise (promise)
+        headers {"Content-Type"      "text/html"
+                 "Connection"        "Keep-Alive"
+                 "KEEP-ALIVE"        "30"
+                 "Cache-Control"     "max-age=1"
+                 "If-Modified-Since" "Wed, 21 Oct 2015 07:28:00 GMT"
+                 "accept"            "text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8"}
+        ^HttpRequest request (.get helper/vertx-client uri)]
+
+    (reduce-kv (fn [req k v] (.putHeader req k v)) request headers)
+
+    (.send request (helper/create-client-handler response-promise))
+
+    (let [res (helper/parse-response-body-when-resolved response-promise)]
+      (doseq [[k v] headers]
+        (is (= v (get-in res [:headers (clojure.string/lower-case k)])))))))
+
+(deftest test-lowercase-header-name
+  (testing "it should lowercase all the header names"
+    (helper/run-with-server-and-client
+      (fn []
+        (execute-lowercase-header-name-test "/echo")
+        (execute-lowercase-header-name-test "/echo/non-blocking"))
+      [routes/echo-route routes/echo-route-non-blocking]
+      [lowercase-header-name])))
 
 
 

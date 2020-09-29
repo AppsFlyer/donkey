@@ -15,7 +15,7 @@ public class RingRequestAdapter implements RingHandler {
   @Override
   public void handle(RoutingContext ctx) {
     RingRequestField[] fields = RingRequestField.values();
-    var values = new Object[fields.length << 1];
+    var values = new Object[fields.length * 2];
     
     var j = 0;
     for (int i = 0; i < fields.length; i++) {
