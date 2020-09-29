@@ -18,6 +18,7 @@
   [routes/root-200
    routes/ring-spec
    routes/echo-route
+   routes/echo-route-non-blocking
    routes/blocking-handler
    routes/single-path-variable
    routes/multi-path-variable
@@ -69,7 +70,7 @@
         (is (= "HTTP/1.1" (:protocol res)))
         (is (= 3 (count
                    (clojure.set/intersection
-                     #{"user-agent" "DNT" "host"}
+                     #{"user-agent" "dnt" "host"}
                      (into #{} (keys (:headers res)))))))))))
 
 (deftest path-variables-test
@@ -216,3 +217,27 @@
           (.sendForm body (helper/create-client-handler response-promise)))
       (let [^ILookup res (helper/parse-response-body-when-resolved response-promise)]
         (is (= "bar" (get-in res [:form-params "foo"])))))))
+
+
+(defn- execute-lowercase-header-name-test [uri]
+  (let [response-promise (promise)
+        headers {"Content-Type"      "text/html"
+                 "Connection"        "Keep-Alive"
+                 "KEEP-ALIVE"        "30"
+                 "Cache-Control"     "max-age=1"
+                 "If-Modified-Since" "Wed, 21 Oct 2015 07:28:00 GMT"
+                 "accept"            "text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8"}
+        ^HttpRequest request (.get helper/vertx-client uri)]
+
+    (reduce-kv (fn [req k v] (.putHeader req k v)) request headers)
+
+    (.send request (helper/create-client-handler response-promise))
+
+    (let [res (helper/parse-response-body-when-resolved response-promise)]
+      (doseq [[k v] headers]
+        (is (= v (get-in res [:headers (clojure.string/lower-case k)])))))))
+
+(deftest test-lowercase-header-name
+  (testing "all header names should be lowercase"
+    (execute-lowercase-header-name-test "/echo")
+    (execute-lowercase-header-name-test "/echo/non-blocking")))

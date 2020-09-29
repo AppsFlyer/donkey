@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.security.cert.Certificate;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
 
@@ -68,6 +70,9 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
     }
   },
   HEADERS("headers") {
+    private final Function<String, String> keyTransformer =
+        (v) -> v.toLowerCase(Locale.ROOT);
+  
     @Nullable
     @Override
     public IPersistentMap from(RoutingContext ctx) {
@@ -75,7 +80,7 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
       if (headers.isEmpty()) {
         return null;
       }
-      return toPersistentMap(headers, TypeConverter::stringJoiner);
+      return toPersistentMap(headers, keyTransformer, TypeConverter::stringJoiner);
     }
   },
   PATH_PARAMS("path-params") {
