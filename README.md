@@ -1,5 +1,7 @@
 ## Donkey
 
+[![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)
+
 ### Creating a Donkey
 
 In Donkey, you create HTTP servers and clients using a - `Donkey`.

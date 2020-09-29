@@ -1,0 +1,8 @@
+language: java
+dist: bionic
+jdk: openjdk11
+notifications:
+  email:
+    - yaron.elyashiv@appsflyer.com
+after_success:
+  - mvn clean test jacoco:report coveralls:report
