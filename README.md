@@ -38,8 +38,8 @@ The following examples assume these required namespaces
 
 ### Creating a Server
 
-Creating a server is done using a `Donkey` instance. For example, this is how 
-you would create a simple server listening for requests on port 8080.
+Creating a server is done using a `Donkey` instance. Let's start by creating 
+a server listening for requests on port 8080. 
 ```clojure
 (->         
   (create-donkey)
@@ -47,13 +47,17 @@ you would create a simple server listening for requests on port 8080.
   start
   (on-success (fn [_] (println "Server started listening on port 8080")))
 ``` 
-Note that the call to `start` is asynchronous and therefore will return before
-the server actually started listening for incoming connections. It's possible
-to block the current thread execution until the server is running by calling 
-`start-sync` or by derefing the arrow macro.
+_Note that the following example will not work yet - for it to work we need
+to add a route which we will do next._
+ 
+After creating the server we `start` it, which is an asynchronous call that 
+may return before the server actually started listening for incoming 
+connections. It's possible to block the current thread execution until the 
+server is running by calling `start-sync` or by "derefing" the arrow macro.
 
-At this point the server won't actually do much, because we haven't defined any
-[routes](). Let's define a route and create a basic "Hello world" server.
+The next thing we need to do is define a route. We talk about [routes](#routes)
+in depth later on, but a route is basically a definition of an endpoint. 
+Let's define a route and create a basic "Hello world" endpoint.
 
 ```clojure
 (-> 
@@ -66,7 +70,7 @@ At this point the server won't actually do much, because we haven't defined any
 ``` 
 
 As you can see we added a `:routes` key to the options map used to initialise 
-the server. A route is just a map that describes what kind of requests are 
+the server. A route is a map that describes what kind of requests are 
 handled at a specific resource address (or `:path`), and how to handle them. The 
 only required key is `:handler`, which will be called when a request matches a 
 route. In the example above we're saying that we would like any request to be 
@@ -494,9 +498,7 @@ with some attributes like this:
                    "filename"       "nancy.mp3"
                    "pathname"       "/home/bill/Music/Sinatra/Best of Columbia/nancy.mp3"
                    "media-type"     "audio/mpeg"
-                   "upload-as"      "binary" 
-                  }
-   })
+                   "upload-as"      "binary"}})
 ```  
 
 #### FutureResult
