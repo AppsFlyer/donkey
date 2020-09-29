@@ -16,9 +16,7 @@ We can also configure our donkey instance:
 (ns com.appsflyer.sample-app
   (:require [com.appsflyer.donkey.core :refer [create-donkey]]))
 
-  (def donkey-core (create-donkey {:event-loops     4
-                                   :metrics-enabled true
-                                   :metrics-prefix  "sample-app"}))
+  (def donkey-core (create-donkey {:event-loops 4}))
 ```
 There should only be a single `Donkey` instance per application. That's because 
 the client and server will share the same resources making them very efficient.
@@ -383,7 +381,6 @@ Non-blocking handler mode.
 (-> {:port   8080
      :routes [{:path            "/greet/:name"
                :methods         [:get]
-               :metrics-enabled true
                :consumes        ["text/plain"]
                :handler        (fn [req respond _raise]
                                    (future
@@ -689,22 +686,19 @@ request, or stop the execution by calling `raise`.
 
 ## Metrics
 
-The library uses Dropwizard to capture different metrics. The metrics can be largely 
-grouped into three categories: 
+The library uses [Dropwizard](https://metrics.dropwizard.io/4.1.2/) to capture 
+different metrics. The metrics can be largely grouped into three categories: 
 - Thread Pool
 - Server
 - Client
 
-Metrics collection can be enabled by setting `:metrics-enabled true` when creating
-a server or client. By default, a new Dropwizard `MetricRegistry` is created and can be 
-viewed as managed beans in profilers such as [VisualVM](https://visualvm.github.io/).
-That might be enough for local development, but in production you'll want to have 
-the metrics reported to some monitoring service such as [Prometheus](https://prometheus.io/), 
-or [graphite](https://graphiteapp.org/).
-A pre instantiated instance of `MetricRegistry` can be provided by setting `:metrc-registry instance`
-in the configuration. 
-As later described, metrics are named using a `.` as a separator. By default, all metrics 
-are prefixed with `donkey`, but it's possible to set `:metrics-prefix` to use a different string.    
+Metrics collection can be enabled by supplying a pre instantiated instance of 
+`MetricRegistry` when creating a `Donkey`. It's the user's responsibility to 
+implement the reporting code to a monitoring backend such as 
+[Prometheus](https://prometheus.io/), or [graphite](https://graphiteapp.org/).
+As later described, metrics are named using a `.` as a separator. By default, 
+all metrics are prefixed with `donkey`, but it's possible to set `:metrics-prefix`
+to use a different string.    
 
 ### List of Exposed Metrics
 
@@ -797,15 +791,16 @@ are exposed via JMX.
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright 2020 AppsFlyer
 
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

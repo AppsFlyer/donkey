@@ -1,7 +1,6 @@
 
 ## TODO
 - Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased? 
-- Consider removing the JMX support for metrics - make it the user problem.
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
 https://vertx.io/docs/vertx-web-client/java/#response-predicates
@@ -26,6 +25,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Consider removing the JMX support for metrics - make it the user problem.
 - First "create server" example without a route throws an exception.
 - Lowercase all header names
 - Client SSL support

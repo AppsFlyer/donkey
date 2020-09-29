@@ -1,3 +1,19 @@
+;
+; Copyright 2020 AppsFlyer
+;
+; Licensed under the Apache License, Version 2.0 (the "License")
+; you may not use this file except in compliance with the License.
+; You may obtain a copy of the License at
+;
+;     http://www.apache.org/licenses/LICENSE-2.0
+;
+; Unless required by applicable law or agreed to in writing, software
+; distributed under the License is distributed on an "AS IS" BASIS,
+; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; See the License for the specific language governing permissions and
+; limitations under the License.
+;
+
 (ns com.appsflyer.donkey.core
   (:require [clojure.set]
             [clojure.spec.alpha :as spec]
@@ -16,7 +32,6 @@
   {:port                 8080
    :compression          false
    :host                 "0.0.0.0"
-   :metrics-enabled      true
    :metric-registry      nil
    :metrics-prefix       "donkey"
    :worker-threads       20
@@ -183,7 +198,7 @@
     (.setEventLoopPoolSize vertx-options (int (:event-loops opts (CpuCoreSensor/availableProcessors))))
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
-    (when (:metrics-enabled opts)
+    (when (:metric-registry opts)
       (.setMetricsOptions vertx-options (metrics/get-metrics-options opts)))
     vertx-options))
 
@@ -204,14 +219,11 @@
     with the size of :worker-threads until you reach the desired application
     requirements.
 
-  :metrics-enabled [boolean] Enable metrics collection. Disabled by default.
-
   :metrics-prefix [string] A prefix that will be added to all metrics. Can be used
     to differentiate between different projects. Defaults to 'donkey'.
 
-  :metric-registry [MetricRegistry] By default a new MetricRegistry is created
-    that can be used during development. In production you should implement
-    the reporting logic and supply an instance of the registry.
+  :metric-registry [MetricRegistry] Instance of Dropwizard MetricRegistry where
+    metrics will be reported to.
   "
   ([] (create-donkey {}))
   ([opts]

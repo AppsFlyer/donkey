@@ -8,15 +8,13 @@
 
 ;; ------- Donkey Specification ------- ;;
 
-(s/def ::metrics-enabled boolean?)
 (s/def ::metrics-prefix string?)
 (s/def ::metric-registry #(instance? MetricRegistry %))
 (s/def ::worker-threads #(s/int-in-range? 1 500 %))
-(s/def ::event-loops #(s/int-in-range? 1 (CpuCoreSensor/availableProcessors) %))
+(s/def ::event-loops #(s/int-in-range? 1 (* 2 (CpuCoreSensor/availableProcessors)) %))
 
 (s/def ::donkey-config (s/keys :opt-un [::metrics-prefix
                                         ::metric-registry
-                                        ::metrics-enabled
                                         ::worker-threads
                                         ::event-loops]))
 

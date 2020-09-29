@@ -4,15 +4,11 @@
 
 (defn ^MetricsOptions get-metrics-options
   "Creates and returns a MetricsOptions object from the opts map.
-  The map may contain a `:metrics-prefix` string that will be prepended to each metric,
-  and a Dropwizard MetricRegistry instance under `:metric-registry`"
+  The map may contain an optional `:metrics-prefix` string that will be prepended
+   to each metric. It must contain a `:metric-registry` with a Dropwizard
+   `MetricRegistry` instance"
   [opts]
-  (let [metrics-options (doto (DropwizardMetricsOptions.)
-                          (.setEnabled true)
-                          (.setJmxEnabled true)
-                          (.setBaseName (:metrics-prefix opts "donkey")))]
-
-    (if (:metric-registry opts)
-      (.setMetricRegistry metrics-options (:metric-registry opts))
-      (.setRegistryName metrics-options "donkey-registry"))
-    metrics-options))
+  (doto (DropwizardMetricsOptions.)
+    (.setEnabled true)
+    (.setBaseName (:metrics-prefix opts "donkey"))
+    (.setMetricRegistry (:metric-registry opts))))
