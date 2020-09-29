@@ -87,7 +87,7 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
         return null;
       }
       
-      Object[] pathParamsArray = new Object[(pathParams.size() << 1)];
+      Object[] pathParamsArray = new Object[(pathParams.size() * 2)];
       int i = 0;
       for (Object obj : pathParams.entrySet()) {
         pathParamsArray[i] = ((Map.Entry<?, ?>) obj).getKey();

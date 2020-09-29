@@ -2,8 +2,10 @@ package com.appsflyer.donkey.util;
 
 import clojure.lang.*;
 import com.appsflyer.donkey.client.exception.UnsupportedDataTypeException;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +34,7 @@ public final class TypeConverter {
   public static IPersistentMap toPersistentMap(
       MultiMap entries,
       Function<List<String>, Object> aggregator) {
-    Object[] entriesArray = new Object[(entries.size() << 1)];
+    Object[] entriesArray = new Object[(entries.size() * 2)];
     int i = 0;
     for (String name : entries.names()) {
       entriesArray[i] = name;
@@ -42,6 +44,17 @@ public final class TypeConverter {
       } else {
         entriesArray[i + 1] = aggregator.apply(entryList);
       }
+      i += 2;
+    }
+    return RT.mapUniqueKeys(entriesArray);
+  }
+  
+  public static IPersistentMap toUrlDecodedPersistentMap(MultiMap entries) {
+    Object[] entriesArray = new Object[(entries.size() * 2)];
+    int i = 0;
+    for (String name : entries.names()) {
+      entriesArray[i] = QueryStringDecoder.decodeComponent(name);
+      entriesArray[i + 1] = QueryStringDecoder.decodeComponent(entries.get(name));
       i += 2;
     }
     return RT.mapUniqueKeys(entriesArray);
@@ -70,7 +83,7 @@ public final class TypeConverter {
         throw new RuntimeException("Exception caught while consuming input stream", e);
       }
     }
-    
+  
     throw new UnsupportedDataTypeException(String.format(
         "Cannot create a byte[] from %s. Only byte[] and String are supported.",
         obj.getClass().getCanonicalName()));
@@ -81,12 +94,16 @@ public final class TypeConverter {
   }
   
   public static MultiMap toMultiMap(IPersistentMap map) {
-    Objects.requireNonNull(map);
+    Objects.requireNonNull(map, "Cannot convert a null map to MultiMap");
     MultiMap res = MultiMap.caseInsensitiveMultiMap();
     for (var obj : map) {
       var entry = (IMapEntry) obj;
       res.add((String) entry.key(), (String) entry.val());
     }
     return res;
+  }
+  
+  public static MultipartForm toMultipartForm(IPersistentMap map) {
+    return MultipartFormConverter.from(map);
   }
 }

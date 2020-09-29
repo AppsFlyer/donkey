@@ -43,7 +43,7 @@ public class QueryParamsParser implements RingMiddleware {
     Map<String, List<String>> decodedParams =
         new QueryStringDecoder(queryString, false).parameters();
     
-    Object[] values = new Object[decodedParams.size() << 1];
+    Object[] values = new Object[decodedParams.size() * 2];
     int i = 0;
     for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
       values[i] = entry.getKey();
