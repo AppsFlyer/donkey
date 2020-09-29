@@ -17,6 +17,8 @@ import java.util.function.Function;
 
 public final class TypeConverter {
   
+  private static final Function<String, String> STRING_IDENTITY = Function.identity();
+  
   private TypeConverter() {}
   
   public static String stringJoiner(Iterable<String> v) {
@@ -34,10 +36,19 @@ public final class TypeConverter {
   public static IPersistentMap toPersistentMap(
       MultiMap entries,
       Function<List<String>, Object> aggregator) {
+    
+    return toPersistentMap(entries, STRING_IDENTITY, aggregator);
+  }
+  
+  public static IPersistentMap toPersistentMap(
+      MultiMap entries,
+      Function<String, String> keyTransformer,
+      Function<List<String>, Object> aggregator) {
+    
     Object[] entriesArray = new Object[(entries.size() * 2)];
     int i = 0;
     for (String name : entries.names()) {
-      entriesArray[i] = name;
+      entriesArray[i] = keyTransformer.apply(name);
       List<String> entryList = entries.getAll(name);
       if (entryList.size() == 1) {
         entriesArray[i + 1] = entryList.get(0);
