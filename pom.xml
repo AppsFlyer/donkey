@@ -63,6 +63,10 @@
                 <extensions>true</extensions>
                 <configuration>
                     <temporaryOutputDirectory>true</temporaryOutputDirectory>
+                    <charset>UTF-8</charset>
+                    <warnOnReflection>true</warnOnReflection>
+                    <junitOutput>true</junitOutput>
+                    <directLinking>true</directLinking>
                 </configuration>
                 <executions>
                     <execution>
