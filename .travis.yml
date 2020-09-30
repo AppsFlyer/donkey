@@ -1,8 +1,13 @@
 language: java
+sudo: required
 dist: bionic
 jdk: openjdk11
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install leiningen
+after_success:
+  - lein cloverage --emma-xml --junit
+  - mvn jacoco:report coveralls:report
 notifications:
   email:
     - yaron.elyashiv@appsflyer.com
-after_success:
-  - mvn jacoco:report coveralls:report

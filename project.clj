@@ -53,7 +53,8 @@
                        :resource-paths ["src/test/resources"]
                        :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
                                                   "-Dvertx.disableContextTimings=false"]
-                       :plugins        [[lein-kibit "0.1.8"]]}
+                       :plugins        [[lein-kibit "0.1.8"]
+                                        [lein-cloverage "1.1.2"]]}
              :uberjar {:aot :all}}
   :pom-location "target/"
   :repl-options {:init-ns com.appsflyer.donkey.core})
