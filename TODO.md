@@ -1,9 +1,9 @@
 
 ## TODO
+- Setup coveralls when repo is public
+- Setup release stage in CI to clojars and maven central
 - Check if there's a need to implement the `wrap-remove-amps` from af-nonblocking
 to replace encoded ampersands. 
-- Check if there's a need to implement the `wrap-prevent-header-injection` from af-nonblocking
-to remove carriage return and line feed characters. 
 - Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased? 
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
@@ -24,11 +24,15 @@ A "healthy" health check would require the user to provide a handler.
 - Documentation
 - Examples
 - README
-- Setup CI
 
 ========================================
 
 ## DONE
+- Move project to AppsFlyer github repo.
+- Setup CI
+- Check if there's a need to implement the `wrap-prevent-header-injection` from af-nonblocking
+to remove carriage return and line feed characters. ** Already implemented in Vert.x
+https://github.com/eclipse-vertx/vert.x/commit/1bb6445226c39a95e7d07ce3caaf56828e8aab72
 - Consider removing the JMX support for metrics - make it the user problem.
 - First "create server" example without a route throws an exception.
 - Lowercase all header names
