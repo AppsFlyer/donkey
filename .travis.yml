@@ -5,11 +5,8 @@ jdk: openjdk11
 cache:
   directories:
     - $HOME/.m2
-before_install:
-  - sudo apt-get update
-  - sudo apt-get -y install leiningen
 after_success:
-  - lein cloverage --emma-xml --junit
+  - lein cloverage -o target --coveralls --emma-xml --junit
   - mvn jacoco:report coveralls:report
 notifications:
   email:
