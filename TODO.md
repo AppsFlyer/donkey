@@ -1,5 +1,9 @@
 
 ## TODO
+- Check if there's a need to implement the `wrap-remove-amps` from af-nonblocking
+to replace encoded ampersands. 
+- Check if there's a need to implement the `wrap-prevent-header-injection` from af-nonblocking
+to remove carriage return and line feed characters. 
 - Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased? 
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
