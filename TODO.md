@@ -8,7 +8,6 @@ to replace encoded ampersands.
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
 https://vertx.io/docs/vertx-web-client/java/#response-predicates
-- Look into implementing JSON serialization / deserialization middleware
 - Look into functional builder pattern rather than using a configuration map.
 Examples:
 https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
@@ -28,6 +27,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Look into implementing JSON serialization / deserialization middleware
 - Move project to AppsFlyer github repo.
 - Setup CI
 - Check if there's a need to implement the `wrap-prevent-header-injection` from af-nonblocking

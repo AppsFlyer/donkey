@@ -16,7 +16,8 @@
 
 (ns com.appsflyer.donkey.middleware.json-test
   (:require [clojure.test :refer [deftest testing is]]
-            [com.appsflyer.donkey.middleware.json :refer [make-deserialize-middleware]]
+            [com.appsflyer.donkey.middleware.json :refer [make-deserialize-middleware
+                                                          make-serialize-middleware]]
             [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.routes :as routes]
             [jsonista.core :as jsonista])
@@ -32,9 +33,8 @@
   response-promise)
 
 (defn- execute-parse-body-test [uri]
-  (let [body "{\"glossary\":{\"title\":\"example glossary\",\"id\":49019246782,\"GlossDiv\":{\"title\":\"S\",\"GlossList\":{\"GlossEntry\":{\"ID\":\"SGML\",\"SortAs\":\"SGML\",\"GlossTerm\":\"Standard Generalized Markup Language\",\"Acronym\":\"SGML\",\"Abbrev\":\"ISO 8879:1986\",\"GlossDef\":{\"para\":\"A meta-markup language, used to create markup languages such as DocBook.\",\"GlossSeeAlso\":[\"GML\",\"XML\"]},\"GlossSee\":\"markup\"}}}}}"]
-    (helper/parse-response-body-when-resolved
-      (make-request uri body (promise)))))
+  (helper/parse-response-body-when-resolved
+    (make-request uri routes/sample-json-string (promise))))
 
 (deftest parse-body-with-default-mapper-test
   (testing "it should parse the request body as json. When not supplying an
@@ -44,26 +44,7 @@
         (fn []
           (doseq [path (mapv :path -routes)]
             (let [res (execute-parse-body-test path)]
-              (is (map? (:glossary res)))
-              (is (= (-> res :glossary :title) "example glossary"))
-              (is (= (-> res :glossary :id) 49019246782))
-              (is (map? (-> res :glossary :GlossDiv)))
-              (is (= (-> res :glossary :GlossDiv :title) "S"))
-              (is (map? (-> res :glossary :GlossDiv :GlossList)))
-              (is (map? (-> res :glossary :GlossDiv :GlossList :GlossEntry)))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :ID) "SGML"))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :SortAs) "SGML"))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossTerm)
-                     "Standard Generalized Markup Language"))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :Acronym) "SGML"))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :Abbrev) "ISO 8879:1986"))
-              (is (map? (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossDef)))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossDef :para)
-                     "A meta-markup language, used to create markup languages such as DocBook."))
-              (is (vector (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossDef :GlossSeeAlso)))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossDef :GlossSeeAlso)
-                     ["GML" "XML"]))
-              (is (= (-> res :glossary :GlossDiv :GlossList :GlossEntry :GlossSee) "markup")))))
+              (is (= routes/sample-json res)))))
         -routes
         [(make-deserialize-middleware)]))))
 
@@ -109,3 +90,18 @@
               (is (= (.reasonPhrase HttpResponseStatus/BAD_REQUEST) (.statusMessage res))))))
         -routes
         [(make-deserialize-middleware)]))))
+
+(deftest serialize-body-with-default-mapper-test
+  (testing "it should return a response where the body is a Clojure map
+   serialized into json. "
+    (helper/run-with-server-and-client
+      (fn []
+        (let [^HttpResponse res (helper/wait-for-response
+                                  (make-request (:path routes/json-response) "" (promise)))
+              body (jsonista/read-value
+                     (.bodyAsString res)
+                     (jsonista/object-mapper {:decode-key-fn true}))]
+          (is (= routes/sample-json body))))
+      ; The json-response route just sends back `sample-json` in the response body
+      [routes/json-response]
+      [(make-serialize-middleware)])))
