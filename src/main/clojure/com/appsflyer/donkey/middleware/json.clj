@@ -16,20 +16,47 @@
 
 (ns com.appsflyer.donkey.middleware.json
   (:require [jsonista.core :as jsonista])
-  (:import (com.appsflyer.donkey.server.ring.middleware JsonBodyParser)
+  (:import (com.appsflyer.donkey.server.ring.middleware JsonBodyDeserializer JsonBodySerializer)
            (com.fasterxml.jackson.databind ObjectMapper)
            (clojure.lang IFn)))
 
 (defn ^IFn make-deserialize-middleware
-  "Returns a middleware for parsing requests body as JSON.
-  An optional ObjectMapper can be supplied to customize the deserialization.
+  "Returns a middleware for deserializing request's body as JSON.
+  An optional ObjectMapper may be supplied to customize the deserialization.
   By default all map keys will be turned into keywords"
   ([]
    (make-deserialize-middleware (jsonista/object-mapper {:decode-key-fn true})))
   ([^ObjectMapper mapper]
-   (fn [handler]
-     (fn
-       ([request]
-        (handler (-> (JsonBodyParser. mapper) (.handle request))))
-       ([request respond raise]
-        (handler (-> (JsonBodyParser. mapper) (.handle request)) respond raise))))))
+   (let [deserializer (JsonBodyDeserializer. mapper)]
+     (fn [handler]
+       (fn
+         ([request]
+          (handler (.handle deserializer request)))
+         ([request respond raise]
+          (try
+            (handler (.handle deserializer request) respond raise)
+            (catch Exception ex
+              (raise ex)))))))))
+
+
+(defn ^IFn make-serialize-middleware
+  "Returns a middleware for serializing response's body as JSON.
+  An optional ObjectMapper may be supplied to customize the serialization.
+  By default all map keyword keys will be turned into strings"
+  ([]
+   (make-serialize-middleware (jsonista/object-mapper)))
+  ([^ObjectMapper mapper]
+   (let [serializer (JsonBodySerializer. mapper)]
+     (fn [handler]
+       (fn
+         ([request]
+          (.handle serializer (handler request)))
+         ([request respond raise]
+          (handler
+            request
+            (fn [response]
+              (try
+                (respond (.handle serializer response))
+                (catch Exception ex
+                  (raise ex))))
+            raise)))))))

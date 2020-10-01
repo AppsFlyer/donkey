@@ -17,6 +17,27 @@
 (ns com.appsflyer.donkey.routes
   (:require [com.appsflyer.donkey.test-helper :as helper]))
 
+(def sample-json
+  {:glossary
+   {:title "example glossary"
+    :id    49019246782
+    :GlossDiv
+           {:title "S"
+            :GlossList
+                   {:GlossEntry
+                    {:ID        "SGML"
+                     :GlossSee  "markup"
+                     :Acronym   "SGML"
+                     :SortAs    "SGML"
+                     :GlossDef
+                                {:para         "A meta-markup language, used to create markup languages such as DocBook."
+                                 :GlossSeeAlso ["GML" "XML"]}
+                     :GlossTerm "Standard Generalized Markup Language"
+                     :Abbrev    "ISO 8879:1986"}}}}})
+
+(def sample-json-string
+  "{\"glossary\":{\"title\":\"example glossary\",\"id\":49019246782,\"GlossDiv\":{\"title\":\"S\",\"GlossList\":{\"GlossEntry\":{\"ID\":\"SGML\",\"SortAs\":\"SGML\",\"GlossTerm\":\"Standard Generalized Markup Language\",\"Acronym\":\"SGML\",\"Abbrev\":\"ISO 8879:1986\",\"GlossDef\":{\"para\":\"A meta-markup language, used to create markup languages such as DocBook.\",\"GlossSeeAlso\":[\"GML\",\"XML\"]},\"GlossSee\":\"markup\"}}}}}")
+
 (defn return-request
   ([req]
    {:status 200
@@ -31,11 +52,13 @@
                   .getBytes)})))
 
 (defn async-return-request-handler
-  "An asynchronous handler that returns the request in the response body"
+  "An asynchronous handler that returns the request (without the body)
+   in the response body"
   [req respond _raise]
   (-> req return-request respond))
 
 (defn serialize-body
+  "Serializes the request body and returns it as the response body"
   ([req]
    {:status 200
     :body   (-> (:body req)
@@ -49,7 +72,8 @@
                   .getBytes)})))
 
 (defn async-serialize-body-handler
-  "An asynchronous handler that returns the request in the response body"
+  "An asynchronous handler that returns the request (without the body)
+  in the response body"
   [req respond _raise]
   (-> req serialize-body respond))
 
@@ -213,3 +237,8 @@
 (def serialize-body-non-blocking-route
   {:path    "/serialize-body/non-blocking"
    :handler async-serialize-body-handler})
+
+(def json-response
+  {:path         "/json"
+   :handler-mode :blocking
+   :handler      (fn [_req] {:status 200 :body sample-json})})

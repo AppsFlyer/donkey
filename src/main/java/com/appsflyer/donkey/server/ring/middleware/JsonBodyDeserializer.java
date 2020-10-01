@@ -25,11 +25,11 @@ import java.util.Objects;
 
 import static com.appsflyer.donkey.server.ring.handler.RingRequestField.BODY;
 
-public class JsonBodyParser implements RingMiddleware {
+public class JsonBodyDeserializer implements RingMiddleware {
   
   private final ObjectMapper mapper;
   
-  public JsonBodyParser(ObjectMapper mapper) {
+  public JsonBodyDeserializer(ObjectMapper mapper) {
     this.mapper = mapper;
   }
   
