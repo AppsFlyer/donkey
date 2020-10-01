@@ -1,12 +1,15 @@
 language: java
-sudo: required
 dist: bionic
 jdk: openjdk11
 cache:
   directories:
     - $HOME/.m2
+script:
+  - mvn dependency:resolve -B -V
+  - lein deps
+  - mvn install -B
 after_success:
-  - lein cloverage -o target --coveralls --emma-xml --junit
+  - lein coveralls
   - mvn jacoco:report coveralls:report
 notifications:
   email:
