@@ -182,6 +182,9 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <coverallsFile>
+                        ${project.build.directory}/coveralls/java/coveralls.json
+                    </coverallsFile>
                     <failOnServiceError>false</failOnServiceError>
                 </configuration>
             </plugin>
@@ -271,6 +274,11 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>metosin</groupId>
+            <artifactId>jsonista</artifactId>
+            <version>0.2.7</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
