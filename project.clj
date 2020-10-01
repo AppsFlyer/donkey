@@ -41,6 +41,7 @@
                  [org.slf4j/slf4j-api "1.7.30"]
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/spec.alpha "0.2.187"]
+                 [metosin/jsonista "0.2.7"]
                  [org.jetbrains/annotations "13.0" :scope "compile"]]
   :profiles {:dev     {:dependencies   [[org.clojure/tools.logging "1.1.0"]
                                         [ch.qos.logback/logback-classic "1.2.3"]
@@ -56,5 +57,6 @@
                        :plugins        [[lein-kibit "0.1.8"]
                                         [lein-cloverage "1.1.2"]]}
              :uberjar {:aot :all}}
+  :aliases {"coveralls" ["cloverage" "--junit" "--output" "target/coveralls/clojure" "--coveralls"]}
   :pom-location "target/"
   :repl-options {:init-ns com.appsflyer.donkey.core})

@@ -1,3 +1,19 @@
+;
+; Copyright 2020 AppsFlyer
+;
+; Licensed under the Apache License, Version 2.0 (the "License")
+; you may not use this file except in compliance with the License.
+; You may obtain a copy of the License at
+;
+;     http://www.apache.org/licenses/LICENSE-2.0
+;
+; Unless required by applicable law or agreed to in writing, software
+; distributed under the License is distributed on an "AS IS" BASIS,
+; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; See the License for the specific language governing permissions and
+; limitations under the License.
+;
+
 (ns com.appsflyer.donkey.routes
   (:require [com.appsflyer.donkey.test-helper :as helper]))
 
@@ -18,6 +34,24 @@
   "An asynchronous handler that returns the request in the response body"
   [req respond _raise]
   (-> req return-request respond))
+
+(defn serialize-body
+  ([req]
+   {:status 200
+    :body   (-> (:body req)
+                pr-str
+                .getBytes)})
+  ([req respond _raise]
+   (respond
+     {:status 200
+      :body   (-> (:body req)
+                  pr-str
+                  .getBytes)})))
+
+(defn async-serialize-body-handler
+  "An asynchronous handler that returns the request in the response body"
+  [req respond _raise]
+  (-> req serialize-body respond))
 
 (def root-200
   {:path         "/"
@@ -170,3 +204,12 @@
                           (raise ex)))))]
    ; Should not be called
    :handler      (fn [_req respond _raise] (respond {:status 200}))})
+
+(def serialize-body-route
+  {:path         "/serialize-body"
+   :handler-mode :blocking
+   :handler      serialize-body})
+
+(def serialize-body-non-blocking-route
+  {:path    "/serialize-body/non-blocking"
+   :handler async-serialize-body-handler})
