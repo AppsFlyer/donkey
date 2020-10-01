@@ -4,10 +4,6 @@ jdk: openjdk11
 cache:
   directories:
     - $HOME/.m2
-script:
-  - mvn dependency:resolve -B -V
-  - lein deps
-  - mvn install -B
 after_success:
   - lein coveralls
   - mvn jacoco:report coveralls:report
