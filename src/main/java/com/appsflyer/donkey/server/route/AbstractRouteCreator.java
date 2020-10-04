@@ -16,7 +16,6 @@
 
 package com.appsflyer.donkey.server.route;
 
-import com.appsflyer.donkey.server.router.RouteList;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;

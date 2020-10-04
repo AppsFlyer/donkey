@@ -19,7 +19,7 @@ package com.appsflyer.donkey.server.handler;
 import com.appsflyer.donkey.server.route.HandlerMode;
 import com.appsflyer.donkey.server.route.PathDefinition;
 import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.router.RouteList;
+import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
