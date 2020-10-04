@@ -17,7 +17,7 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.router.RouteList;
+import com.appsflyer.donkey.server.route.RouteList;
 import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;

@@ -19,7 +19,7 @@ package com.appsflyer.donkey.server.ring.route;
 import com.appsflyer.donkey.server.route.AbstractRouteCreator;
 import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.handler.AdapterFactory;
-import com.appsflyer.donkey.server.router.RouteList;
+import com.appsflyer.donkey.server.route.RouteList;
 import com.appsflyer.donkey.server.ring.handler.RingAdapterFactory;
 import com.appsflyer.donkey.server.ring.handler.RingHandler;
 import io.vertx.ext.web.Route;

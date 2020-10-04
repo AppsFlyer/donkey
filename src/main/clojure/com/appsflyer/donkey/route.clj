@@ -19,8 +19,8 @@
            (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (com.appsflyer.donkey.server.router RouteList)
            (com.appsflyer.donkey.server.route PathDefinition$MatchType
+                                              RouteList
                                               HandlerMode
                                               PathDefinition
                                               RouteDefinition)

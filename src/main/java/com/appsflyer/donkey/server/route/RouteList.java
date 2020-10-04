@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.appsflyer.donkey.server.router;
-
-import com.appsflyer.donkey.server.route.RouteDefinition;
+package com.appsflyer.donkey.server.route;
 
 import java.util.*;
 

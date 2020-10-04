@@ -19,7 +19,7 @@ package com.appsflyer.donkey.server.handler;
 import com.appsflyer.donkey.TestUtil;
 import com.appsflyer.donkey.server.route.PathDefinition;
 import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.router.RouteList;
+import com.appsflyer.donkey.server.route.RouteList;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;

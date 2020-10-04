@@ -18,7 +18,7 @@ package com.appsflyer.donkey.server.ring.route;
 
 import com.appsflyer.donkey.server.route.PathDefinition;
 import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.router.RouteList;
+import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
