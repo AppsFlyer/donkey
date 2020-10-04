@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-package com.appsflyer.donkey.server.handler;
+package com.appsflyer.donkey.server.route;
 
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
-
-/**
- * Handler that adds a {@code Server} header to the response
- */
-public class ServerHeaderHandler implements Handler<RoutingContext> {
+public class PathDefinitionImpl implements PathDefinition {
   
-  private static final String SERVER_PROP = "Server";
-  static final String SERVER_NAME = "Donkey";
+  private final String value;
+  private final MatchType matchType;
   
-  public static ServerHeaderHandler create() {
-    return new ServerHeaderHandler();
+  PathDefinitionImpl(String value, MatchType matchType) {
+    this.value = value;
+    this.matchType = matchType;
+  }
+  
+  PathDefinitionImpl(String value) {
+    this(value, MatchType.SIMPLE);
   }
   
   @Override
-  public void handle(RoutingContext ctx) {
-    ctx.addHeadersEndHandler(v -> ctx.response().putHeader(SERVER_PROP, SERVER_NAME));
-    ctx.next();
+  public String value() {
+    return value;
+  }
+  
+  @Override
+  public MatchType matchType() {
+    return matchType;
   }
   
 }

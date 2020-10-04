@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server.route;
 
 import io.vertx.core.Handler;
@@ -11,17 +27,17 @@ import java.util.stream.Stream;
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class RouteDescriptorTest {
+class RouteDefinitionTest {
   
   @Test
   void testRequiredHandler() {
-    RouteDescriptor descriptor = RouteDescriptor.create();
+    RouteDefinition descriptor = RouteDefinition.create();
     assertThrows(IllegalStateException.class, descriptor::handler);
   }
   
   @Test
   void testNonNullArguments() {
-    RouteDescriptor descriptor = RouteDescriptor.create();
+    RouteDefinition descriptor = RouteDefinition.create();
     assertThrows(NullPointerException.class, () -> descriptor.addMethod(null));
     assertThrows(NullPointerException.class, () -> descriptor.addConsumes(null));
     assertThrows(NullPointerException.class, () -> descriptor.addProduces(null));
@@ -34,7 +50,7 @@ class RouteDescriptorTest {
   @Test
   void testDefaultValues() {
     Handler<RoutingContext> handler = v -> {};
-    RouteDescriptor descriptor = RouteDescriptor.create().handler(handler);
+    RouteDefinition descriptor = RouteDefinition.create().handler(handler);
     assertNull(descriptor.path());
     assertEquals(Collections.emptySet(), descriptor.methods());
     assertEquals(Collections.emptySet(), descriptor.consumes());
@@ -45,10 +61,10 @@ class RouteDescriptorTest {
   
   @Test
   void testMethods() {
-    RouteDescriptor descriptor = RouteDescriptor.create().addMethod(POST);
+    RouteDefinition descriptor = RouteDefinition.create().addMethod(POST);
     assertEquals(Set.of(POST), descriptor.methods());
-    
-    descriptor = RouteDescriptor.create()
+  
+    descriptor = RouteDefinition.create()
                                 .addMethod(GET)
                                 .addMethod(POST)
                                 .addMethod(PUT)
@@ -58,10 +74,10 @@ class RouteDescriptorTest {
   
   @Test
   void testConsumes() {
-    RouteDescriptor descriptor = RouteDescriptor.create().addConsumes("text/plain");
+    RouteDefinition descriptor = RouteDefinition.create().addConsumes("text/plain");
     assertEquals(Set.of("text/plain"), descriptor.consumes());
-    
-    descriptor = RouteDescriptor.create()
+  
+    descriptor = RouteDefinition.create()
                                 .addConsumes("text/plain")
                                 .addConsumes("application/json")
                                 .addConsumes("application/x-www-form-urlencoded");
@@ -74,10 +90,10 @@ class RouteDescriptorTest {
   
   @Test
   void testProduces() {
-    RouteDescriptor descriptor = RouteDescriptor.create().addProduces("text/plain");
+    RouteDefinition descriptor = RouteDefinition.create().addProduces("text/plain");
     assertEquals(Set.of("text/plain"), descriptor.produces());
-    
-    descriptor = RouteDescriptor.create()
+  
+    descriptor = RouteDefinition.create()
                                 .addProduces("text/plain")
                                 .addProduces("application/json")
                                 .addProduces("application/x-www-form-urlencoded");
@@ -90,7 +106,7 @@ class RouteDescriptorTest {
   
   @Test
   void testContentTypeCannotBeBlank() {
-    RouteDescriptor descriptor = RouteDescriptor.create();
+    RouteDefinition descriptor = RouteDefinition.create();
     Stream.of("", " ").forEach(type -> {
       assertThrows(IllegalArgumentException.class, () -> descriptor.addConsumes(type));
       assertThrows(IllegalArgumentException.class, () -> descriptor.addProduces(type));

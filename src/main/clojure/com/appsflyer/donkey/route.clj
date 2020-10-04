@@ -19,24 +19,24 @@
            (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
            (java.util ArrayList List)
-           (com.appsflyer.donkey.server.router RouterDefinition)
-           (com.appsflyer.donkey.server.route PathDescriptor$MatchType
+           (com.appsflyer.donkey.server.router RouteList)
+           (com.appsflyer.donkey.server.route PathDefinition$MatchType
                                               HandlerMode
-                                              PathDescriptor
-                                              RouteDescriptor)
+                                              PathDefinition
+                                              RouteDefinition)
            (com.appsflyer.donkey.server.ring.handler RingHandler)
            (com.appsflyer.donkey.server.exception StatusCodeAware)))
 
 (defn- keyword->MatchType [matchType]
   (if (= matchType :regex)
-    PathDescriptor$MatchType/REGEX
-    PathDescriptor$MatchType/SIMPLE))
+    PathDefinition$MatchType/REGEX
+    PathDefinition$MatchType/SIMPLE))
 
-(defn- add-path [^RouteDescriptor route route-map]
+(defn- add-path [^RouteDefinition route route-map]
   (when-let [path (:path route-map)]
     (->> (:match-type route-map)
          keyword->MatchType
-         (PathDescriptor/create path)
+         (PathDefinition/create path)
          (.path route)))
   route)
 
@@ -51,17 +51,17 @@
       .toUpperCase
       HttpMethod/valueOf))
 
-(defn- add-methods [^RouteDescriptor route route-map]
+(defn- add-methods [^RouteDefinition route route-map]
   (doseq [method (:methods route-map [])]
     (.addMethod route (keyword->HttpMethod method)))
   route)
 
-(defn- add-consumes [^RouteDescriptor route route-map]
+(defn- add-consumes [^RouteDefinition route route-map]
   (doseq [^String content-type (:consumes route-map [])]
     (.addConsumes route content-type))
   route)
 
-(defn- add-produces [^RouteDescriptor route route-map]
+(defn- add-produces [^RouteDefinition route route-map]
   (doseq [^String content-type (:produces route-map [])]
     (.addProduces route content-type))
   route)
@@ -73,19 +73,22 @@
              (format "Could not find '%s' in RoutingContext"
                      RingHandler/RING_HANDLER_RESULT)))))
 
-(defn- response-handler [^RoutingContext ctx res]
+(defn- handle-response [^RoutingContext ctx res]
   (let [failed (.failed ctx)
         ended (-> ctx .response .ended)]
     (when-not (or failed ended)
       (.next (.put ctx RingHandler/RING_HANDLER_RESULT res)))))
 
+(defn- handle-exception [^RoutingContext ctx ex]
+  (if (instance? StatusCodeAware ex)
+    (.fail ^RoutingContext ctx (.code ^StatusCodeAware ex) ^Throwable ex)
+    (.fail ^RoutingContext ctx ^Throwable ex)))
+
 (deftype RouteHandler [fun]
   RingHandler
   (handle [_this ctx]
-    (let [respond (partial response-handler ctx)
-          raise (fn [ex] (if (instance? StatusCodeAware ex)
-                           (.fail ^RoutingContext ctx (.code ^StatusCodeAware ex) ^Throwable ex)
-                           (.fail ^RoutingContext ctx ^Throwable ex)))]
+    (let [respond (partial handle-response ctx)
+          raise (partial handle-exception ctx)]
       (try
         (fun (get-last-handler-result ctx) respond raise)
         (catch Throwable ex
@@ -100,9 +103,7 @@
                 (fun (get-last-handler-result ^RoutingContext ctx)))
           .next)
       (catch Throwable ex
-        (if (instance? StatusCodeAware ex)
-          (.fail ^RoutingContext ctx (.code ^StatusCodeAware ex) ^Throwable ex)
-          (.fail ^RoutingContext ctx ^Throwable ex))))))
+        (handle-exception ctx ex)))))
 
 (defmulti
   ^:private create-handler
@@ -117,22 +118,23 @@
   ^:private create-handler :non-blocking [route-map]
   (->RouteHandler (:handler route-map)))
 
-(defn- add-handler [^RouteDescriptor route route-map]
+(defn- add-handler [^RouteDefinition route route-map]
   (.handler route ^Handler (create-handler route-map)))
 
-(defn- add-handler-mode [^RouteDescriptor route route-map]
+(defn- add-handler-mode [^RouteDefinition route route-map]
   (when-let [handler-mode (:handler-mode route-map)]
     (.handlerMode route (keyword->HandlerMode handler-mode)))
   route)
 
 (defn- map->RouteDescriptor [route-map]
-  (-> (RouteDescriptor/create)
-      (add-path route-map)
-      (add-methods route-map)
-      (add-consumes route-map)
-      (add-produces route-map)
-      (add-handler-mode route-map)
-      (add-handler route-map)))
+  (->
+    (RouteDefinition/create)
+    (add-path route-map)
+    (add-methods route-map)
+    (add-consumes route-map)
+    (add-produces route-map)
+    (add-handler-mode route-map)
+    (add-handler route-map)))
 
 (defn- compose-middleware
   "The function takes the global middleware that's applied to all routes,
@@ -148,10 +150,11 @@
     (if (empty? handlers)
       handler
       (let [comp-fn (apply comp handlers)]
+        ; initialize the middleware
         (comp-fn handler)))))
 
 (defn- create-route-descriptors
-  "Returns a List<RouteDescriptor>"
+  "Returns a List<RouteDefinition>"
   [opts]
   (reduce
     (fn [res route]
@@ -164,4 +167,4 @@
     (:routes opts)))
 
 (defn get-router-definition [opts]
-  (RouterDefinition. (create-route-descriptors opts)))
+  (RouteList. (create-route-descriptors opts)))

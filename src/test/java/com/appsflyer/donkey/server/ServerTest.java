@@ -1,7 +1,23 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.server.route.RouteDescriptor;
-import com.appsflyer.donkey.server.router.RouterDefinition;
+import com.appsflyer.donkey.server.route.RouteDefinition;
+import com.appsflyer.donkey.server.router.RouteList;
 import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
@@ -70,17 +86,17 @@ class ServerTest {
             })));
   }
   
-  private RouteDescriptor newRouteDescriptor() {
-    return RouteDescriptor.create().handler(ctx -> ctx.response().end(responseBody));
+  private RouteDefinition newRouteDescriptor() {
+    return RouteDefinition.create().handler(ctx -> ctx.response().end(responseBody));
   }
   
-  private ServerConfig newServerConfig(Vertx vertx, RouteDescriptor routeDescriptor) {
+  private ServerConfig newServerConfig(Vertx vertx, RouteDefinition routeDefinition) {
     return ServerConfig.builder()
                        .vertx(vertx)
                        .instances(4)
                        .serverOptions(new HttpServerOptions().setPort(port))
                        .routeCreatorFactory(new RingRouteCreatorFactory())
-                       .routerDefinition(RouterDefinition.from(routeDescriptor))
+                       .routerDefinition(RouteList.from(routeDefinition))
                        .build();
   }
 }

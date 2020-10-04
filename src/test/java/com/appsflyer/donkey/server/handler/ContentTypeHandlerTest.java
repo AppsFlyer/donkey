@@ -1,9 +1,25 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server.handler;
 
 import com.appsflyer.donkey.TestUtil;
-import com.appsflyer.donkey.server.route.PathDescriptor;
-import com.appsflyer.donkey.server.route.RouteDescriptor;
-import com.appsflyer.donkey.server.router.RouterDefinition;
+import com.appsflyer.donkey.server.route.PathDefinition;
+import com.appsflyer.donkey.server.route.RouteDefinition;
+import com.appsflyer.donkey.server.router.RouteList;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
@@ -77,12 +93,12 @@ class ContentTypeHandlerTest {
             Map.of(CONTENT_TYPE, "application/octet-stream",
                    "uri", "/octet-stream",
                    "body", "Hello World"));
-    
+  
     var routeDescriptors =
         routes.stream()
               .map(entry -> routeForContentType(entry.get("uri"), entry.get(CONTENT_TYPE))
                   .handler(ctx -> ctx.response().end(entry.get("body"))))
-              .toArray(RouteDescriptor[]::new);
+              .toArray(RouteDefinition[]::new);
     
     ServerConfig config = getDefaultConfigBuilder(
         vertx, newRouterDefinitionWithContentType(routeDescriptors))
@@ -107,24 +123,24 @@ class ContentTypeHandlerTest {
                      assertEquals(v.get("body"), response.bodyAsString());
                      responsesReceived.flag();
                    }))));
-    
+  
     shutdownServerLatch.await(5, TimeUnit.SECONDS);
   }
   
-  private RouteDescriptor routeForContentType(String uri, String contentType) {
-    return RouteDescriptor.create().path(PathDescriptor.create(uri)).addProduces(contentType);
+  private RouteDefinition routeForContentType(String uri, String contentType) {
+    return RouteDefinition.create().path(PathDefinition.create(uri)).addProduces(contentType);
   }
   
-  private RouterDefinition newRouterDefinitionWithContentType(RouteDescriptor... routeDescriptors) {
-    return RouterDefinition.from(routeDescriptors);
+  private RouteList newRouterDefinitionWithContentType(RouteDefinition... routeDefinitions) {
+    return RouteList.from(routeDefinitions);
   }
   
-  private ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx, RouterDefinition routerDefinition) {
+  private ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx, RouteList routeList) {
     return ServerConfig.builder()
                        .vertx(vertx)
                        .instances(1)
                        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
-                       .routerDefinition(routerDefinition)
+                       .routerDefinition(routeList)
                        .routeCreatorFactory(TestUtil::newRouteCreator);
   }
 }

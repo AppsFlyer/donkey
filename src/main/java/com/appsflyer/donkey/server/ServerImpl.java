@@ -1,6 +1,22 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.server.route.RouteDescriptor;
+import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.handler.DateHeaderHandler;
 import com.appsflyer.donkey.server.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
@@ -22,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class ServerImpl implements Server {
   
   private static final Logger logger = LoggerFactory.getLogger(ServerImpl.class.getName());
+  private static final int TIMEOUT_SECONDS = 10;
   private final ServerConfig config;
   
   ServerImpl(ServerConfig config) {
@@ -31,7 +48,7 @@ public final class ServerImpl implements Server {
   }
   
   private void addOptionalHandlers() {
-    Collection<Handler<RoutingContext>> handlers = new ArrayList<>(4);
+    Collection<Handler<RoutingContext>> handlers = new ArrayList<>();
     if (config.debug()) {
       handlers.add(LoggerHandler.create());
     }
@@ -44,8 +61,8 @@ public final class ServerImpl implements Server {
     if (config.addServerHeader()) {
       handlers.add(ServerHeaderHandler.create());
     }
-    
-    handlers.forEach(h -> config.routerDefinition().addFirst(RouteDescriptor.create().handler(h)));
+  
+    handlers.forEach(h -> config.routerDefinition().addFirst(RouteDefinition.create().handler(h)));
   }
   
   @Override
@@ -65,7 +82,7 @@ public final class ServerImpl implements Server {
   
   @Override
   public void startSync() throws ServerInitializationException {
-    startSync(5, TimeUnit.SECONDS);
+    startSync(TIMEOUT_SECONDS, TimeUnit.SECONDS);
   }
   
   @Override
@@ -107,7 +124,7 @@ public final class ServerImpl implements Server {
   
   @Override
   public void shutdownSync() throws ServerShutdownException {
-    shutdownSync(5, TimeUnit.SECONDS);
+    shutdownSync(TIMEOUT_SECONDS, TimeUnit.SECONDS);
   }
   
   @Override
