@@ -1,7 +1,23 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server.route;
 
 import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
-import com.appsflyer.donkey.server.router.RouterDefinition;
+import com.appsflyer.donkey.server.router.RouteList;
 import com.appsflyer.donkey.server.router.RouterFactory;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -24,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.appsflyer.donkey.TestUtil.*;
-import static com.appsflyer.donkey.server.route.PathDescriptor.MatchType.REGEX;
+import static com.appsflyer.donkey.server.route.PathDefinition.MatchType.REGEX;
 import static io.vertx.core.http.HttpMethod.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,12 +51,12 @@ class IntegrationTest {
   
   private static final String dummyJson = "{\"foo\":\"bar\"}";
   
-  private RouterFactory newRouterFactory(Vertx vertx, List<RouteDescriptor> routes) {
+  private RouterFactory newRouterFactory(Vertx vertx, List<RouteDefinition> routes) {
     return RouterFactory.create(vertx, newHandlerConfig(routes));
   }
   
-  private RouterDefinition newHandlerConfig(List<RouteDescriptor> routes) {
-    return new RouterDefinition(routes);
+  private RouteList newHandlerConfig(List<RouteDefinition> routes) {
+    return new RouteList(routes);
   }
   
   private void assertContextSuccess(VertxTestContext testContext) throws
@@ -64,37 +80,37 @@ class IntegrationTest {
       requestsServed.flag();
     };
   
-    var getFoo = RouteDescriptor.create()
+    var getFoo = RouteDefinition.create()
                                 .addMethod(GET)
-                                .path(PathDescriptor.create("/foo"))
+                                .path(PathDefinition.create("/foo"))
                                 .handler(handler);
   
-    var postFooBar = RouteDescriptor.create()
+    var postFooBar = RouteDefinition.create()
                                     .addMethod(POST)
-                                    .path(PathDescriptor.create("/foo/bar"))
+                                    .path(PathDefinition.create("/foo/bar"))
                                     .handler(handler);
   
-    var postOrPutJson = RouteDescriptor.create()
+    var postOrPutJson = RouteDefinition.create()
                                        .addMethod(POST)
                                        .addMethod(PUT)
-                                       .path(PathDescriptor.create("/json"))
+                                       .path(PathDefinition.create("/json"))
                                        .addConsumes("application/json")
                                        .addProduces("application/json")
                                        .handler(handler);
   
-    var getPathVariable = RouteDescriptor.create()
+    var getPathVariable = RouteDefinition.create()
                                          .addMethod(GET)
-                                         .path(PathDescriptor.create("/token/:tokenId"))
+                                         .path(PathDefinition.create("/token/:tokenId"))
                                          .handler(handler);
   
-    var getRegexPath = RouteDescriptor.create()
+    var getRegexPath = RouteDefinition.create()
                                       .addMethod(GET)
-                                      .path(PathDescriptor.create("/id/(\\d+)", REGEX))
+                                      .path(PathDefinition.create("/id/(\\d+)", REGEX))
                                       .handler(handler);
   
-    var postComplexRegexPath = RouteDescriptor.create()
+    var postComplexRegexPath = RouteDefinition.create()
                                               .addMethod(POST)
-                                              .path(PathDescriptor.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
+                                              .path(PathDefinition.create("/([a-z]+-company)/(\\d+)/(account.{3})-dept", REGEX))
                                               .handler(handler);
   
     return newRouterFactory(

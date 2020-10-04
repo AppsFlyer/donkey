@@ -16,6 +16,11 @@
 
 package com.appsflyer.donkey.server.exception;
 
+/**
+ * Represents an exception that has a status code.
+ * This is typically used to associate a code with an exception
+ * so the appropriate http status code is sent back to the client.
+ */
 @FunctionalInterface
 public interface StatusCodeAware {
   

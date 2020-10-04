@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.appsflyer.donkey.server.route;
 
 import io.vertx.core.Handler;
@@ -6,22 +22,22 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
 
-public class RouteDescriptorImpl implements RouteDescriptor {
+public class RouteDefinitionImpl implements RouteDefinition {
   
   private final Collection<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
   private final Collection<String> consumes = new HashSet<>(6);
   private final Collection<String> produces = new HashSet<>(6);
   private HandlerMode handlerMode = HandlerMode.NON_BLOCKING;
   private Handler<RoutingContext> handler;
-  private PathDescriptor path;
+  private PathDefinition path;
   
   @Override
-  public PathDescriptor path() {
+  public PathDefinition path() {
     return path;
   }
   
   @Override
-  public RouteDescriptor path(PathDescriptor path) {
+  public RouteDefinition path(PathDefinition path) {
     this.path = path;
     return this;
   }
@@ -35,7 +51,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor addMethod(HttpMethod method) {
+  public RouteDefinition addMethod(HttpMethod method) {
     Objects.requireNonNull(method, "method cannot be null");
     methods.add(method);
     return this;
@@ -50,7 +66,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor addConsumes(String contentType) {
+  public RouteDefinition addConsumes(String contentType) {
     assertNonEmptyContentType(contentType);
     consumes.add(contentType);
     return this;
@@ -65,7 +81,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor addProduces(String contentType) {
+  public RouteDefinition addProduces(String contentType) {
     assertNonEmptyContentType(contentType);
     produces.add(contentType);
     return this;
@@ -80,7 +96,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor handler(Handler<RoutingContext> handler) {
+  public RouteDefinition handler(Handler<RoutingContext> handler) {
     Objects.requireNonNull(handler, "Handler cannot be null");
     this.handler = handler;
     return this;
@@ -92,7 +108,7 @@ public class RouteDescriptorImpl implements RouteDescriptor {
   }
   
   @Override
-  public RouteDescriptor handlerMode(HandlerMode handlerMode) {
+  public RouteDefinition handlerMode(HandlerMode handlerMode) {
     Objects.requireNonNull(handlerMode, "handler mode cannot be null");
     this.handlerMode = handlerMode;
     return this;

@@ -1,10 +1,7 @@
 
 ## TODO
 - Setup coveralls when repo is public
-- Setup release stage in CI to clojars and maven central
-- Check if there's a need to implement the `wrap-remove-amps` from af-nonblocking
-to replace encoded ampersands. 
-- Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased? 
+- Setup release stage in CI to clojars and maven central  
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
 https://vertx.io/docs/vertx-web-client/java/#response-predicates
@@ -17,7 +14,6 @@ https://github.com/AppsFlyer/unleash-client-clojure/blob/master/test/unleash_cli
 It's probably going to be simple enough to create an "alive" health check
 without user interference (or with minimal such as port and uri).
 A "healthy" health check would require the user to provide a handler. 
-- Clean up the middleware code in route.clj
 - Add more middleware tests
 - TESTS!
 - Documentation
@@ -27,6 +23,11 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased?
+- Clean up the middleware code in route.clj
+- Check if there's a need to implement the `wrap-remove-amps` from af-nonblocking
+to replace encoded ampersands.
+Deferring it for now - if people need this they can use af-nonblocking-ring-middleware.
 - Look into implementing JSON serialization / deserialization middleware
 - Move project to AppsFlyer github repo.
 - Setup CI
