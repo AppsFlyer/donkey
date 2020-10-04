@@ -50,7 +50,8 @@
                                         [org.junit.jupiter/junit-jupiter ~junit-version]
                                         [org.mockito/mockito-junit-jupiter "3.4.6"]
                                         [criterium "0.4.6"]
-                                        [clj-http "3.10.2"]]
+                                        [ring/ring-core "1.8.0"]
+                                        [com.clojure-goes-fast/clj-async-profiler "0.4.1"]]
                        :resource-paths ["src/test/resources"]
                        :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
                                                   "-Dvertx.disableContextTimings=false"]
