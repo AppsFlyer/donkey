@@ -50,8 +50,7 @@
                                         [org.junit.jupiter/junit-jupiter ~junit-version]
                                         [org.mockito/mockito-junit-jupiter "3.4.6"]
                                         [criterium "0.4.6"]
-                                        [ring/ring-core "1.8.0"]
-                                        [com.clojure-goes-fast/clj-async-profiler "0.4.1"]]
+                                        [ring/ring-core "1.8.1"]]
                        :resource-paths ["src/test/resources"]
                        :jvm-opts       ^:replace ["-Dclojure.compiler.direct-linking=true"
                                                   "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
