@@ -53,7 +53,10 @@
                                         [ring/ring-core "1.8.0"]
                                         [com.clojure-goes-fast/clj-async-profiler "0.4.1"]]
                        :resource-paths ["src/test/resources"]
-                       :jvm-opts       ^:replace ["-Dvertx.threadChecks=false"
+                       :jvm-opts       ^:replace ["-Dclojure.compiler.direct-linking=true"
+                                                  "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
+                                                  "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"
+                                                  "-Dvertx.threadChecks=true"
                                                   "-Dvertx.disableContextTimings=false"]
                        :plugins        [[lein-kibit "0.1.8"]
                                         [lein-cloverage "1.1.2"]]}

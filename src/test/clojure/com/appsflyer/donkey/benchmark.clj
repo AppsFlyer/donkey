@@ -15,33 +15,70 @@
 ;
 
 (ns com.appsflyer.donkey.benchmark
+  (:gen-class)
   (:require [criterium.core :as cc]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
             [com.appsflyer.donkey.middleware.params :refer [parse-query-params
                                                             keywordize-query-params]]))
 
+(declare -main)
 
-;Evaluation count : 10900800 in 60 samples of 181680 calls.
-;Execution time lower quantile : 5.418234 µs ( 2.5%)
-;Execution time upper quantile : 5.632535 µs (97.5%)
+(def ^:private my-ns (-> (meta #'-main) :ns str))
+
+(defmacro title [benchmark]
+  (let [benchmark# (symbol my-ns (str benchmark))]
+    `(println (str "Running benchmark for '" (:name (meta (var ~benchmark#))) "' ..."))))
+
+;Evaluation count : 11308800 in 60 samples of 188480 calls.
+;Execution time sample mean : 5.349326 µs
+;Execution time mean : 5.349414 µs
+;Execution time sample std-deviation : 46.974663 ns
+;Execution time std-deviation : 48.000457 ns
+;Execution time lower quantile : 5.299997 µs ( 2.5%)
+;Execution time upper quantile : 5.462938 µs (97.5%)
+;Overhead used : 6.156983 ns
 (defn bench-ring-warp-keyword-params []
+  (title bench-ring-warp-keyword-params)
+
   (let [middleware ((comp wrap-params wrap-keyword-params) identity)]
-    (cc/with-progress-reporting
-      (cc/bench
-        (middleware
-          {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
-        :verbose))))
+    (cc/bench
+      (middleware
+        {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
+      :verbose)))
 
 ; =============================================================
 
-;Evaluation count : 69935820 in 60 samples of 1165597 calls.
-;Execution time lower quantile : 806.790313 ns ( 2.5%)
-;Execution time upper quantile : 840.258526 ns (97.5%)
+;Evaluation count : 87036480 in 60 samples of 1450608 calls.
+;Execution time sample mean : 695.467996 ns
+;Execution time mean : 695.434175 ns
+;Execution time sample std-deviation : 8.472041 ns
+;Execution time std-deviation : 8.547805 ns
+;Execution time lower quantile : 686.252122 ns ( 2.5%)
+;Execution time upper quantile : 715.160931 ns (97.5%)
+;Overhead used : 5.771017 ns
 (defn bench-donkey-keywordize-query-params []
+  (title bench-donkey-keywordize-query-params)
+
   (let [middleware ((comp parse-query-params keywordize-query-params) identity)]
-    (cc/with-progress-reporting
-      (cc/bench
-        (middleware
-          {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
-        :verbose))))
+    (cc/bench
+      (middleware
+        {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
+      :verbose)))
+
+; =============================================================
+
+(defn- run-all []
+  (bench-ring-warp-keyword-params)
+  (bench-donkey-keywordize-query-params))
+
+(defn -main [& args]
+  (let [ran (atom false)]
+    (doseq [fn-name args]
+      (when-let [func (resolve (symbol my-ns (str fn-name)))]
+        (reset! ran true)
+        (func)))
+
+    (when (not @ran)
+      (println "Running all benchmarks")
+      (run-all))))
