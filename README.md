@@ -1,6 +1,7 @@
 ## Donkey
 
 [![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)
+[![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)
 
 ### Creating a Donkey
 
