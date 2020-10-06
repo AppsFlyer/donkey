@@ -1,6 +1,5 @@
 
 ## TODO
-- Setup coveralls when repo is public
 - Setup release stage in CI to clojars and maven central  
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
@@ -14,15 +13,33 @@ https://github.com/AppsFlyer/unleash-client-clojure/blob/master/test/unleash_cli
 It's probably going to be simple enough to create an "alive" health check
 without user interference (or with minimal such as port and uri).
 A "healthy" health check would require the user to provide a handler. 
-- Add more middleware tests
 - TESTS!
 - Documentation
-- Examples
 - README
+- Server Examples
+    - Simplest GET request
+    - GET request with parameters
+    - POST request with raw body
+    - POST request urlencoded
+    - POST request multipart with file upload
+
+- Client Examples
+    - Simplest GET request
+    - GET request with parameters
+    - POST request with raw body
+    - POST request urlencoded
+    - POST request multipart with file upload
+    - Overriding the host + port
+    - Proxy request
+    - Basic authentication
+    - Bearer token (OAuth2)
+
 
 ========================================
 
 ## DONE
+- Add more middleware tests
+- Setup coveralls when repo is public
 - Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased?
 - Clean up the middleware code in route.clj
 - Check if there's a need to implement the `wrap-remove-amps` from af-nonblocking

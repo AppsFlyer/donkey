@@ -66,8 +66,7 @@
                                 :port 3128
                                 :type :http|:sock4|:sock5}
    :compression                false
-   :ssl                        false}
-  )
+   :ssl                        false})
 
 (defprotocol IDonkey
   (create-server [_this opts]
