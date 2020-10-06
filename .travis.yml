@@ -8,8 +8,9 @@ before_cache:
   - rm -rf $HOME/.m2/repository/com/appsflyer/
 after_success:
   - lein coveralls
-  - curl -F 'json_file=@target/coveralls/clojure/coveralls.json' 'https://coveralls.io/api/v1/jobs'
-  - mvn jacoco:report coveralls:report -B
+  - mvn jacoco:report coveralls:report -DdryRun=true -B
+  - lein trampoline run -m coveralls-report
+  - curl -F 'json_file=@target/coveralls/coveralls.json' 'https://coveralls.io/api/v1/jobs'
 notifications:
   email:
     - yaron.elyashiv@appsflyer.com
