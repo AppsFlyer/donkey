@@ -5,7 +5,48 @@
 [![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)
 [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)
 
- <p style="font-size:1.2em;color:#999">Modern Clojure HTTP server and client built for ease of use and performance</p> 
+Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use 
+and performance
+
+
+Including the library in `project.clj`
+```clojure
+[com.appsflyer/donkey "0.1.0-SNAPSHOT"]
+``` 
+
+Including the library in `pom.xml`
+```xml
+<dependency>
+    <groupId>com.appsflyer</groupId>
+    <artifactId>donkey</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+### Requirements
+- [Java](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html) 11+
+- [Maven](http://maven.apache.org/download.cgi) 3.6.3+
+- [Leiningen](https://leiningen.org/) 2.9.3+
+
+### Building
+The preferred way to build the project for local development is using 
+Maven. It's also possible to generate an uberjar using Leiningen, but you **must**
+use Maven to install the library locally.
+
+Creating a jar with Maven
+```shell script
+mvn package
+```
+
+Creating an uberjar with Leiningen
+```shell script
+lein uberjar
+```
+
+Installing to a local repository
+```shell script
+mvn clean install
+```   
 
 ### Creating a Donkey
 
