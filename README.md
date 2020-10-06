@@ -1,4 +1,4 @@
-## Donkey
+# Donkey
 
 ### WIP - ALPHA VERSION 
 
@@ -48,7 +48,16 @@ Installing to a local repository
 mvn clean install
 ```   
 
-### Creating a Donkey
+## Start up options
+JVM system properties that can be supplied when running the application
+- `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
+warn the user if an event loop or worker thread is being occupied above a certain 
+threshold which will indicate the code should be examined. 
+- `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
+used by the blocked thread checker. It does _**not**_ disable execution metrics that 
+are exposed via JMX.  
+
+## Creating a Donkey
 
 In Donkey, you create HTTP servers and clients using a - `Donkey`.
 Creating a `Donkey` is simple:
@@ -258,7 +267,7 @@ applied to the route. It is also possible to supply a "global"
 applied to all the routes. In that case the global middleware will be applied 
 *first*, followed by the middleware specific to the route.  
 
-#### Support for Routing Libraries
+### Support for Routing Libraries
 
 Sometimes we have an existing service using some HTTP server and
 routing libraries such as [Compojure](https://github.com/weavejester/compojure) 
@@ -342,9 +351,9 @@ To use this router with Donkey we do exactly the same thing we did for
   start)
 ```   
 
-## Middleware
+### Middleware
 
-### Overview
+#### Overview
 
 The term "middleware" is generally used in the context of HTTP frameworks
 as a pluggable unit of functionality that can examine or manipulate the flow of bytes
@@ -369,7 +378,7 @@ The `handler` argument that was given to the higher-order function has the same
 signature as the function being returned. It is the middleware author's 
 responsibility to call the next `handler` at some point.   
  
-### Examples
+#### Examples
  
 Let's start with a one argument middleware that adds a timestamp to a request:
 ```clojure
@@ -435,7 +444,7 @@ request, or stop the execution by calling `raise`.
             (raise exception)))))))
 ```
 
-### Common Middleware
+#### Common Middleware
 
 There are some common operations that Donkey provides as pre-made middleware
 that can be found under `com.appsflyer.donkey.middleware.*` namespaces.
@@ -536,7 +545,7 @@ The following examples assume these required namespaces
           [com.appsflyer.donkey.request :refer [submit submit-form submit-multipart-form]])
 ```
 
-##### Creating a Client
+### Creating a Client
 Creating a client is as simple as this
 
 ```clojure
@@ -576,7 +585,7 @@ The previous example made an HTTPS request to some REST api and printed out
 from the server. We'll discuss how submitting requests and handling responses
 work shortly.  
 
-##### Stopping a Client
+### Stopping a Client
 
 Once we're done with a client we should always stop it. This will release all 
 the resources being held by the client, such as connections, event loops, etc'.
@@ -590,7 +599,7 @@ again.
 
 ---
 
-#### Submitting a Request
+### Submitting a Request
 
 Calling `(def async-request (request donkey-client opts))` creates an 
 `AsyncRequest` but does not submit the request yet. You can reuse an 
@@ -631,7 +640,7 @@ with some attributes like this:
                    "upload-as"      "binary"}})
 ```  
 
-#### FutureResult
+### FutureResult
 
 Requests are submitted asynchronously, meaning the request is executed on 
 a background thread, and calls to `submit[-xxx]*` return a `FutureResult` 
@@ -687,7 +696,7 @@ The rest of the examples assume the following vars are defined
 (def donkey-client (donkey/create-client donkey-core)
 ```  
  
-#### HTTPS Requests
+### HTTPS Requests
 
 Making HTTPS requests requires only setting `:ssl` to `true` when creating the 
 client or the request. The port can be omitted and will default to 443. If 
@@ -799,7 +808,7 @@ server.
 - Donkey trace logs.   
 
   
-#### Logging
+### Logging
 The library doesn't include any logging implementation, and can be used with any
 [SLF4J](http://www.slf4j.org/) compatible logging library.
 The exception is when running in `debug` mode. In order to dynamically change 
@@ -807,15 +816,6 @@ the logging level without forcing users to add XML configuration files, Donkey
 uses [Logback](http://logback.qos.ch/) as its implementation. It should be 
 included on the project's classpath, otherwise a warning will be printed and
 debug logging will be disabled.
-
-## Start up options
-JVM system properties that can be supplied when running the application
-- `-Dvertx.threadChecks=false`: Disable blocked thread checks. Used by Vert.x to 
-warn the user if an event loop or worker thread is being occupied above a certain 
-threshold which will indicate the code should be examined. 
-- `-Dvertx.disableContextTimings=true`: Disable timing context execution. These are 
-used by the blocked thread checker. It does _**not**_ disable execution metrics that 
-are exposed via JMX.  
 
 
 ## License
