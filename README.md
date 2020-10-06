@@ -1,7 +1,11 @@
 ## Donkey
 
+### WIP - ALPHA VERSION 
+
 [![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)
 [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)
+
+ <p style="font-size:1.2em;color:#999">Modern Clojure HTTP server and client built for ease of use and performance</p> 
 
 ### Creating a Donkey
 
@@ -64,8 +68,8 @@ Let's define a route and create a basic "Hello world" endpoint.
 (-> 
   (create-donkey)
   (create-server {:port   8080
-                  :routes [{:handler (fn [_req res _err] 
-                                       (res {:body "Hello, world!"}))}]}))
+                  :routes [{:handler (fn [_request respond _raise] 
+                                       (respond {:body "Hello, world!"}))}]}))
   start
   (on-success (fn [_] (println "Server started listening on port 8080")))
 ``` 
@@ -224,7 +228,7 @@ existing routing logic to Donkey without changing a line of code.
 We'll use Compojure and reitit as examples, but the same goes for any other Ring
 compatible library you use.
 
-##### reitit
+#### reitit
 
 Here is an excerpt from Metosin's reitit 
 [Ring-router](https://cljdoc.org/d/metosin/reitit/0.5.5/doc/introduction#ring-router)
@@ -270,7 +274,7 @@ three argument arity to `handler` and `wrap`, then we'll be able to remove
 `:handler-mode :blocking` and use the default non-blocking mode. 
 
 
-##### Compojure
+#### Compojure
 
 Here is an excerpt from James Reeves'
 [Compojure](https://github.com/weavejester/compojure) repository on GitHub, 
@@ -297,10 +301,104 @@ To use this router with Donkey we do exactly the same thing we did for
   start)
 ```   
 
+## Middleware
+
+### Overview
+
+The term "middleware" is generally used in the context of HTTP frameworks
+as a pluggable unit of functionality that can examine or manipulate the flow of bytes
+between a client and a server. In other words, it allows users to do things such as 
+logging, compression, validation, authorization, and transformation (to name a few) 
+of requests and responses.
+
+According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
+specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
+that accept one or more arguments, where the first argument is the next `handler` function, 
+and any optional arguments required by the middleware. A `handler` in this 
+context can be either another middleware, or a [route](#routes) handler.
+The higher-order function should return a function that accepts one or three arguments:
+- One argument: Called when `:handler-mode` is `:blocking` with a `request` map.
+- Three arguments: Called when `:handler-mode` is `:non-blocking` with a 
+`request` map, `respond` function, and `raise` function. The `respond` function 
+should be called with the result of the next handler, and the `raise` function 
+should be called when it is impossible to continue processing the request 
+because of an exception.
+ 
+The `handler` argument that was given to the higher-order function has the same 
+signature as the function being returned. It is the middleware author's 
+responsibility to call the next `handler` at some point.   
+ 
+### Examples
+ 
+Let's start with a one argument middleware that adds a timestamp to a request:
+```clojure
+(defn add-timestamp-middleware [handler]
+  (fn [request] 
+    (handler 
+      (assoc request :timestamp (System/currentTimeMillis)))))
+```
+
+Now the same middleware with the non-blocking three arguments variant:
+```clojure
+(defn add-timestamp-middleware [handler]
+  (fn [request respond raise]
+    (try
+      (handler
+        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
+      (catch Exception ex
+        (raise ex)))))
+```
+
+In the last examples we've been updating the request and calling
+the next handler with the transformed request. Middleware is not limited to
+only processing and transforming the request. Here is an example of a three 
+argument middleware that adds a `Content-Type` header to the _response_.
+```clojure
+(defn add-content-type-middleware [handler]
+  (fn [request respond raise]
+    (let [respond' (fn [response]
+                     (try
+                       (respond
+                         (update response :headers assoc "Content-Type" "text/plain"))
+                       (catch Exception ex
+                         (raise ex))))]
+        
+      (handler request respond' raise))))
+```
+
+As mentioned before, the three argument function is called when the 
+`:handler-mode` is `:non-blocking`. Notice that we are doing the processing on 
+the calling thread - the event loop. That's because the overhead of 
+[context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system), 
+and potentially spawning a new thread by offloading a simple `assoc` 
+or `update` to a separate thread pool would greatly outweigh the processing time
+on the event loop. However, if for example we had a middleware that 
+performs some operation on a remote database, then we would need to run it on a 
+separate thread.  
+
+In this example we authenticate a user with a remote service. For the sake of 
+the example, all we need to know is that we get back a 
+[CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
+that is executed on a different thread. When the future completes, we check
+if we had an exception, and then either call the next `handler` with the updated
+request, or stop the execution by calling `raise`.
+```clojure
+(defn user-authentication-middleware [handler]
+  (fn [request respond raise]
+    (.whenComplete
+      ^CompletableFuture (authenticate-user request)
+      (reify BiConsumer
+        (accept [this result exception]
+          (if (nil? exception)
+            (handler (assoc request :authenticated result) respond raise)
+            (raise exception)))))))
+```
+
 ### Common Middleware
 
-We get more into writing middleware in [this section](#middleware), but there
-are some common operations that Donkey provides as pre-made middleware.
+There are some common operations that Donkey provides as pre-made middleware
+that can be found under `com.appsflyer.donkey.middleware.*` namespaces.
+
 A very common use case is inspecting the query parameters sent by a client in
 the url of a GET request. By default, the query parameters are available in 
 the request as a string under `:query-string`. It would be much more useful 
@@ -351,49 +449,40 @@ a keyword. We can achieve both objectives with one middleware:
 `keywordize-query-params` will first parse the query string if it wasn't parsed 
 before, and then turn each parameter name into a keyword.
 
+### Server Examples
 
-
-
-
-TODO
-- Simplest GET request
-- GET request with parameters
-- POST request with raw body
-- POST request urlencoded
-- POST request multipart with file upload
-
-### Usage
-
- 
+Consumes & Produces (see [Routes](#routes) section) 
 ```clojure
-(-> {:port   8080
+(->
+  (donkey/create-donkey)
+  (donkey/create-server
+    {:port   8080
      :routes [{:path         "/hello-world"
                :methods      [:get]
                :handler-mode :blocking
                :consumes     ["text/plain"]
-               :handler     (fn [_req]
-                                {:status  200
-                                 :headers {"content-type" "application/json"}
-                                 :body    (.getBytes "{\"greet\":\"Hello world!\"}")})}]}
-    donkey/create-server
-    server/start)
+               :produces     ["application/json"]
+               :handler      (fn [request]
+                               {:status 200
+                                :body   "{\"greet\":\"Hello world!\"}"})}]})
+  server/start)
 ```
 
-Non-blocking handler mode.
+Path variables (see [Routes](#routes) section) 
 ```clojure
-(-> {:port   8080
-     :routes [{:path            "/greet/:name"
-               :methods         [:get]
-               :consumes        ["text/plain"]
-               :handler        (fn [req respond _raise]
-                                   (future
-                                     (respond
-                                       {:status  200
-                                        :headers {"content-type" "text/plain"}
-                                        :body    (.getBytes
-                                                   (str "Hello " (-> :path-params req (get "name"))))})))}]}
-    donkey/create-server
-    server/start)
+(->
+  (donkey/create-donkey)
+  (donkey/create-server
+    {:port   8080
+     :routes [{:path     "/greet/:name"
+               :methods  [:get]
+               :consumes ["text/plain"]
+               :handler  (fn [req respond _raise]
+                           (respond
+                             {:status  200
+                              :headers {"content-type" "text/plain"}
+                              :body    (str "Hello " (-> :path-params req (get "name")))}))}]})
+  server/start)
 ```
 
 ## Client
@@ -550,18 +639,6 @@ In this case the call to `submit` will block the calling thread until a result
 is available. The result may be either a response map, if the request was 
 successful, or an `ExceptionInfo` if it wasn't.            
 
-
-- Simplest GET request
-- GET request with parameters
-- POST request with raw body
-- POST request urlencoded
-- POST request multipart with file upload
-- Overriding host + port
-- Proxy request
-- Basic authentication
-- Bearer token (OAuth2)
-
-
 The rest of the examples assume the following vars are defined
  
 ```clojure
@@ -594,99 +671,6 @@ override it when creating the request.
 
 ```
    
-## Middleware
-
-### Overview
-
-The term "middleware" is generally used in the context of HTTP frameworks
-as a pluggable unit of functionality that can examine or manipulate the flow of bytes
-between a client and a server. In other words, it allows users to do things such as 
-logging, compression, validation, authorization, and transformation (to name a few) 
-of requests and responses.
-
-According to the [Ring](https://github.com/ring-clojure/ring/wiki/Concepts#middleware) 
-specification, middleware are implemented as [higher-order functions](https://clojure.org/guides/higher_order_functions)
-that accept one or more arguments, where the first argument is the next `handler` function, 
-and any optional arguments required by the middleware. A `handler` in this 
-context can be either another middleware, or a [route](#routes) handler.
-The higher-order function should return a function that accepts one or three arguments:
-- One argument: Called when `:handler-mode` is `:blocking` with a `request` map.
-- Three arguments: Called when `:handler-mode` is `:non-blocking` with a 
-`request` map, `respond` function, and `raise` function. The `respond` function 
-should be called with the result of the next handler, and the `raise` function 
-should be called when it is impossible to continue processing the request 
-because of an exception.
- 
-The `handler` argument that was given to the higher-order function has the same 
-signature as the function being returned. It is the middleware author's 
-responsibility to call the next `handler` at some point.   
- 
-### Examples
- 
-Let's start with a one argument middleware that adds a timestamp to a request:
-```clojure
-(defn add-timestamp-middleware [handler]
-  (fn [request] 
-    (handler 
-      (assoc request :timestamp (System/currentTimeMillis)))))
-```
-
-Now the same middleware with the non-blocking three arguments variant:
-```clojure
-(defn add-timestamp-middleware [handler]
-  (fn [request respond raise]
-    (try
-      (handler
-        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
-      (catch Exception ex
-        (raise ex)))))
-```
-
-In the last examples we've been updating the request and calling
-the next handler with the transformed request. Middleware is not limited to
-only processing and transforming the request. Here is an example of a three 
-argument middleware that adds a `Content-Type` header to the _response_.
-```clojure
-(defn add-content-type-middleware [handler]
-  (fn [request respond raise]
-    (let [respond' (fn [response]
-                     (try
-                       (respond
-                         (update response :headers assoc "Content-Type" "text/plain"))
-                       (catch Exception ex
-                         (raise ex))))]
-        
-      (handler request respond' raise))))
-```
-
-As mentioned before, the three argument function is called when the 
-`:handler-mode` is `:non-blocking`. Notice that we are doing the processing on 
-the calling thread - the event loop. That's because the overhead of 
-[context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system), 
-and potentially spawning a new thread by offloading a simple `assoc` 
-or `update` to a separate thread pool would greatly outweigh the processing time
-on the event loop. However, if for example we had a middleware that 
-performs some operation on a remote database, then we would need to run it on a 
-separate thread.  
-
-In this example we authenticate a user with a remote service. For the sake of 
-the example, all we need to know is that we get back a 
-[CompletableFuture](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
-that is executed on a different thread. When the future completes, we check
-if we had an exception, and then either call the next `handler` with the updated
-request, or stop the execution by calling `raise`.
-```clojure
-(defn user-authentication-middleware [handler]
-  (fn [request respond raise]
-    (.whenComplete
-      ^CompletableFuture (authenticate-user request)
-      (reify BiConsumer
-        (accept [this result exception]
-          (if (nil? exception)
-            (handler (assoc request :authenticated result) respond raise)
-            (raise exception)))))))
-```
-
 ## Metrics
 
 The library uses [Dropwizard](https://metrics.dropwizard.io/4.1.2/) to capture 
@@ -758,10 +742,6 @@ Base name: `<:metrics-prefix>.http.clients`
 - `responses-3xx` - A Meter of the 3xx response code
 - `responses-4xx` - A Meter of the 4xx response code
 - `responses-5xx` - A Meter of the 5xx response code
-
-
-
-
    
 ## Debug mode
 Debug mode is activated when creating a server or a client with `:debug true`.
@@ -778,9 +758,14 @@ server.
 - Donkey trace logs.   
 
   
-## Logging
-- Uses SLF4J
-- For debug logging you need to have logback on your classpath.
+#### Logging
+The library doesn't include any logging implementation, and can be used with any
+[SLF4J](http://www.slf4j.org/) compatible logging library.
+The exception is when running in `debug` mode. In order to dynamically change 
+the logging level without forcing users to add XML configuration files, Donkey 
+uses [Logback](http://logback.qos.ch/) as its implementation. It should be 
+included on the project's classpath, otherwise a warning will be printed and
+debug logging will be disabled.
 
 ## Start up options
 JVM system properties that can be supplied when running the application
@@ -798,9 +783,7 @@ Copyright 2020 AppsFlyer
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
