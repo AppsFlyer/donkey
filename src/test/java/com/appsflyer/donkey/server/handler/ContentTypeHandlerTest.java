@@ -81,15 +81,15 @@ class ContentTypeHandlerTest {
             Map.of(CONTENT_TYPE, "text/plain",
                    "uri", "/plain-text",
                    "body", "Hello world"),
-            
+    
             Map.of(CONTENT_TYPE, "text/html",
                    "uri", "/html",
                    "body", "<!DOCTYPE html><html><body>Hello world</body></html>"),
-            
+    
             Map.of(CONTENT_TYPE, "application/json",
                    "uri", "/json",
                    "body", "{\"say\":\"Hello world\"}"),
-            
+    
             Map.of(CONTENT_TYPE, "application/octet-stream",
                    "uri", "/octet-stream",
                    "body", "Hello World"));
