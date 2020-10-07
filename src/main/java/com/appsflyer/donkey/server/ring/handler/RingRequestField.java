@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
+import static com.appsflyer.donkey.util.TypeConverter.toUrlDecodedPersistentMap;
 
 /**
  * The class encapsulates the logic of translating between a Vertx {@link RoutingContext}
@@ -61,12 +62,13 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
       if (!ctx.request().isExpectMultipart()) {
         return null;
       }
-      
+  
       MultiMap formAttributes = ctx.request().formAttributes();
       if (formAttributes.isEmpty()) {
         return null;
       }
-      return toPersistentMap(formAttributes);
+  
+      return toUrlDecodedPersistentMap(formAttributes);
     }
   },
   HEADERS("headers") {
