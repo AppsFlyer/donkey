@@ -1,5 +1,9 @@
 
 ## TODO
+- Add code of conduct
+- Decide on maintenance policy
+- Add PR / issues template
+- Setup auto version bump flow
 - Setup release stage in CI to clojars and maven central  
 - Add routing benchmarks to compare with reitit 
 - Look at response validation (expectation)
