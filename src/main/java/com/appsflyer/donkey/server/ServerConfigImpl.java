@@ -56,7 +56,7 @@ public final class ServerConfigImpl implements ServerConfig {
   }
   
   @Override
-  public RouteList routerDefinition() {
+  public RouteList routeList() {
     return routeList;
   }
   
@@ -159,7 +159,7 @@ public final class ServerConfigImpl implements ServerConfig {
       Objects.requireNonNull(instance.vertx, "Vert.x instance is missing");
       Objects.requireNonNull(instance.serverOptions, "Server options is missing");
       Objects.requireNonNull(instance.routeCreatorFactory, "Route creator factory is missing");
-      Objects.requireNonNull(instance.routeList, "Router definition is missing");
+      Objects.requireNonNull(instance.routeList, "Router definition list is missing");
       if (instance.instances < 1) {
         throw new IllegalArgumentException("Number of instances must be greater than 0");
       }
