@@ -30,9 +30,22 @@ import static com.appsflyer.donkey.server.route.PathDefinition.MatchType.REGEX;
 import static io.vertx.core.http.HttpMethod.*;
 
 public abstract class AbstractRouteCreator implements RouteCreator {
+  
   private static final Collection<HttpMethod> METHODS_WITH_BODY = EnumSet.of(POST, PUT, PATCH);
   private final Router router;
   private final Collection<RouteDefinition> routeDefinitions;
+  
+  /**
+   * @return True if one of the route's HTTP methods supports clients sending
+   * a body in the request.
+   */
+  private static boolean hasBody(Route route) {
+    var methods = route.methods();
+    if (methods == null) {
+      return true;
+    }
+    return route.methods().stream().anyMatch(METHODS_WITH_BODY::contains);
+  }
   
   protected AbstractRouteCreator(Router router, RouteList routeList) {
     this.router = router;
@@ -46,14 +59,6 @@ public abstract class AbstractRouteCreator implements RouteCreator {
   }
   
   protected abstract void buildRoute(Route route, RouteDefinition rd);
-  
-  private boolean hasBody(Route route) {
-    var methods = route.methods();
-    if (methods == null) {
-      return true;
-    }
-    return route.methods().stream().anyMatch(METHODS_WITH_BODY::contains);
-  }
   
   @Override
   public void setPath(Route route, RouteDefinition rd) {

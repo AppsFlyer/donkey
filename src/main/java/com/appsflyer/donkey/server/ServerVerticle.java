@@ -30,7 +30,7 @@ public class ServerVerticle extends AbstractVerticle {
   }
   
   private Router createRouter() {
-    return RouterFactory.create(vertx, config.routerDefinition())
+    return RouterFactory.create(vertx, config.routeList())
                         .withRouteCreator(config.routeCreatorFactory());
   }
 }

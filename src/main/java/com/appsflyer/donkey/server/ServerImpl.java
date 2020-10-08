@@ -62,7 +62,7 @@ public final class ServerImpl implements Server {
       handlers.add(ServerHeaderHandler.create());
     }
   
-    handlers.forEach(h -> config.routerDefinition().addFirst(RouteDefinition.create().handler(h)));
+    handlers.forEach(h -> config.routeList().addFirst(RouteDefinition.create().handler(h)));
   }
   
   @Override

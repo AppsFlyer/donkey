@@ -17,12 +17,13 @@
 package com.appsflyer.donkey.server;
 
 import com.appsflyer.donkey.server.route.RouteCreatorFactory;
+import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 
 /**
- * A DTO object used for initializing a {@link Server}.
+ * Configuration object used for initializing a {@link Server}.
  * Use {@link ServerConfigBuilder} to create instances.
  */
 public interface ServerConfig {
@@ -52,10 +53,10 @@ public interface ServerConfig {
   RouteCreatorFactory routeCreatorFactory();
   
   /**
-   * @return an object the encapsulates the definition for creating a
-   * {@link io.vertx.ext.web.Router}
+   * @return an object that encapsulates a list of @{@link RouteDefinition} used
+   * creating to create a {@link io.vertx.ext.web.Router}
    */
-  RouteList routerDefinition();
+  RouteList routeList();
   
   /**
    * @return The number of server verticals to deploy
