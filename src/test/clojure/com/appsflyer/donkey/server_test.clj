@@ -30,7 +30,7 @@
 
 ;; ---------- Initialization ---------- ;;
 
-(def route-descriptors
+(def route-maps
   [routes/root-200
    routes/ring-spec
    routes/echo-route
@@ -49,7 +49,7 @@
 
 (use-fixtures :once
               helper/init-donkey
-              (fn [test-fn] (helper/init-donkey-server test-fn route-descriptors))
+              (fn [test-fn] (helper/init-donkey-server test-fn route-maps))
               helper/init-web-client)
 
 ;; ---------- Tests ---------- ;;
@@ -71,7 +71,7 @@
     (let [response-promise (promise)]
 
       (-> helper/vertx-client
-          ^HttpRequest (.get (str "/ring-spec?foo=bar"))
+          ^HttpRequest (.get (str (:path routes/ring-spec) "?foo=bar"))
           (.putHeader "DNT" "1")
           (.send (helper/create-client-handler response-promise)))
 
@@ -79,7 +79,7 @@
         (is (= (:port helper/default-server-options) (:server-port res)))
         (is (= (str "localhost:" (:port helper/default-server-options)) (:server-name res)))
         (is (re-find #"127\.0\.0\.1:\d+" (:remote-addr res)))
-        (is (= "/ring-spec" (:uri res)))
+        (is (= (:path routes/ring-spec) (:uri res)))
         (is (= "foo=bar" (:query-string res)))
         (is (= :http (:scheme res)))
         (is (= :get (:request-method res)))

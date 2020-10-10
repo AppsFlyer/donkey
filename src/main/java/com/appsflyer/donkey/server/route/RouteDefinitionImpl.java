@@ -24,6 +24,13 @@ import java.util.*;
 
 public class RouteDefinitionImpl implements RouteDefinition {
   
+  private static void assertNonEmptyContentType(String val) {
+    Objects.requireNonNull(val, "contentType cannot be null");
+    if (val.isBlank()) {
+      throw new IllegalArgumentException(String.format("Invalid content type: %s", val));
+    }
+  }
+  
   private final Collection<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
   private final Collection<String> consumes = new HashSet<>(6);
   private final Collection<String> produces = new HashSet<>(6);
@@ -34,6 +41,11 @@ public class RouteDefinitionImpl implements RouteDefinition {
   @Override
   public PathDefinition path() {
     return path;
+  }
+  
+  @Override
+  public RouteDefinition path(String path) {
+    return path(PathDefinition.create(path));
   }
   
   @Override
@@ -112,12 +124,5 @@ public class RouteDefinitionImpl implements RouteDefinition {
     Objects.requireNonNull(handlerMode, "handler mode cannot be null");
     this.handlerMode = handlerMode;
     return this;
-  }
-  
-  private void assertNonEmptyContentType(String val) {
-    Objects.requireNonNull(val, "contentType cannot be null");
-    if (val.isBlank()) {
-      throw new IllegalArgumentException(String.format("Invalid content type: %s", val));
-    }
   }
 }

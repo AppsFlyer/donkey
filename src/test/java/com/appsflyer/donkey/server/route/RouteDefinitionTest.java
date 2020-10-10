@@ -31,85 +31,86 @@ class RouteDefinitionTest {
   
   @Test
   void testRequiredHandler() {
-    RouteDefinition descriptor = RouteDefinition.create();
-    assertThrows(IllegalStateException.class, descriptor::handler);
+    RouteDefinition routeDefinition = RouteDefinition.create();
+    assertThrows(IllegalStateException.class, routeDefinition::handler);
   }
   
   @Test
   void testNonNullArguments() {
-    RouteDefinition descriptor = RouteDefinition.create();
-    assertThrows(NullPointerException.class, () -> descriptor.addMethod(null));
-    assertThrows(NullPointerException.class, () -> descriptor.addConsumes(null));
-    assertThrows(NullPointerException.class, () -> descriptor.addProduces(null));
-    assertThrows(NullPointerException.class, () -> descriptor.handlerMode(null));
-    assertThrows(NullPointerException.class, () -> descriptor.handler(null));
+    RouteDefinition routeDefinition = RouteDefinition.create();
+    assertThrows(NullPointerException.class, () -> routeDefinition.addMethod(null));
+    assertThrows(NullPointerException.class, () -> routeDefinition.addConsumes(null));
+    assertThrows(NullPointerException.class, () -> routeDefinition.addProduces(null));
+    assertThrows(NullPointerException.class, () -> routeDefinition.handlerMode(null));
+    assertThrows(NullPointerException.class, () -> routeDefinition.handler(null));
     
-    assertDoesNotThrow(() -> descriptor.path(null));
+    assertDoesNotThrow(() -> routeDefinition.path((String) null));
+    assertDoesNotThrow(() -> routeDefinition.path((PathDefinition) null));
   }
   
   @Test
   void testDefaultValues() {
     Handler<RoutingContext> handler = v -> {};
-    RouteDefinition descriptor = RouteDefinition.create().handler(handler);
-    assertNull(descriptor.path());
-    assertEquals(Collections.emptySet(), descriptor.methods());
-    assertEquals(Collections.emptySet(), descriptor.consumes());
-    assertEquals(Collections.emptySet(), descriptor.produces());
-    assertEquals(handler, descriptor.handler());
-    assertEquals(HandlerMode.NON_BLOCKING, descriptor.handlerMode());
+    RouteDefinition routeDefinition = RouteDefinition.create().handler(handler);
+    assertNull(routeDefinition.path());
+    assertEquals(Collections.emptySet(), routeDefinition.methods());
+    assertEquals(Collections.emptySet(), routeDefinition.consumes());
+    assertEquals(Collections.emptySet(), routeDefinition.produces());
+    assertEquals(handler, routeDefinition.handler());
+    assertEquals(HandlerMode.NON_BLOCKING, routeDefinition.handlerMode());
   }
   
   @Test
   void testMethods() {
-    RouteDefinition descriptor = RouteDefinition.create().addMethod(POST);
-    assertEquals(Set.of(POST), descriptor.methods());
-  
-    descriptor = RouteDefinition.create()
-                                .addMethod(GET)
-                                .addMethod(POST)
-                                .addMethod(PUT)
-                                .addMethod(DELETE);
-    assertEquals(Set.of(GET, POST, PUT, DELETE), descriptor.methods());
+    RouteDefinition routeDefinition = RouteDefinition.create().addMethod(POST);
+    assertEquals(Set.of(POST), routeDefinition.methods());
+    
+    routeDefinition = RouteDefinition.create()
+                                     .addMethod(GET)
+                                     .addMethod(POST)
+                                     .addMethod(PUT)
+                                     .addMethod(DELETE);
+    assertEquals(Set.of(GET, POST, PUT, DELETE), routeDefinition.methods());
   }
   
   @Test
   void testConsumes() {
-    RouteDefinition descriptor = RouteDefinition.create().addConsumes("text/plain");
-    assertEquals(Set.of("text/plain"), descriptor.consumes());
-  
-    descriptor = RouteDefinition.create()
-                                .addConsumes("text/plain")
-                                .addConsumes("application/json")
-                                .addConsumes("application/x-www-form-urlencoded");
+    RouteDefinition routeDefinition = RouteDefinition.create().addConsumes("text/plain");
+    assertEquals(Set.of("text/plain"), routeDefinition.consumes());
+    
+    routeDefinition = RouteDefinition.create()
+                                     .addConsumes("text/plain")
+                                     .addConsumes("application/json")
+                                     .addConsumes("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",
                         "application/x-www-form-urlencoded"),
-                 descriptor.consumes());
+                 routeDefinition.consumes());
   }
   
   @Test
   void testProduces() {
-    RouteDefinition descriptor = RouteDefinition.create().addProduces("text/plain");
-    assertEquals(Set.of("text/plain"), descriptor.produces());
-  
-    descriptor = RouteDefinition.create()
-                                .addProduces("text/plain")
-                                .addProduces("application/json")
-                                .addProduces("application/x-www-form-urlencoded");
+    RouteDefinition routeDefinition = RouteDefinition.create().addProduces("text/plain");
+    assertEquals(Set.of("text/plain"), routeDefinition.produces());
+    
+    routeDefinition = RouteDefinition.create()
+                                     .addProduces("text/plain")
+                                     .addProduces("application/json")
+                                     .addProduces("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",
                         "application/x-www-form-urlencoded"),
-                 descriptor.produces());
+                 routeDefinition.produces());
   }
   
   @Test
   void testContentTypeCannotBeBlank() {
-    RouteDefinition descriptor = RouteDefinition.create();
+    RouteDefinition routeDefinition = RouteDefinition.create();
     Stream.of("", " ").forEach(type -> {
-      assertThrows(IllegalArgumentException.class, () -> descriptor.addConsumes(type));
-      assertThrows(IllegalArgumentException.class, () -> descriptor.addProduces(type));
+      assertThrows(IllegalArgumentException.class, () -> routeDefinition.addConsumes(type));
+      assertThrows(IllegalArgumentException.class, () -> routeDefinition.addProduces(type));
     });
   }
 }

@@ -43,13 +43,13 @@ public class RouteList {
   }
   
   public RouteList addFirst(RouteDefinition rd) {
-    Objects.requireNonNull(rd, "Route descriptor cannot be null");
+    Objects.requireNonNull(rd, "Route definition cannot be null");
     routes.addFirst(rd);
     return this;
   }
   
   public RouteList addLast(RouteDefinition rd) {
-    Objects.requireNonNull(rd, "Route descriptor cannot be null");
+    Objects.requireNonNull(rd, "Route definition cannot be null");
     routes.addLast(rd);
     return this;
   }

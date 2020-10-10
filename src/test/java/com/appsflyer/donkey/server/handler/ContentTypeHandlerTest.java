@@ -17,14 +17,13 @@
 package com.appsflyer.donkey.server.handler;
 
 import com.appsflyer.donkey.TestUtil;
-import com.appsflyer.donkey.server.route.PathDefinition;
-import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.route.RouteList;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
+import com.appsflyer.donkey.server.route.RouteDefinition;
+import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.client.WebClient;
@@ -52,6 +51,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class ContentTypeHandlerTest {
   
   private Server server;
+  
+  private static RouteDefinition routeForContentType(String uri, String contentType) {
+    return RouteDefinition.create().path(uri).addProduces(contentType);
+  }
+  
+  private static ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx, RouteList routeList) {
+    return ServerConfig.builder()
+                       .vertx(vertx)
+                       .instances(1)
+                       .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
+                       .routeList(routeList)
+                       .routeCreatorFactory(TestUtil::newRouteCreator);
+  }
   
   @AfterEach
   void tearDown() throws ServerShutdownException {
@@ -81,27 +93,26 @@ class ContentTypeHandlerTest {
             Map.of(CONTENT_TYPE, "text/plain",
                    "uri", "/plain-text",
                    "body", "Hello world"),
-    
+            
             Map.of(CONTENT_TYPE, "text/html",
                    "uri", "/html",
                    "body", "<!DOCTYPE html><html><body>Hello world</body></html>"),
-    
+            
             Map.of(CONTENT_TYPE, "application/json",
                    "uri", "/json",
                    "body", "{\"say\":\"Hello world\"}"),
-    
+            
             Map.of(CONTENT_TYPE, "application/octet-stream",
                    "uri", "/octet-stream",
                    "body", "Hello World"));
-  
-    var routeDescriptors =
+    
+    var routeDefinitions =
         routes.stream()
               .map(entry -> routeForContentType(entry.get("uri"), entry.get(CONTENT_TYPE))
                   .handler(ctx -> ctx.response().end(entry.get("body"))))
               .toArray(RouteDefinition[]::new);
     
-    ServerConfig config = getDefaultConfigBuilder(
-        vertx, newRouterDefinitionWithContentType(routeDescriptors))
+    ServerConfig config = getDefaultConfigBuilder(vertx, RouteList.from(routeDefinitions))
         .addContentTypeHeader(true)
         .build();
     
@@ -123,24 +134,8 @@ class ContentTypeHandlerTest {
                      assertEquals(v.get("body"), response.bodyAsString());
                      responsesReceived.flag();
                    }))));
-  
+    
     shutdownServerLatch.await(5, TimeUnit.SECONDS);
   }
   
-  private RouteDefinition routeForContentType(String uri, String contentType) {
-    return RouteDefinition.create().path(PathDefinition.create(uri)).addProduces(contentType);
-  }
-  
-  private RouteList newRouterDefinitionWithContentType(RouteDefinition... routeDefinitions) {
-    return RouteList.from(routeDefinitions);
-  }
-  
-  private ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx, RouteList routeList) {
-    return ServerConfig.builder()
-                       .vertx(vertx)
-                       .instances(1)
-                       .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
-                       .routerDefinition(routeList)
-                       .routeCreatorFactory(TestUtil::newRouteCreator);
-  }
 }

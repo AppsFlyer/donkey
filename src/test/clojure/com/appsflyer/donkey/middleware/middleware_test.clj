@@ -8,7 +8,7 @@
            (clojure.lang Symbol Keyword)
            (io.netty.handler.codec.http HttpResponseStatus)))
 
-(defn make-query-param-counter-middleware
+(defn- make-query-param-counter-middleware
   "Returns a middleware that increments the named query parameter.
   If `param-name` doesn't exist it is initialized to 1."
   [param-name]

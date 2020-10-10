@@ -16,13 +16,15 @@
 
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.TestUtil;
 import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.route.RouteList;
-import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
-import com.appsflyer.donkey.server.exception.ServerInitializationException;
-import com.appsflyer.donkey.server.exception.ServerShutdownException;
+import com.appsflyer.donkey.server.route.RouteSupplier;
+import com.appsflyer.donkey.server.route.RouteSupplierImpl;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
@@ -30,73 +32,81 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static com.appsflyer.donkey.TestUtil.assert200;
-import static com.appsflyer.donkey.TestUtil.doGet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static com.appsflyer.donkey.TestUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("integration")
 @ExtendWith(VertxExtension.class)
 class ServerTest {
   
-  private static final int port = 16969;
-  private static final String responseBody = "Hello world";
+  private static final RouteSupplier routeSupplier = new RouteSupplierImpl();
+  
+  static ServerConfig newServerConfig(Vertx vertx, RouteList routeList) {
+    return ServerConfig
+        .builder()
+        .vertx(vertx)
+        .instances(4)
+        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
+        .routeList(routeList)
+        .routeCreatorFactory(TestUtil::newRouteCreator)
+        .build();
+  }
   
   private Server server;
   
+  Future<String> startServer(Vertx vertx, RouteList routeList) {
+    server = Server.create(newServerConfig(vertx, routeList));
+    return server.start();
+  }
+  
   @AfterEach
-  void tearDown() throws ServerShutdownException {
+  void tearDown() throws InterruptedException {
     if (server != null) {
-      server.shutdownSync();
-      server = null;
+      var latch = new CountDownLatch(1);
+      server.vertx().close(v -> latch.countDown());
+      latch.await(2, TimeUnit.SECONDS);
     }
   }
   
   @Test
-  void testServerAsyncLifecycle(Vertx vertx, VertxTestContext testContext) {
-    server = Server.create(newServerConfig(vertx, newRouteDescriptor()));
-    server.start()
-          .onFailure(testContext::failNow)
-          .onSuccess(startResult -> doGet(vertx, "/")
-              .onComplete(testContext.succeeding(
-                  response -> testContext.verify(() -> {
-                    assert200(response);
-                    assertEquals(responseBody, response.bodyAsString());
-              
-                    server.shutdown().onComplete(stopResult -> {
-                      if (stopResult.failed()) {
-                        testContext.failNow(stopResult.cause());
-                      }
-                      testContext.completeNow();
-                    });
-                  }))));
+  void testServerAsyncLifecycle(Vertx vertx, VertxTestContext testContext) throws
+                                                                           Throwable {
+    Checkpoint requestsServed = testContext.checkpoint(1);
+    RouteDefinition route = routeSupplier.helloWorld(requestsServed);
+    startServer(vertx, RouteList.from(route))
+        .onFailure(testContext::failNow)
+        .onSuccess(startResult -> doGet(vertx, route.path().value())
+            .onComplete(testContext.succeeding(
+                response -> testContext.verify(() -> {
+                  assert200(response);
+                  assertEquals("Hello, World!", response.bodyAsString());
+                  
+                  server.shutdown().onComplete(stopResult -> {
+                    if (stopResult.failed()) {
+                      testContext.failNow(stopResult.cause());
+                    }
+                  });
+                }))));
+    
+    assertContextSuccess(testContext);
   }
   
   @Test
   void testServerSyncLifecycle(Vertx vertx, VertxTestContext testContext) throws
-                                                                          ServerInitializationException {
-    server = Server.create(newServerConfig(vertx, newRouteDescriptor()));
-    server.startSync();
-  
-    doGet(vertx, "/")
-        .onComplete(testContext.succeeding(
-            response -> testContext.verify(() -> {
-              assert200(response);
-              assertEquals(responseBody, response.bodyAsString());
-              testContext.completeNow();
-            })));
+                                                                          Throwable {
+    Checkpoint requestsServed = testContext.checkpoint(1);
+    RouteDefinition route = routeSupplier.helloWorld(requestsServed);
+    startServer(vertx, RouteList.from(route))
+        .onComplete(v -> doGet(vertx, route.path().value())
+            .onComplete(testContext.succeeding(
+                response -> testContext.verify(() -> {
+                  assert200(response);
+                  assertEquals("Hello, World!", response.bodyAsString());
+                }))));
+    assertContextSuccess(testContext);
   }
   
-  private RouteDefinition newRouteDescriptor() {
-    return RouteDefinition.create().handler(ctx -> ctx.response().end(responseBody));
-  }
-  
-  private ServerConfig newServerConfig(Vertx vertx, RouteDefinition routeDefinition) {
-    return ServerConfig.builder()
-                       .vertx(vertx)
-                       .instances(4)
-                       .serverOptions(new HttpServerOptions().setPort(port))
-                       .routeCreatorFactory(new RingRouteCreatorFactory())
-                       .routerDefinition(RouteList.from(routeDefinition))
-                       .build();
-  }
 }

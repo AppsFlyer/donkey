@@ -51,40 +51,40 @@ class RouteListTest {
   
   @Test
   void testAddFirst() {
-    var newRouteDescriptor = RouteDefinition.create().handler(RoutingContext::next);
-    var routerDefinition =
-        RouteList.from(routeDefinition).addFirst(newRouteDescriptor);
+    var newRouteDefinition = RouteDefinition.create().handler(RoutingContext::next);
+    var routeList =
+        RouteList.from(routeDefinition).addFirst(newRouteDefinition);
     
-    assertEquals(2, routerDefinition.routes().size());
-    assertEquals(newRouteDescriptor, routerDefinition.routes().get(0));
-    assertEquals(routeDefinition, routerDefinition.routes().get(1));
+    assertEquals(2, routeList.routes().size());
+    assertEquals(newRouteDefinition, routeList.routes().get(0));
+    assertEquals(routeDefinition, routeList.routes().get(1));
   }
   
   @Test
   void testAddLast() {
-    var newRouteDescriptor = RouteDefinition.create().handler(RoutingContext::next);
-    var routerDefinition =
-        RouteList.from(routeDefinition).addLast(newRouteDescriptor);
+    var newRouteDefinition = RouteDefinition.create().handler(RoutingContext::next);
+    var routerList =
+        RouteList.from(routeDefinition).addLast(newRouteDefinition);
   
-    assertEquals(2, routerDefinition.routes().size());
-    assertEquals(routeDefinition, routerDefinition.routes().get(0));
-    assertEquals(newRouteDescriptor, routerDefinition.routes().get(1));
+    assertEquals(2, routerList.routes().size());
+    assertEquals(routeDefinition, routerList.routes().get(0));
+    assertEquals(newRouteDefinition, routerList.routes().get(1));
   }
   
   @Test
   void testReturnsImmutableRoutesList() {
     List<RouteDefinition> mutableList = new ArrayList<>(1);
     mutableList.add(routeDefinition);
-    var routerDefinition = new RouteList(mutableList);
+    var routeList = new RouteList(mutableList);
   
-    List<RouteDefinition> routeDefinitions = routerDefinition.routes();
+    List<RouteDefinition> routeDefinitions = routeList.routes();
     assertEquals(1, routeDefinitions.size());
     assertThrows(UnsupportedOperationException.class, () -> routeDefinitions.remove(0));
   
     //Changing the original list should not affect any other
     mutableList.remove(0);
     assertEquals(1, routeDefinitions.size());
-    assertEquals(1, routerDefinition.routes().size());
+    assertEquals(1, routeList.routes().size());
   }
   
 }

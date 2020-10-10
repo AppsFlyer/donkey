@@ -22,44 +22,46 @@ import com.appsflyer.donkey.server.route.RouteList;
 import com.appsflyer.donkey.server.ring.route.RingRouteCreatorFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(VertxExtension.class)
 class ServerConfigTest {
   
   @Test
-  void testRequiredOptions() {
-    var vertx = Vertx.vertx();
+  void testRequiredOptions(Vertx vertx) {
     var serverOptions = new HttpServerOptions();
     RouteCreatorFactory routeCreatorFactory = new RingRouteCreatorFactory();
-    var routerDefinition = RouteList.from(RouteDefinition.create());
-  
+    var routeList = RouteList.from(RouteDefinition.create());
+    
     assertDoesNotThrow(() -> ServerConfig.builder()
                                          .vertx(vertx)
                                          .instances(1)
                                          .serverOptions(serverOptions)
                                          .routeCreatorFactory(routeCreatorFactory)
-                                         .routerDefinition(routerDefinition)
+                                         .routeList(routeList)
                                          .build());
-  
+    
     assertThrows(NullPointerException.class,
                  () -> ServerConfig.builder()
                                    .vertx(null)
                                    .instances(1)
                                    .serverOptions(serverOptions)
                                    .routeCreatorFactory(routeCreatorFactory)
-                                   .routerDefinition(routerDefinition)
+                                   .routeList(routeList)
                                    .build());
-  
+    
     assertThrows(NullPointerException.class,
                  () -> ServerConfig.builder()
                                    .vertx(null)
                                    .instances(0)
                                    .serverOptions(serverOptions)
                                    .routeCreatorFactory(routeCreatorFactory)
-                                   .routerDefinition(routerDefinition)
+                                   .routeList(routeList)
                                    .build());
     
     assertThrows(NullPointerException.class,
@@ -68,7 +70,7 @@ class ServerConfigTest {
                                    .instances(1)
                                    .serverOptions(null)
                                    .routeCreatorFactory(routeCreatorFactory)
-                                   .routerDefinition(routerDefinition)
+                                   .routeList(routeList)
                                    .build());
     
     assertThrows(NullPointerException.class,
@@ -77,7 +79,7 @@ class ServerConfigTest {
                                    .instances(1)
                                    .serverOptions(serverOptions)
                                    .routeCreatorFactory(routeCreatorFactory)
-                                   .routerDefinition(null)
+                                   .routeList(null)
                                    .build());
   }
 }

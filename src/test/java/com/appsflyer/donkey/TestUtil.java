@@ -16,26 +16,31 @@
 
 package com.appsflyer.donkey;
 
+import com.appsflyer.donkey.server.ServerConfig;
+import com.appsflyer.donkey.server.ServerConfigBuilder;
 import com.appsflyer.donkey.server.route.AbstractRouteCreator;
 import com.appsflyer.donkey.server.route.RouteCreator;
 import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.route.RouteList;
-import com.appsflyer.donkey.server.ServerConfig;
-import com.appsflyer.donkey.server.ServerConfigBuilder;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.junit5.VertxTestContext;
+
+import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class TestUtil {
   
@@ -45,6 +50,17 @@ public final class TestUtil {
   
   public static SocketAddress getDefaultAddress() {
     return SocketAddress.inetSocketAddress(DEFAULT_PORT, "localhost");
+  }
+  
+  public static RequestOptions getRequestOptions(String uri) {
+    return new RequestOptions()
+        .setHost(getDefaultAddress().host())
+        .setPort(DEFAULT_PORT)
+        .setURI(uri);
+  }
+  
+  public static Object parseResponseBody(HttpResponse<Buffer> response) {
+    return ClojureObjectMapper.deserialize(response.bodyAsString());
   }
   
   public static void assert200(HttpResponse<Buffer> response) {
@@ -95,7 +111,7 @@ public final class TestUtil {
   
   private static Handler<AsyncResult<HttpResponse<Buffer>>> asyncResultHandler(
       Promise<HttpResponse<Buffer>> promise) {
-  
+    
     return asyncResult -> {
       if (asyncResult.failed()) {
         promise.fail(asyncResult.cause());
@@ -110,11 +126,11 @@ public final class TestUtil {
                        .vertx(vertx)
                        .instances(1)
                        .serverOptions(new HttpServerOptions().setPort(DEFAULT_PORT))
-                       .routerDefinition(defaultRouterDefinition())
+                       .routeList(defaultRouteList())
                        .routeCreatorFactory(TestUtil::newRouteCreator);
   }
   
-  private static RouteList defaultRouterDefinition() {
+  private static RouteList defaultRouteList() {
     return RouteList.from(RouteDefinition.create().handler(ctx -> ctx.response().end()));
   }
   
@@ -127,5 +143,13 @@ public final class TestUtil {
         addHandler(route, rd.handler(), rd.handlerMode());
       }
     };
+  }
+  
+  public static void assertContextSuccess(VertxTestContext testContext) throws
+                                                                        Throwable {
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
   }
 }

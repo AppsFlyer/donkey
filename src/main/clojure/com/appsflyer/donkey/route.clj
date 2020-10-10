@@ -126,7 +126,7 @@
     (.handlerMode route (keyword->HandlerMode handler-mode)))
   route)
 
-(defn- map->RouteDescriptor [route-map]
+(defn- map->RouteDefinition [route-map]
   (->
     (RouteDefinition/create)
     (add-path route-map)
@@ -153,7 +153,7 @@
         ; initialize the middleware
         (comp-fn handler)))))
 
-(defn- create-route-descriptors
+(defn- create-route-definitions
   "Returns a List<RouteDefinition>"
   [opts]
   (reduce
@@ -161,10 +161,10 @@
       (let [handler (compose-middleware route (:middleware opts))]
         (doto ^List res
           (.add
-            (map->RouteDescriptor
+            (map->RouteDefinition
               (assoc route :handler handler))))))
     (ArrayList. (int (count (:routes opts))))
     (:routes opts)))
 
-(defn get-router-definition [opts]
-  (RouteList. (create-route-descriptors opts)))
+(defn get-route-list [opts]
+  (RouteList. (create-route-definitions opts)))
