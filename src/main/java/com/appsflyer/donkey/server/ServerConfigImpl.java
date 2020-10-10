@@ -112,7 +112,7 @@ public final class ServerConfigImpl implements ServerConfig {
     }
   
     @Override
-    public ServerConfigBuilder routerDefinition(RouteList routeList) {
+    public ServerConfigBuilder routeList(RouteList routeList) {
       instance.routeList = routeList;
       return this;
     }

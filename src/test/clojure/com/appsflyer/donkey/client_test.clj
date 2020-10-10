@@ -25,7 +25,7 @@
            (java.nio.charset StandardCharsets)))
 
 
-(def route-descriptors
+(def route-maps
   [routes/root-200
    routes/echo-route
    routes/explicit-consumes-json
@@ -33,7 +33,7 @@
 
 (use-fixtures :once
               helper/init-donkey
-              (fn [test-fn] (helper/init-donkey-server test-fn route-descriptors [params/parse-query-params]))
+              (fn [test-fn] (helper/init-donkey-server test-fn route-maps [params/parse-query-params]))
               helper/init-donkey-client)
 
 (deftest test-basic-functionality

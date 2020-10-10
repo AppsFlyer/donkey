@@ -17,6 +17,7 @@
 package com.appsflyer.donkey.server.ring.route;
 
 import com.appsflyer.donkey.server.route.PathDefinition;
+import com.appsflyer.donkey.server.route.RouteCreator;
 import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.core.Vertx;
@@ -37,20 +38,20 @@ class RingRouteCreatorTest {
   
   @Test
   void testBuildRoute(Vertx vertx, VertxTestContext testContext) {
-    var routeDescriptor =
+    var routeDefinition =
         RouteDefinition.create()
                        .addMethod(HttpMethod.GET)
                        .addMethod(HttpMethod.POST)
                        .path(PathDefinition.create("/foo"))
                        .handler(RoutingContext::next);
   
-    var routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDescriptor));
+    RouteCreator routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();
     assertEquals(1, router.getRoutes().size());
     Route route = router.getRoutes().get(0);
     
-    assertEquals(routeDescriptor.path().value(), route.getPath());
-    assertEquals(routeDescriptor.methods(), route.methods());
+    assertEquals(routeDefinition.path().value(), route.getPath());
+    assertEquals(routeDefinition.methods(), route.methods());
     assertFalse(route.isRegexPath());
     
     testContext.completeNow();
@@ -58,12 +59,12 @@ class RingRouteCreatorTest {
   
   @Test
   void testBuildRegexRoute(Vertx vertx, VertxTestContext testContext) {
-    var routeDescriptor =
+    var routeDefinition =
         RouteDefinition.create()
                        .path(PathDefinition.create("/foo/[0-9]+", REGEX))
                        .handler(RoutingContext::next);
   
-    var routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDescriptor));
+    RouteCreator routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();
     assertEquals(1, router.getRoutes().size());
     Route route = router.getRoutes().get(0);

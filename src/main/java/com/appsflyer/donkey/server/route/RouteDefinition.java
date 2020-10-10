@@ -35,6 +35,8 @@ public interface RouteDefinition {
   
   RouteDefinition path(PathDefinition path);
   
+  RouteDefinition path(String path);
+  
   Collection<HttpMethod> methods();
   
   RouteDefinition addMethod(HttpMethod method);

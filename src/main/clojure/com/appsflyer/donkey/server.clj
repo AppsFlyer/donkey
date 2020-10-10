@@ -1,5 +1,5 @@
 (ns com.appsflyer.donkey.server
-  (:require [com.appsflyer.donkey.route :refer [get-router-definition]]
+  (:require [com.appsflyer.donkey.route :refer [get-route-list]]
             [com.appsflyer.donkey.result])
   (:import (io.vertx.core.http HttpServerOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
@@ -30,7 +30,7 @@
                   (.vertx (:vertx opts))
                   (.serverOptions (get-server-options opts))
                   (.routeCreatorFactory (RingRouteCreatorFactory.))
-                  (.routerDefinition (get-router-definition opts))
+                  (.routeList (get-route-list opts))
                   (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
                   (.debug (:debug opts false))
                   (.addDateHeader (:date-header opts false))

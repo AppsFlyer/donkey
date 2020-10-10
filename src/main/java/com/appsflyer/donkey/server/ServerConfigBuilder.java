@@ -33,7 +33,7 @@ public interface ServerConfigBuilder {
   
   ServerConfigBuilder routeCreatorFactory(RouteCreatorFactory routeCreatorFactory);
   
-  ServerConfigBuilder routerDefinition(RouteList routeList);
+  ServerConfigBuilder routeList(RouteList routeList);
   
   ServerConfigBuilder instances(int val);
   
