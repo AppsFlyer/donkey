@@ -18,8 +18,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string])
   (:import (com.codahale.metrics MetricRegistry)
-           (io.vertx.core.impl.cpu CpuCoreSensor)
-           (java.io InputStream)))
+           (io.vertx.core.impl.cpu CpuCoreSensor)))
 
 
 ;; ------- Donkey Specification ------- ;;
@@ -161,9 +160,8 @@
 (s/def ::basic-auth (s/map-of #{"id" "password"} ::not-blank))
 (s/def ::query-params (s/every string? :kind map?))
 (s/def ::headers (s/every string? :kind map?))
-(s/def ::body (some-fn bytes? string? #(instance? InputStream %)))
 
-(s/def ::client-request (s/keys :req-un [::method ::handler]
+(s/def ::client-request (s/keys :req-un [::method]
                                 :opt-un [::uri
                                          ::host
                                          ::port
@@ -171,5 +169,4 @@
                                          ::bearer-token
                                          ::basic-auth
                                          ::query-params
-                                         ::headers
-                                         ::body]))
+                                         ::headers]))
