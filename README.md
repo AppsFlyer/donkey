@@ -33,8 +33,17 @@ Including the library in `pom.xml`
 
 ### Building
 The preferred way to build the project for local development is using 
-Maven. It's also possible to generate an uberjar using Leiningen, but you **must**
-use Maven to install the library locally.
+Maven. It's also possible to generate an uberjar using Leiningen, but you 
+**must** use Maven to install the library locally.
+
+Note **IntelliJ IDEA** users:
+There is a bug when running the Clojure tests via `clojure-maven-plugin` 
+in IntelliJ's terminal, that doesn't happen when running them with Leiningen. 
+If you are getting this error then run the tests from your OS terminal.
+```
+[ERROR] Failed to execute goal com.theoryinpractise:clojure-maven-plugin:1.8.3:test-with-junit (junit-tests) on project donkey: Clojure failed with exit value 2.: Process exited with an error: 2 (Exit value: 2) -> [Help 1]
+org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal com.theoryinpractise:clojure-maven-plugin:1.8.3:test-with-junit (junit-tests) on project donkey: Clojure failed with exit value 2.
+```  
 
 Creating a jar with Maven
 ```shell script
