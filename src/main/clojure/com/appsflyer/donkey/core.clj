@@ -150,7 +150,8 @@
       connection to be established. Defaults to 60 seconds.
 
     :idle-timeout-seconds [int] The duration of seconds after which the
-      connection will be closed if no data was received. Defaults to never.
+      connection will be closed if no data was received. Can be overridden on
+      per request basis. Defaults to never.
 
     :max-redirects [int] The maximum number of times to follow 3xx redirects.
       Defaults to 16.

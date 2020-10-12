@@ -98,19 +98,24 @@
       (read-string (String. ^bytes body StandardCharsets/UTF_8)))))
 
 (deftest test-query-parameters
-  (let [params "baz=3&foo=bar"
-        expected {"baz" "3" "foo" "bar"}]
-    (testing "it should parse query parameters in the uri"
-      (let [res @(helper/make-request {:method :get, :uri (str "/echo?" params)})
-            body (parse-response-body res)]
-        (is (= params (:query-string body)))
-        (is (= expected (:query-params body)))))
+  (testing "it should parse query parameters in the uri"
+    (let [params "baz=3&foo=bar"
+          expected {"baz" "3" "foo" "bar"}
+          res @(helper/make-request {:method :get, :uri (str "/echo?" params)})
+          body (parse-response-body res)]
+      (is (= params (:query-string body)))
+      (is (= expected (:query-params body)))))
 
-    (testing "it should parse query parameters in the configuration"
-      (let [res @(helper/make-request {:method :get, :uri "/echo", :query-params expected})
-            body (parse-response-body res)]
-        (is (= params (:query-string body)))
-        (is (= expected (:query-params body)))))))
+  (testing "it should parse query parameters in the configuration and add them
+    to the url"
+    (let [res @(helper/make-request {:method :get,
+                                     :uri "/echo?key=value",
+                                     :query-params {"baz" "3" "foo" "bar"}})
+          body (parse-response-body res)
+          expected-query-string "key=value&baz=3&foo=bar"
+          expected-query-params {"baz" "3" "foo" "bar" "key" "value"}]
+      (is (= expected-query-string (:query-string body)))
+      (is (= expected-query-params (:query-params body))))))
 
 (deftest test-unicode-decoding
   (let [expected "高性能HTTPServer和Client"

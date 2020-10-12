@@ -71,8 +71,59 @@
 
 (defprotocol HttpClient
   (request [this opts]
-    "Creates an asynchronous HTTP request.
-    Returns an instance of AsyncRequest")
+    "Creates an asynchronous HTTP request. Returns an instance of AsyncRequest.
+    `opts` map description (all values are optional unless stated otherwise):
+
+    :method [keyword] Required. The HTTP method to use, e.g GET, POST etc'. Must
+      be one of :get :post :put :delete :options :head :trace :connect or
+      :patch.
+
+    :host [string] The hostname to use for this request. The hostname is the
+      part of the URL that comes after the scheme part - e.g `http://`,
+      and before the optional port and uri. For example given the URL
+      `http://www.example.com:8080/api/v1/users` the host would be
+      `www.example.com`. Setting the host when creating a request overrides the
+      `:default-host` that was previously set when the client was created.
+      Defaults to `localhost`.
+
+    :port [int] The port to use for this request. The port is the part of the
+      url that comes after the host, and is preceded by a colon `:`. For
+      example, given the URL `http://www.example.com:8080/api/v1/users` the port
+      would be `8080`. Setting the port when creating a request overrides the
+      `:default-port` that was previously set when the client was created.
+      Defaults to `80`.
+
+    :uri [string] The location of the resource being requested. It refers to
+      the part after the hostname and optional port of the URL. For example,
+      given the URL `http://www.example.com:8080/api/v1/users` the uri would be
+      `/api/v1/users`. Defaults to `/`.
+
+    :query-params [map] Mapping of string key value pairs. The pairs will be
+      added to the query part of the url. It is also possible to include query
+      parameters in the `:uri`, for example - `/api/v1/users?id=1`. In that case
+      the key value pairs will be added to the query string.
+      Note, if you need to include a key multiple times then you must include it
+      in the uri.
+
+    :headers [map] Mapping of string key value pairs. To include multiple values
+      for the same key, separate the values with a comma ','. For example,
+      `{\"Cache-Control\" \"public, max-age=604800, immutable\"}`
+
+    :idle-timeout-seconds [int] The duration of seconds after which the
+      connection will be closed if no data was received. Defaults to never.
+
+    :bearer-token [string] Configure the request to perform bearer token
+      authentication. In OAuth 2.0, a request contains a header field of the form
+      'Authorization: Bearer <bearerToken>', where bearerToken is the bearer
+      token issued by an authorization server to access protected resources.
+
+    :basic-auth [map] Configure the request to perform basic access
+      authentication. In basic HTTP authentication, a request contains a header
+      field of the form 'Authorization: Basic <credentials>',
+      where credentials is the base64 encoding of id and password joined by a
+      colon. The map must contain these fields:
+        id [string] The id used for the authentication.
+        password [string] The password used for the authentication.")
   (stop [this]
     "Stops the client and releases any resources associated with it."))
 

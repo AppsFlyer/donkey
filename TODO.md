@@ -1,5 +1,6 @@
 
 ## TODO
+- Allow users of client to give absolute urls
 - Add code of conduct
 - Decide on maintenance policy
 - Add PR / issues template
@@ -42,6 +43,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Add client request API documentation. 
 - Add more middleware tests
 - Setup coveralls when repo is public
 - Check if 5 seconds timeout for server start up is a good default. Maybe it should be increased?
