@@ -84,6 +84,6 @@
                      (.bodyAsString res)
                      (jsonista/object-mapper {:decode-key-fn true}))]
           (is (= routes/glossary-with-keywords body))))
-      ; The json-response route just sends back `sample-json` in the response body
+      ; The json-response route just sends back `glossary-with-keywords` in the response body
       [routes/json-response]
       [(make-serialize-middleware)])))
