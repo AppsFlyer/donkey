@@ -5,7 +5,6 @@
             [com.appsflyer.donkey.routes :as routes]
             [clojure.string])
   (:import (io.vertx.ext.web.client HttpRequest)
-           (clojure.lang Symbol Keyword)
            (io.netty.handler.codec.http HttpResponseStatus)))
 
 (defn- make-query-param-counter-middleware
@@ -25,16 +24,17 @@
         (.send (helper/create-client-handler response-promise)))
 
     (let [res (helper/parse-response-body-when-resolved response-promise)
-          current-ns (str (the-ns *ns*))]
+          current-ns (str (the-ns *ns*))
+          expected {:foo                          "bar"
+                    :_count                       "6"
+                    (keyword current-ns "valid")  "true"
+                    (keyword current-ns "-empty") "false"
+                    :1                            "2"
+                    :_                            ""
+                    :added-by-middleware          2}]
 
       (is (= query-string (:query-string res)))
-      (is (= "bar" (-> res :query-params :foo)))
-      (is (= "6" (-> res :query-params :_count)))
-      (is (= "true" (get-in res [:query-params (Keyword/intern (Symbol/create current-ns "valid"))])))
-      (is (= "false" (get-in res [:query-params (Keyword/intern (Symbol/create current-ns "-empty"))])))
-      (is (= "2" (-> res :query-params :1)))
-      (is (contains? (:query-params res) :_))
-      (is (= 2 (-> res :query-params :added-by-middleware))))))
+      (is (= expected (:query-params res))))))
 
 (deftest test-keywordize-query-params
   (testing "it should turn string query parameters keys into keywords and call the
