@@ -28,38 +28,39 @@
 (def ^:const
   default-donkey-options {:instances 4 :event-loops 1 :worker-threads 4})
 
-(defn- launch-server [^Donkey donkey-instance opts]
-  (let [instance (donkey/create-server donkey-instance (merge default-server-options opts))]
-    (server/start-sync instance)
-    instance))
-
-(defn- ^WebClient launch-client [^Vertx vertx]
+(defn- ^WebClient launch-vertx-client [^Vertx vertx]
   (WebClient/create
     vertx
     (-> (WebClientOptions.)
         (.setDefaultHost DEFAULT-HOST)
         (.setDefaultPort (int (:port default-server-options))))))
 
-(defn init-donkey [test-fn]
-  (binding [donkey-core (donkey/create-donkey default-donkey-options)]
-    (test-fn)))
-
-(defn init-donkey-server
-  ([test-fn routes] (init-donkey-server test-fn routes nil))
-  ([test-fn routes middleware]
-   (binding [donkey-server (launch-server donkey-core {:routes routes :middleware middleware})]
-     (test-fn)
-     (is (nil? (server/stop-sync donkey-server))))))
+(defn init-web-client [test-fn]
+  (binding [vertx-client (launch-vertx-client (.-vertx donkey-core))]
+    (test-fn)
+    (.close vertx-client)))
 
 (defn init-donkey-client [test-fn]
   (binding [donkey-client (donkey/create-client donkey-core default-client-options)]
     (test-fn)
     (client/stop donkey-client)))
 
-(defn init-web-client [test-fn]
-  (binding [vertx-client (launch-client (.-vertx donkey-core))]
-    (test-fn)
-    (.close vertx-client)))
+(defn- launch-donkey-server [^Donkey donkey-instance opts]
+  (let [instance (donkey/create-server donkey-instance (merge default-server-options opts))]
+    (server/start-sync instance)
+    instance))
+
+(defn init-donkey-server
+  ([test-fn routes] (init-donkey-server test-fn routes nil))
+  ([test-fn routes middleware]
+   (binding [donkey-server (launch-donkey-server donkey-core {:routes routes :middleware middleware})]
+     (test-fn)
+     (is (nil? (server/stop-sync donkey-server))))))
+
+
+(defn init-donkey [test-fn]
+  (binding [donkey-core (donkey/create-donkey default-donkey-options)]
+    (test-fn)))
 
 (defn run-with-server-and-client
   "Run `test-fn` under the context of a new DonkeyServer and Vertx WebClient.
@@ -70,11 +71,11 @@
   ([test-fn routes] (run-with-server-and-client test-fn routes nil))
   ([test-fn routes middleware]
    (let [^Donkey donkey-instance (donkey/create-donkey default-donkey-options)]
-     (binding [donkey-server (launch-server donkey-instance {:routes routes :middleware middleware})]
-       (binding [vertx-client (launch-client (.-vertx donkey-instance))]
-         (test-fn)
-         (.close vertx-client)
-         (is (nil? (server/stop-sync donkey-server))))))))
+     (binding [donkey-server (launch-donkey-server donkey-instance {:routes routes :middleware middleware})
+               vertx-client (launch-vertx-client (.-vertx donkey-instance))]
+       (test-fn)
+       (.close vertx-client)
+       (is (nil? (server/stop-sync donkey-server)))))))
 
 
 ;; ---------- Helper Functions ---------- ;;
@@ -113,10 +114,10 @@
 (defn make-post-processing-middleware [fun]
   (fn [handler]
     (fn
-      ([req respond raise]
-       (handler req (fn [res] (respond (fun res respond raise))) raise))
       ([req]
-       (fun (handler req))))))
+       (fun (handler req)))
+      ([req respond raise]
+       (handler req (fn [res] (respond (fun res respond raise))) raise)))))
 
 (defn ^FutureResult make-request
   ([opts]

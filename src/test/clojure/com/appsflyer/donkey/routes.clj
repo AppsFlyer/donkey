@@ -15,9 +15,10 @@
 ;
 
 (ns com.appsflyer.donkey.routes
-  (:require [com.appsflyer.donkey.test-helper :as helper]))
+  (:require [com.appsflyer.donkey.test-helper :as helper]
+            [clojure.walk]))
 
-(def sample-json
+(def glossary-with-keywords
   {:glossary
    {:title "example glossary"
     :id    49019246782
@@ -34,6 +35,8 @@
                                  :GlossSeeAlso ["GML" "XML"]}
                      :GlossTerm "Standard Generalized Markup Language"
                      :Abbrev    "ISO 8879:1986"}}}}})
+
+(def glossary-with-strings (clojure.walk/stringify-keys glossary-with-keywords))
 
 (def sample-json-string
   "{\"glossary\":{\"title\":\"example glossary\",\"id\":49019246782,\"GlossDiv\":{\"title\":\"S\",\"GlossList\":{\"GlossEntry\":{\"ID\":\"SGML\",\"SortAs\":\"SGML\",\"GlossTerm\":\"Standard Generalized Markup Language\",\"Acronym\":\"SGML\",\"Abbrev\":\"ISO 8879:1986\",\"GlossDef\":{\"para\":\"A meta-markup language, used to create markup languages such as DocBook.\",\"GlossSeeAlso\":[\"GML\",\"XML\"]},\"GlossSee\":\"markup\"}}}}}")
@@ -241,4 +244,4 @@
 (def json-response
   {:path         "/json"
    :handler-mode :blocking
-   :handler      (fn [_req] {:status 200 :body sample-json})})
+   :handler      (fn [_req] {:status 200 :body glossary-with-keywords})})

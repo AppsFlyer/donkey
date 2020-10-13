@@ -38,43 +38,25 @@
 
 (deftest parse-body-with-default-mapper-test
   (testing "it should parse the request body as json. When not supplying an
-  ObjectMapper, all the keys should be keywords."
+  ObjectMapper, all map keys should be keywords."
     (let [-routes [routes/serialize-body-route routes/serialize-body-non-blocking-route]]
       (helper/run-with-server-and-client
         (fn []
           (doseq [path (mapv :path -routes)]
             (let [res (execute-parse-body-test path)]
-              (is (= routes/sample-json res)))))
+              (is (= routes/glossary-with-keywords res)))))
         -routes
         [(make-deserialize-middleware)]))))
 
 (deftest parse-body-with-mapper-test
-  (testing "it should parse the request body as json using the supplied ObjectMapper"
+  (testing "it should parse the request body as json using the supplied ObjectMapper.
+  Map keys should be strings."
     (let [-routes [routes/serialize-body-route routes/serialize-body-non-blocking-route]]
       (helper/run-with-server-and-client
         (fn []
           (doseq [path (mapv :path -routes)]
             (let [res (execute-parse-body-test path)]
-              (is (map? (get res "glossary")))
-              (is (= (get-in res ["glossary" "title"]) "example glossary"))
-              (is (= (get-in res ["glossary" "id"]) 49019246782))
-              (is (map? (get-in res ["glossary" "GlossDiv"])))
-              (is (= (get-in res ["glossary" "GlossDiv" "title"]) "S"))
-              (is (map? (get-in res ["glossary" "GlossDiv" "GlossList"])))
-              (is (map? (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry"])))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "ID"]) "SGML"))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "SortAs"]) "SGML"))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossTerm"])
-                     "Standard Generalized Markup Language"))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "Acronym"]) "SGML"))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "Abbrev"]) "ISO 8879:1986"))
-              (is (map? (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossDef"])))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossDef" "para"])
-                     "A meta-markup language, used to create markup languages such as DocBook."))
-              (is (vector (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossDef" "GlossSeeAlso"])))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossDef" "GlossSeeAlso"])
-                     ["GML" "XML"]))
-              (is (= (get-in res ["glossary" "GlossDiv" "GlossList" "GlossEntry" "GlossSee"]) "markup")))))
+              (is (= routes/glossary-with-strings res)))))
         -routes
         [(make-deserialize-middleware (jsonista/object-mapper))]))))
 
@@ -101,7 +83,7 @@
               body (jsonista/read-value
                      (.bodyAsString res)
                      (jsonista/object-mapper {:decode-key-fn true}))]
-          (is (= routes/sample-json body))))
+          (is (= routes/glossary-with-keywords body))))
       ; The json-response route just sends back `sample-json` in the response body
       [routes/json-response]
       [(make-serialize-middleware)])))

@@ -17,6 +17,11 @@ Including the library in `project.clj`
 [com.appsflyer/donkey "0.1.0-SNAPSHOT"]
 ``` 
 
+Including the library in `deps.edn`
+```clojure
+com.appsflyer/donkey {:mvn/version "0.1.0-SNAPSHOT"}
+``` 
+
 Including the library in `pom.xml`
 ```xml
 <dependency>
@@ -151,7 +156,7 @@ async handler specification, here's an excerpt:
  response callback takes a response map as its argument. The exception callback
  takes an exception as its argument.
   
-In the handler we are calling the response callback `res` with a response map
+In the handler we are calling the response callback `respond` with a response map
 where the body of the response is "Hello, world!".
 
 If you run the example and open a browser on `http://localhost:8080` you will
@@ -186,13 +191,13 @@ to first get some background about Donkey. Donkey is an abstraction built on top
 of a web tool-kit called [Vert.x](https://vertx.io/), which in turn is built on
 a very popular and performant networking library called 
 [Netty](https://netty.io/). Netty uses an interesting threading model that is 
-based on the concept of a single threaded event loop that serve requests. An 
+based on the concept of a single threaded event loop that serves requests. An 
 event loop is conceptually a long-running task with a queue of events it needs 
-to dispatch. As long as the events dispatch quickly and don't occupy too much of
-the event loop's time, it can dispatch events at a very high rate. Because it
-is single threaded, or in other words serial, during the time it takes to 
-dispatch one event, no other event can be dispatched. Therefore, it's extremely 
-important *not to block the event loop*.
+to dispatch. As long as events are dispatched "quickly" and don't occupy too 
+much of the event loop's time, it can dispatch events at a very high rate. 
+Because it is single threaded, or in other words serial, during the time it 
+takes to dispatch one event no other event can be dispatched. Therefore, it's 
+extremely important *not to block the event loop*.
 
 The `:handler-mode` is a contract where you declare the type of handling your
 route does - `:blocking` or `:non-blocking` (default). 
@@ -741,12 +746,12 @@ different metrics. The metrics can be largely grouped into three categories:
 - Server
 - Client
 
-Metrics collection can be enabled by supplying a pre instantiated instance of 
-`MetricRegistry` when creating a `Donkey`. It's the user's responsibility to 
-implement the reporting code to a monitoring backend such as 
-[Prometheus](https://prometheus.io/), or [graphite](https://graphiteapp.org/).
-As later described, metrics are named using a `.` as a separator. By default, 
-all metrics are prefixed with `donkey`, but it's possible to set `:metrics-prefix`
+Metrics collection can be set up when creating a `Donkey` by supplying a pre 
+instantiated instance of `MetricRegistry`. It's the user's responsibility to implement
+reporting to a monitoring backend such as [Prometheus](https://prometheus.io/), 
+or [graphite](https://graphiteapp.org/). As later described, metrics are named 
+using a dot `.` separator. By default, all metrics are prefixed with `donkey`, 
+but it's also possible to supply a `:metrics-prefix` with the `:metric-registry`
 to use a different string.    
 
 ### List of Exposed Metrics
