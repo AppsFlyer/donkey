@@ -115,9 +115,9 @@ a server listening for requests on port 8080.
 ```clojure
 (->         
   (create-donkey)
-  (create-server {:port 8080}))
+  (create-server {:port 8080})
   start
-  (on-success (fn [_] (println "Server started listening on port 8080")))
+  (on-success (fn [_] (println "Server started listening on port 8080"))))
 ``` 
 _Note that the following example will not work yet - for it to work we need
 to add a route which we will do next._
