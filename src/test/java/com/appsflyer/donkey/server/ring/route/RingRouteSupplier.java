@@ -18,7 +18,6 @@ import static io.vertx.core.http.HttpMethod.POST;
 
 public class RingRouteSupplier implements RouteSupplier {
   
-  
   private static RingHandler returnRequest(Checkpoint requestsServed) {
     return ctx -> {
       ctx.response()

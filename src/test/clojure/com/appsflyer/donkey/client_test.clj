@@ -67,7 +67,7 @@
       (is (= (.code HttpResponseStatus/NOT_ACCEPTABLE) (:status res))))))
 
 (deftest test-unsupported-media-type-status-code
-  (testing "it should return a UNSUPPORTED MEDIA TYPE response when a route does
+  (testing "it should return an UNSUPPORTED MEDIA TYPE response when a route does
   not consume the requests mime type"
     (let [res @(helper/make-request {:method  :post
                                      :uri     "/consumes/json"

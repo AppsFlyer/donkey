@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jsonista.jackson.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +57,13 @@ public final class ClojureObjectMapper {
   }
   
   public static Object deserialize(String val) {
+    return deserialize(val.getBytes(StandardCharsets.UTF_8));
+  }
+  
+  public static Object deserialize(byte[] val) {
     try {
       return ClojureObjectMapperHolder.mapper.readValue(val, Object.class);
-    } catch (JsonProcessingException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
