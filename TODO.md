@@ -1,5 +1,6 @@
 
 ## TODO
+- Fix RingClientTest.testSSL on CI server 
 - Add a "Troubleshoot" section that explains how to exclude dropwizard 
 - Allow users of client to give absolute urls
 - Add code of conduct
