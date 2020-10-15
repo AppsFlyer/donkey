@@ -4,18 +4,17 @@ import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
 import com.appsflyer.donkey.ValueExtractor;
 import com.appsflyer.donkey.server.ring.handler.HttpMethodMapping;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Enum class encapsulates the logic of extracting data from a Clojure client request.
- * Each element corresponds to a field in the request. It implements getting the field's
- * name as a {@link Keyword}, and extracting the corresponding value from
- * the request.
+ * The Enum class encapsulates the logic of extracting data from a Clojure
+ * map representing a client request.
+ * Each element corresponds to a field in the request. It implements getting the
+ * field's name as a {@link Keyword}, and extracting the corresponding value
+ * from the request map.
  */
-public enum RingRequestField implements ValueExtractor<IPersistentMap> {
+public enum ClojureRequestField implements ValueExtractor<IPersistentMap> {
   
   METHOD("method") {
     @Nullable
@@ -82,40 +81,17 @@ public enum RingRequestField implements ValueExtractor<IPersistentMap> {
       return (IPersistentMap) req.valAt(keyword(), null);
     }
   },
-  FORM_PARAMS("form-params") {
-    @Nullable
-    @Override
-    public IPersistentMap from(IPersistentMap req) {
-      return (IPersistentMap) req.valAt(keyword(), null);
-    }
-  },
   HEADERS("headers") {
     @Nullable
     @Override
     public IPersistentMap from(IPersistentMap req) {
       return (IPersistentMap) req.valAt(keyword(), null);
     }
-  },
-  HANDLER("handler") {
-    //The handler must be a Handler<AsyncResult<IPersistentMap>> or null
-    //If it's not, then we want to throw a ClassCastException here.
-    @SuppressWarnings("unchecked")
-    @Override
-    public Handler<AsyncResult<IPersistentMap>> from(IPersistentMap req) {
-      return (Handler<AsyncResult<IPersistentMap>>) req.valAt(keyword(), null);
-    }
-  },
-  BODY("body") {
-    @Nullable
-    @Override
-    public Object from(IPersistentMap req) {
-      return req.valAt(keyword(), null);
-    }
   };
   
   private final Keyword keyword;
   
-  RingRequestField(String field) {
+  ClojureRequestField(String field) {
     keyword = Keyword.intern(field);
   }
   

@@ -123,7 +123,7 @@
   ([opts]
    (->
      (client/request donkey-client opts)
-     (request/submit)))
+     request/submit))
   ([opts body]
    (->
      (client/request donkey-client opts)

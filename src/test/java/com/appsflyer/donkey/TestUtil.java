@@ -16,6 +16,8 @@
 
 package com.appsflyer.donkey;
 
+import clojure.lang.IPersistentMap;
+import clojure.lang.Keyword;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
 import com.appsflyer.donkey.server.route.AbstractRouteCreator;
@@ -63,8 +65,16 @@ public final class TestUtil {
     return ClojureObjectMapper.deserialize(response.bodyAsString());
   }
   
+  public static Object parseResponseBody(IPersistentMap response) {
+    return ClojureObjectMapper.deserialize((byte[]) response.valAt(Keyword.intern("body")));
+  }
+  
   public static void assert200(HttpResponse<Buffer> response) {
     assertEquals(OK.code(), response.statusCode());
+  }
+  
+  public static void assert200(IPersistentMap response) {
+    assertEquals(OK.code(), response.valAt(Keyword.intern("status")));
   }
   
   public static void assert404(HttpResponse<Buffer> response) {
