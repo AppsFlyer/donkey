@@ -39,6 +39,7 @@ class RingClientTest {
   
   private static final VertxRouteSupplier routeSupplier = new VertxRouteSupplier();
   private static final Keyword getMethod = Keyword.intern(GET.name().toLowerCase());
+  private static final int SSL_PORT = 8443;
   private static Vertx vertx;
   
   @BeforeAll
@@ -65,7 +66,7 @@ class RingClientTest {
         .setDecompressionSupported(true)
         .setPort(port);
     
-    if (port == 443) {
+    if (port == SSL_PORT) {
       options.setSsl(true)
              .setSni(true)
              .setKeyStoreOptions(
@@ -177,30 +178,29 @@ class RingClientTest {
   }
   
   //todo Temporarily comment out until I figure why it doesn't work on CI server
-//  @Test
-//  void testSsl(VertxTestContext testContext) throws Throwable {
-//    RingClient client = makeClient();
-//    int port = 443;
-//
-//    startServer(makeRouter(), port).onComplete(v -> {
-//      HttpRequest<Buffer> request = client.request(
-//          RT.map(METHOD.keyword(), getMethod,
-//                 URI.keyword(), "/echo",
-//                 PORT.keyword(), port,
-//                 SSL.keyword(), true));
-//
-//      client.send(request).onComplete(testContext.succeeding(
-//          response -> testContext.verify(() -> {
-//            assert200(response);
-//            IPersistentMap responseMap = (IPersistentMap) parseResponseBody(response);
-//            assertEquals(port, responseMap.valAt("server-port"));
-//            assertEquals("https", responseMap.valAt("scheme"));
-//            testContext.completeNow();
-//          })));
-//    });
-//
-//    assertContextSuccess(testContext);
-//  }
+  @Test
+  void testSsl(VertxTestContext testContext) throws Throwable {
+    RingClient client = makeClient();
+    
+    startServer(makeRouter(), SSL_PORT).onComplete(v -> {
+      HttpRequest<Buffer> request = client.request(
+          RT.map(METHOD.keyword(), getMethod,
+                 URI.keyword(), "/echo",
+                 PORT.keyword(), SSL_PORT,
+                 SSL.keyword(), true));
+      
+      client.send(request).onComplete(testContext.succeeding(
+          response -> testContext.verify(() -> {
+            assert200(response);
+            IPersistentMap responseMap = (IPersistentMap) parseResponseBody(response);
+            assertEquals(SSL_PORT, responseMap.valAt("server-port"));
+            assertEquals("https", responseMap.valAt("scheme"));
+            testContext.completeNow();
+          })));
+    });
+    
+    assertContextSuccess(testContext);
+  }
   
   @Test
   void testQueryParams(VertxTestContext testContext) throws

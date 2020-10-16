@@ -6,11 +6,8 @@ cache:
     - $HOME/.m2
 before_cache:
   - rm -rf $HOME/.m2/repository/com/appsflyer/
-after_success:
-  - lein coveralls
-  - mvn jacoco:report coveralls:report -DdryRun=true -B
-  - lein trampoline run -m coveralls-report
-  - curl -F 'json_file=@target/coveralls/coveralls.json' 'https://coveralls.io/api/v1/jobs'
+install: skip
+script: ./resources/build-ci.sh
 notifications:
   email:
     - yaron.elyashiv@appsflyer.com

@@ -34,7 +34,7 @@
                                         ::event-loops]))
 
 
-(s/def ::pos-int (s/and int? #(pos? %)))
+(s/def ::pos-int (s/and int? pos?))
 (s/def ::handler fn?)
 (s/def ::handlers (s/coll-of ::handler))
 (s/def ::strings (s/coll-of string?))
