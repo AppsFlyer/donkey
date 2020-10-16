@@ -20,20 +20,19 @@
 (defn parse-query-params [handler]
   (fn
     ([request]
-     (handler (-> (QueryParamsParser/getInstance) (.handle request))))
+     (handler (.handle (QueryParamsParser/getInstance) request)))
     ([request respond raise]
-     (handler (-> (QueryParamsParser/getInstance) (.handle request)) respond raise))))
+     (handler (.handle (QueryParamsParser/getInstance) request) respond raise))))
 
 (defn keywordize-query-params [handler]
   (fn
     ([request]
-     (handler (-> (QueryParamsKeywordizer/getInstance) (.handle request))))
+     (handler (.handle (QueryParamsKeywordizer/getInstance) request)))
     ([request respond raise]
      (try
        (handler
-         (-> (QueryParamsKeywordizer/getInstance) (.handle request))
+         (.handle (QueryParamsKeywordizer/getInstance) request)
          respond
          raise)
        (catch Exception ex
          (raise ex))))))
-

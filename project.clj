@@ -55,11 +55,11 @@
                        :jvm-opts       ^:replace ["-Dclojure.compiler.direct-linking=true"
                                                   "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
                                                   "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"
-                                                  "-Dvertx.threadChecks=true"
-                                                  "-Dvertx.disableContextTimings=false"]
+                                                  "-Dvertx.threadChecks=false"
+                                                  "-Dvertx.disableContextTimings=true"]
                        :plugins        [[lein-kibit "0.1.8"]
                                         [lein-cloverage "1.1.2"]]}
              :uberjar {:aot :all}}
-  :aliases {"coveralls" ["cloverage" "--junit" "--output" "target/coveralls/clojure" "--coveralls"]}
+  :aliases {"coveralls" ["cloverage" "--junit" "--no-html" "--output" "target/coveralls/clojure" "--coveralls"]}
   :pom-location "target/"
   :repl-options {:init-ns com.appsflyer.donkey.core})
