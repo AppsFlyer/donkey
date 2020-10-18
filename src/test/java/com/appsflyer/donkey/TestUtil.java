@@ -38,6 +38,8 @@ import io.vertx.junit5.VertxTestContext;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.appsflyer.donkey.client.ring.RingResponseField.BODY;
+import static com.appsflyer.donkey.client.ring.RingResponseField.STATUS;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -66,7 +68,7 @@ public final class TestUtil {
   }
   
   public static Object parseResponseBody(IPersistentMap response) {
-    return ClojureObjectMapper.deserialize((byte[]) response.valAt(Keyword.intern("body")));
+    return ClojureObjectMapper.deserialize((byte[]) response.valAt(BODY.keyword()));
   }
   
   public static void assert200(HttpResponse<Buffer> response) {
@@ -74,7 +76,7 @@ public final class TestUtil {
   }
   
   public static void assert200(IPersistentMap response) {
-    assertEquals(OK.code(), response.valAt(Keyword.intern("status")));
+    assertEquals(OK.code(), response.valAt(STATUS.keyword()));
   }
   
   public static void assert404(HttpResponse<Buffer> response) {

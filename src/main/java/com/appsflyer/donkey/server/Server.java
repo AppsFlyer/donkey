@@ -79,12 +79,4 @@ public interface Server {
    */
   void shutdownSync(int timeout, TimeUnit unit) throws
                                                 ServerShutdownException;
-  
-  /**
-   * Blocks the calling thread until the JVM gets a shutdown signal.
-   * At that point shuts down the server.
-   *
-   * @throws InterruptedException When the thread is interrupted
-   */
-  void awaitTermination() throws InterruptedException;
 }

@@ -100,7 +100,7 @@ public class RequestFactory {
     if (headers != null) {
       for (var obj : headers) {
         var entry = (IMapEntry) obj;
-        request.putHeader((String) entry.getKey(), (String) entry.getValue());
+        request.putHeader((String) entry.getKey(), entry.getValue().toString());
       }
     }
   }

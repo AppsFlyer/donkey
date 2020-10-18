@@ -155,20 +155,4 @@ public final class ServerImpl implements Server {
       throw new ServerShutdownException(error.get());
     }
   }
-  
-  @Override
-  public void awaitTermination() throws InterruptedException {
-    var latch = new CountDownLatch(1);
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      try {
-        shutdownSync();
-      } catch (ServerShutdownException ex) {
-        //noinspection UseOfSystemOutOrSystemErr The JVM is shutting down and the logger may not be available
-        System.err.println(ex.getMessage());
-      }
-      latch.countDown();
-    }));
-    
-    latch.await();
-  }
 }

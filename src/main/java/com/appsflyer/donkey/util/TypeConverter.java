@@ -21,6 +21,9 @@ public final class TypeConverter {
   
   private TypeConverter() {}
   
+  /**
+   * @return Comma separated string of all the elements in the iterable
+   */
   public static String stringJoiner(Iterable<String> v) {
     return String.join(",", v);
   }
