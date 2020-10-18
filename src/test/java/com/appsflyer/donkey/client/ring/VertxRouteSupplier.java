@@ -36,6 +36,13 @@ public class VertxRouteSupplier {
                  .handler((RingHandler) VertxRouteSupplier::returnRequest);
   }
   
+  public Route timeout(Router router) {
+    return router.route()
+                 .path("/timeout")
+                 //Handler doesn't call ctx.next() so no response it sent back
+                 .handler((RingHandler) ctx -> {});
+  }
+  
   public Route postFormOrFile(Router router) {
     return router.route()
                  .path("/post/form")
