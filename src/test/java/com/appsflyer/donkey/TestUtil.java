@@ -17,7 +17,6 @@
 package com.appsflyer.donkey;
 
 import clojure.lang.IPersistentMap;
-import clojure.lang.Keyword;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfigBuilder;
 import com.appsflyer.donkey.server.route.AbstractRouteCreator;
@@ -159,7 +158,13 @@ public final class TestUtil {
   
   public static void assertContextSuccess(VertxTestContext testContext) throws
                                                                         Throwable {
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertContextSuccess(testContext, 5, TimeUnit.SECONDS);
+  }
+  
+  public static void assertContextSuccess(
+      VertxTestContext testContext, long amount, TimeUnit unit) throws
+                                                                Throwable {
+    assertTrue(testContext.awaitCompletion(amount, unit));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }

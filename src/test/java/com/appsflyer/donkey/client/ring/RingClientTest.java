@@ -180,7 +180,7 @@ class RingClientTest {
           responsesReceived.flag();
         })));
     
-    assertContextSuccess(testContext);
+    assertContextSuccess(testContext, 10, TimeUnit.SECONDS);
   }
   
   @Test
