@@ -3,11 +3,11 @@ dist: bionic
 jdk: openjdk11
 cache:
   directories:
-    - $HOME/.m2
+  - "$HOME/.m2"
 before_cache:
-  - rm -rf $HOME/.m2/repository/com/appsflyer/
+- rm -rf $HOME/.m2/repository/com/appsflyer/
 install: skip
-script: ./resources/build-ci.sh
+script: "./src/main/resources/build-ci.sh"
 notifications:
   email:
     - yaron.elyashiv@appsflyer.com
