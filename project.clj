@@ -14,10 +14,10 @@
 ; limitations under the License.
 ;
 
-(def ^:private vertx-version "3.9.2")
+(def ^:private vertx-version "3.9.4")
 (def ^:private junit-version "5.6.2")
 
-(defproject donkey "0.1.0-SNAPSHOT"
+(defproject com.appsflyer/donkey "0.1.0-SNAPSHOT"
   :description "Clojure Web Server and Client"
   :url "https://github.com/AppsFlyer/donkey"
   :license {:name "APACHE LICENSE, VERSION 2.0"
