@@ -75,6 +75,57 @@
 
     :port [int] Required. The port the server will listen to.
 
+    :routes [map [,map]*] Sequence of routes that the server should handle.
+      All values are optional unless stated otherwise:
+
+      - :handler [fn] Required. A function that accepts 1 or 3 arguments
+          depending on the value of `:handler-mode`. The function will be called
+          if a request matches the route. When `:handler-mode` is
+          `:non-blocking` (the default value) the handler must accept 3
+          arguments - a request map, respond function, and raise function. When
+          `:handler-mode` is `:blocking` the handler must accept a single
+          argument - a request map.
+
+      - :handler-mode [keyword] `:blocking` or `:non-blocking`. See `:handler`
+          description for usage. Defaults to `:non-blocking`.
+
+      - :path [string] Used in matching a request to a route. The path is the
+          first element that's examined when matching a request to a route. It is
+          the part of the URI that comes after the hostname, and identifies a
+          resource on the host the client is trying to access. The path is
+          matched based on the value of `:match-type`. Defaults to any path.
+
+      - :match-type [keyword] `:simple` or `:regex`. `:simple` will look for an
+          exact match on the string value of `:path`, or a path variable match
+          for `path` values that follow this pattern: `/(?::[a-zA-Z0-9]+/?)+`.
+          `:regex` will do a regular expression match with the value of `path`.
+          Defaults to `:simple`
+
+      - :methods [keyword [,keyword]*] Sequence of HTTP methods (verbs) that
+          this route accepts. Possible values are the method name (e.g `GET`) in
+          lowercase (e.g `:get`). Defaults to any method.
+
+      - :consumes [string [,string]*] Sequence of MIME types that this route
+          accepts. For example, `application/json`, `application/octet-stream`,
+          or `multipart/mixed`. The value will be matched against the request's
+          `Content-Type` header. If the route matches but the content type does
+          not, then a `415 Unsupported Media Type` response will be returned.
+          Defaults to any MIME type.
+
+      - :produces [string [,string]*] Sequence of MIME types that this route
+          produces. For example, `application/json`, `application/octet-stream`,
+          or `text/html`. The value will be matched against the request's
+          `Accept` header. If the route matches but the request does not accept
+          any of the MIME types then a `406 Not Acceptable` response will be
+          returned. Defaults to any MIME type.
+
+      - :middleware [fn [,fn]*] Sequence of functions that will be applied
+          before a request is processed by the handler. Each function should
+          accept a handler function as its only argument, and return a function
+          that accepts 1 or 3 arguments (blocking vs. non blocking mode).
+          The middleware is responsible calling the handler before or after the
+          handler processes the request.
+
     :instances [int] The number of server instances to deploy. Each instance
       is assigned to an event loop. Therefore there is a direct relation between
       the number of :event-loops set when creating a Donkey instance, and the
@@ -113,6 +164,7 @@
     :content-type-header [boolean] Sets the response content type automatically
       according to the best 'Accept' header match. Defaults to false.
     ")
+
   (create-client [_this] [_this opts]
     "Create an instance of DonkeyClient with the supplied options.
     `opts` map description (all values are optional unless stated otherwise):
@@ -165,9 +217,9 @@
 
     :proxy [map] Options for connecting to a proxy client. All values are
       required.
-      :host [string] The host to connect to.
-      :port [int] The port to connect to.
-      :proxy-type [keyword] :http, :socks4, or :socks5
+      - :host [string] The host to connect to.
+      - :port [int] The port to connect to.
+      - :proxy-type [keyword] :http, :socks4, or :socks5
     "))
 
 (deftype Donkey [^Vertx vertx]
