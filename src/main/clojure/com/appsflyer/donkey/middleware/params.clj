@@ -15,24 +15,34 @@
 ;
 
 (ns com.appsflyer.donkey.middleware.params
-  (:import (com.appsflyer.donkey.server.ring.middleware QueryParamsKeywordizer QueryParamsParser)))
+  (:import (com.appsflyer.donkey.server.ring.middleware QueryParamsKeywordizer
+                                                        QueryParamsParser
+                                                        FormParamsKeywordizer
+                                                        FormParamsKeywordizer$Options
+                                                        RingMiddleware)))
 
-(defn parse-query-params [handler]
+(defn- make-ring-middleware [^RingMiddleware middleware handler]
   (fn
     ([request]
-     (handler (.handle (QueryParamsParser/getInstance) request)))
-    ([request respond raise]
-     (handler (.handle (QueryParamsParser/getInstance) request) respond raise))))
-
-(defn keywordize-query-params [handler]
-  (fn
-    ([request]
-     (handler (.handle (QueryParamsKeywordizer/getInstance) request)))
+     (handler (.handle middleware request)))
     ([request respond raise]
      (try
-       (handler
-         (.handle (QueryParamsKeywordizer/getInstance) request)
-         respond
-         raise)
+       (handler (.handle middleware request) respond raise)
        (catch Exception ex
          (raise ex))))))
+
+(defn parse-query-params [handler]
+  (make-ring-middleware (QueryParamsParser/getInstance) handler))
+
+(defn keywordize-query-params [handler]
+  (make-ring-middleware (QueryParamsKeywordizer/getInstance) handler))
+
+(defn keywordize-form-params
+  ([] (keywordize-form-params {:deep true}))
+  ([opts]
+   (fn [handler]
+     (make-ring-middleware
+       (FormParamsKeywordizer. (FormParamsKeywordizer$Options. (:deep opts)))
+       handler))))
+
+

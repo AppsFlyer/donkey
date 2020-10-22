@@ -1,11 +1,13 @@
 (ns com.appsflyer.donkey.middleware.middleware-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.test-helper :as helper]
-            [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params]]
+            [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params
+                                                            keywordize-form-params]]
             [com.appsflyer.donkey.routes :as routes]
             [clojure.string])
   (:import (io.vertx.ext.web.client HttpRequest)
-           (io.netty.handler.codec.http HttpResponseStatus)))
+           (io.netty.handler.codec.http HttpResponseStatus)
+           (io.vertx.core MultiMap)))
 
 (defn- make-query-param-counter-middleware
   "Returns a middleware that increments the named query parameter.
@@ -41,12 +43,43 @@
   next middleware."
     (helper/run-with-server-and-client
       (fn []
-        (execute-keywordize-params-test "/echo")
-        (execute-keywordize-params-test "/echo/non-blocking"))
+        (execute-keywordize-params-test (:path routes/echo-route))
+        (execute-keywordize-params-test (:path routes/echo-route-non-blocking)))
       [routes/echo-route routes/echo-route-non-blocking]
       [keywordize-query-params
        (make-query-param-counter-middleware :added-by-middleware)
        (make-query-param-counter-middleware :added-by-middleware)])))
+
+(defn- execute-keywordize-form-params-test [uri]
+  (let [response-promise (promise)
+        form-params (doto (MultiMap/caseInsensitiveMultiMap)
+                      (.add "brand" "Pim")
+                      (.add "status" "On")
+                      (.add "message" "Yoohoo")
+                      (.add "type" "user")
+                      (.add "product" "vv9xoB90"))]
+
+    (-> ^HttpRequest (.post helper/vertx-client uri)
+        (.sendForm form-params (helper/create-client-handler response-promise)))
+
+    (let [res (helper/parse-response-body-when-resolved response-promise)]
+      (println res)
+      (is (= {:brand   "Pim"
+              :status  "On"
+              :message "Yoohoo"
+              :type    "user"
+              :product "vv9xoB90"}
+             (:form-params res))))))
+
+(deftest test-keywordize-form-params
+  (testing "it should turn string form parameters keys into keywords and call the
+  next middleware."
+    (helper/run-with-server-and-client
+      (fn []
+        (execute-keywordize-form-params-test (:path routes/echo-route))
+        (execute-keywordize-form-params-test (:path routes/echo-route-non-blocking)))
+      [routes/echo-route routes/echo-route-non-blocking]
+      [(keywordize-form-params)])))
 
 (defn- execute-multiple-middleware-per-route-test [uri]
   (let [response-promise (promise)]
