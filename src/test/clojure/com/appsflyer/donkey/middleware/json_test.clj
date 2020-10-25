@@ -58,7 +58,7 @@
             (let [res (execute-parse-body-test path)]
               (is (= routes/glossary-with-strings res)))))
         -routes
-        [(make-deserialize-middleware (jsonista/object-mapper))]))))
+        [(make-deserialize-middleware {:mapper (jsonista/object-mapper)})]))))
 
 (deftest invalid-json-test
   (testing "it should return a 400 Bad Request when `body` cannot be parsed as json"

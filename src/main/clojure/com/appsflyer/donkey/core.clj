@@ -304,7 +304,8 @@
     (create-server
       donkey
       {:port                8080
-       :middleware          [middleware/keywordize-query-params add-headers]
+       :middleware          [(middleware/keywordize-query-params)
+                             add-headers]
        :debug               false
        :date-header         true
        :content-type-header true

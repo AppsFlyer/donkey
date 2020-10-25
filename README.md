@@ -466,6 +466,8 @@ request, or stop the execution by calling `raise`.
 
 There are some common operations that Donkey provides as pre-made middleware
 that can be found under `com.appsflyer.donkey.middleware.*` namespaces.
+All the middleware that come with Donkey take an optional options map. The
+options map can be used, for example, to supply an exception handler.
 
 A very common use case is inspecting the query parameters sent by a client in
 the url of a GET request. By default, the query parameters are available in 
