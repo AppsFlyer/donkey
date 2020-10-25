@@ -3,11 +3,15 @@
             [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params
                                                             keywordize-form-params]]
+            [com.appsflyer.donkey.middleware.base :refer [make-ring-request-middleware
+                                                          make-ring-response-middleware]]
             [com.appsflyer.donkey.routes :as routes]
             [clojure.string])
   (:import (io.vertx.ext.web.client HttpRequest)
            (io.netty.handler.codec.http HttpResponseStatus)
-           (io.vertx.core MultiMap)))
+           (io.vertx.core MultiMap)
+           (com.appsflyer.donkey.server.ring.middleware RingMiddleware)
+           (clojure.lang ExceptionInfo)))
 
 (defn- make-query-param-counter-middleware
   "Returns a middleware that increments the named query parameter.
@@ -38,6 +42,49 @@
       (is (= query-string (:query-string res)))
       (is (= expected (:query-params res))))))
 
+(deftest test-middleware-exception-handling
+  (let [middleware (reify RingMiddleware
+                     (handle [_this _request]
+                       (throw (ex-info "foo bar" {}))))]
+
+    (testing "it should call the supplied ex-handler function"
+      (let [ex-handler (fn [obj]
+                         (is (= "foo bar" (ex-message (:cause obj))))
+                         (is (= "foo bar" (-> obj :request :foo))))
+            handler (make-ring-request-middleware middleware (constantly {}) ex-handler)]
+        (handler {:foo "foo bar"})))
+
+    (testing "it should call the supplied ex-handler function"
+      (let [respond (fn [arg] (is (= "foobar" arg)))
+            raise (fn [ex] (is (instance? ExceptionInfo ex)))
+            ex-handler (fn [obj]
+                         (is (= "foo bar" (ex-message (:cause obj))))
+                         (is (= "foo bar" (-> obj :request :foo)))
+                         ((:respond obj) "foobar")
+                         ((:raise obj) (:cause obj)))
+            handler (make-ring-request-middleware middleware (constantly {}) ex-handler)]
+        (handler {:foo "foo bar"} respond raise)))
+
+    (testing "it should call the supplied ex-handler function"
+      (let [ex-handler (fn [obj]
+                         (is (= "foo bar" (ex-message (:cause obj))))
+                         (is (= "foo bar" (-> obj :request :foo))))
+            handler (make-ring-response-middleware
+                      middleware (fn [_] (throw (ex-info "foo bar" {}))) ex-handler)]
+        (handler {:foo "foo bar"})))
+
+    (testing "it should call the supplied ex-handler function"
+      (let [respond (fn [arg] (is (= "foobar" arg)))
+            raise (fn [ex] (is (instance? ExceptionInfo ex)))
+            ex-handler (fn [obj]
+                         (is (= "foo bar" (ex-message (:cause obj))))
+                         (is (= "foo bar" (-> obj :request :foo)))
+                         ((:respond obj) "foobar")
+                         ((:raise obj) (:cause obj)))
+            handler (make-ring-response-middleware
+                      middleware (fn [& _] (throw (ex-info "foo bar" {}))) ex-handler)]
+        (handler {:foo "foo bar"} respond raise)))))
+
 (deftest test-keywordize-query-params
   (testing "it should turn string query parameters keys into keywords and call the
   next middleware."
@@ -46,7 +93,7 @@
         (execute-keywordize-params-test (:path routes/echo-route))
         (execute-keywordize-params-test (:path routes/echo-route-non-blocking)))
       [routes/echo-route routes/echo-route-non-blocking]
-      [keywordize-query-params
+      [(keywordize-query-params)
        (make-query-param-counter-middleware :added-by-middleware)
        (make-query-param-counter-middleware :added-by-middleware)])))
 
@@ -63,7 +110,6 @@
         (.sendForm form-params (helper/create-client-handler response-promise)))
 
     (let [res (helper/parse-response-body-when-resolved response-promise)]
-      (println res)
       (is (= {:brand   "Pim"
               :status  "On"
               :message "Yoohoo"

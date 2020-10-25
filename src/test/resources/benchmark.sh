@@ -19,4 +19,4 @@
 rlwrap lein trampoline run \
   -m com.appsflyer.donkey.benchmark \
   "$@" \
-  >target/benchmark.log
+  >../../../target/benchmark.log

@@ -15,48 +15,50 @@
 ;
 
 (ns com.appsflyer.donkey.middleware.json
-  (:require [jsonista.core :as jsonista])
+  (:require [jsonista.core :as jsonista]
+            [com.appsflyer.donkey.middleware.base :as base])
   (:import (com.appsflyer.donkey.server.ring.middleware JsonBodyDeserializer JsonBodySerializer)
            (com.fasterxml.jackson.databind ObjectMapper)
            (clojure.lang IFn)))
 
 (defn ^IFn make-deserialize-middleware
   "Returns a middleware for deserializing request's body as JSON.
-  An optional ObjectMapper may be supplied to customize the deserialization.
-  By default all map keys will be turned into keywords"
+
+  `opts` is an optional map with the following keys:
+  - :mapper [ObjectMapper] Custom mapper that will be used for deserialization.
+  - :ex-handler [fn] A function that will be called if an exception is thrown.
+  It will be called with a map with the following keys:
+  - :cause [Exception] The caught exception
+  - :request [map] The request
+  - :respond [fn] A function that should be called with the response. Only
+  available in the 3 argument arity.
+  - :raise [fn] A function that should be called with an exception. Only
+  available in the 3 argument arity."
   ([]
-   (make-deserialize-middleware (jsonista/object-mapper {:decode-key-fn true})))
-  ([^ObjectMapper mapper]
-   (let [deserializer (JsonBodyDeserializer. mapper)]
+   (make-deserialize-middleware {:mapper (jsonista/object-mapper {:decode-key-fn true})}))
+  ([opts]
+   (let [deserializer (JsonBodyDeserializer. ^ObjectMapper (:mapper opts))]
      (fn [handler]
-       (fn
-         ([request]
-          (handler (.handle deserializer request)))
-         ([request respond raise]
-          (try
-            (handler (.handle deserializer request) respond raise)
-            (catch Exception ex
-              (raise ex)))))))))
+       (base/make-ring-request-middleware deserializer handler (:ex-handler opts))))))
 
 
 (defn ^IFn make-serialize-middleware
   "Returns a middleware for serializing response's body as JSON.
-  An optional ObjectMapper may be supplied to customize the serialization.
-  By default all map keyword keys will be turned into strings"
+
+  `opts` is an optional map with the following keys:
+  - :mapper [ObjectMapper] Custom mapper that will be used for serialization.
+    By default all map keyword keys will be turned into strings
+  - :ex-handler [fn] A function that will be called if an exception is thrown.
+  It will be called with a map with the following keys:
+  - :cause [Exception] The caught exception
+  - :request [map] The request
+  - :respond [fn] A function that should be called with the response. Only
+  available in the 3 argument arity.
+  - :raise [fn] A function that should be called with an exception. Only
+  available in the 3 argument arity."
   ([]
-   (make-serialize-middleware (jsonista/object-mapper)))
-  ([^ObjectMapper mapper]
-   (let [serializer (JsonBodySerializer. mapper)]
+   (make-serialize-middleware {:mapper (jsonista/object-mapper)}))
+  ([opts]
+   (let [serializer (JsonBodySerializer. ^ObjectMapper (:mapper opts))]
      (fn [handler]
-       (fn
-         ([request]
-          (.handle serializer (handler request)))
-         ([request respond raise]
-          (handler
-            request
-            (fn [response]
-              (try
-                (respond (.handle serializer response))
-                (catch Exception ex
-                  (raise ex))))
-            raise)))))))
+       (base/make-ring-response-middleware serializer handler (:ex-handler opts))))))

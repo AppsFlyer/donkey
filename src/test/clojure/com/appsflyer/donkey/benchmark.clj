@@ -60,7 +60,7 @@
 (defn bench-donkey-keywordize-query-params []
   (title bench-donkey-keywordize-query-params)
 
-  (let [middleware ((comp parse-query-params keywordize-query-params) identity)]
+  (let [middleware ((comp (parse-query-params) (keywordize-query-params)) identity)]
     (cc/bench
       (middleware
         {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
