@@ -99,7 +99,7 @@ public final class TypeConverter {
     }
   
     throw new UnsupportedDataTypeException(String.format(
-        "Cannot create a byte[] from %s. Only byte[] and String are supported.",
+        "Cannot create a byte[] from %s. Only String and InputStream are supported.",
         obj.getClass().getCanonicalName()));
   }
   
