@@ -22,12 +22,12 @@ public final class LogbackLoggerFactory {
   private static final String FACTORY_DELEGATE_CLASS_NAME = "com.appsflyer.donkey.log.LogbackDelegateFactory";
   
   static {
-    initialise();
+    initialize();
   }
   
   private LogbackLoggerFactory() {}
   
-  public static synchronized void initialise() {
+  public static synchronized void initialize() {
     LogDelegateFactory delegateFactory;
     
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
