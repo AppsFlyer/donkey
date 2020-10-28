@@ -9,7 +9,7 @@
            (com.appsflyer.donkey.server DonkeyServer)
            (com.appsflyer.donkey.core Donkey)
            (com.appsflyer.donkey.client DonkeyClient)
-           (com.appsflyer.donkey.result FutureResult)))
+           (com.appsflyer.donkey FutureResult)))
 
 (def ^:dynamic ^Donkey donkey-core)
 (def ^:dynamic ^DonkeyServer donkey-server)

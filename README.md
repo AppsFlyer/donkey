@@ -681,9 +681,8 @@ request will be called with `ex` being `nil`, and a failed request will
 be called with `result` being `nil`. The two are mutually exclusive which makes
 it simple to check the outcome of the request.
 
-It's possible for multiple parties to be notified on the completion of 
-`FutureResult` - each of the `on-success`, `on-fail`, and `on-complete` can be
-called zero or more times. If the response is irrelevant as is the case in "call 
+
+If the response is irrelevant as is the case in "call 
 and forget" type requests, then the result can be ignored:
 ```clojure
 (submit async-request) ; => The `FutureResult` returned is ignored
@@ -698,7 +697,8 @@ Or if you are only interested to know if the request failed:
 ... do the rest of your application logic
 ```
 
-Although it is not recommended, results can also be derefed:
+Although it is not recommended in the context of asynchronous operations, 
+results can also be dereferenced:
 ```clojure
 (let [result @(submit async-request)]
   (if (map? result)
@@ -707,7 +707,67 @@ Although it is not recommended, results can also be derefed:
 ``` 
 In this case the call to `submit` will block the calling thread until a result
 is available. The result may be either a response map, if the request was 
-successful, or an `ExceptionInfo` if it wasn't.            
+successful, or an `ExceptionInfo` if it wasn't.           
+
+Each function returns a new `FutureResult` instance, which makes it possible 
+to chain handlers. Let's look at an example that shows the different things
+you can achieve with a `FutureResult`.
+
+```clojure
+(ns com.appsflyer.donkey.exmaple
+  (:require [com.appsflyer.donkey.result :as result])
+  (:import (com.appsflyer.donkey FutureResult)))
+
+(let [future-result-1 (->
+                        (FutureResult/create {})
+                        (result/on-success
+                          (fn [res]
+                            (println (str "future-result-1 " res))
+                            (assoc res :count 1)))
+                        (result/on-fail (fn [ex] (println ex))))
+      future-result-2 (result/on-success
+                        future-result-1 (fn [res]
+                                          (println (str "future-result-2 " res))
+                                          (update res :count inc)))
+      future-result-2' (result/on-success
+                         future-result-1 (fn [res]
+                                           (println (str "future-result-2' " res))
+                                           (update res :count inc)))
+      future-result-3 (result/on-success
+                        future-result-2 (fn [res]
+                                          (println (str "future-result-3 " res))
+                                          (update res :count inc)))]
+  (println (str "@future-result-3 " @future-result-3)))
+
+# Output:
+# future-result-1 {}
+# future-result-2 {:count 1}
+# future-result-2' {:count 1}
+# future-result-3 {:count 2}
+# @future-result-3 {:count 3}
+```
+
+- We start off by creating a `future-result-1` that will complete with an empty map.
+We add success and fail handlers, and because there is no risk of an exception 
+being thrown, the `on-fail` handler will not be called.
+In the `on-success` handler we get the empty map as an argument, we add a
+`:counter` field to it, and return the new map.
+- `future-result-2` adds a success handler on `future-result-1`, which means it 
+will get whatever value the last `on-success` handler of `future-result-1` 
+returned as its sole argument, and increment the `:counter` field.
+- `future-result-2'` adds a success handler on `future-result-1` as well. It's 
+important to understand that it will get the original value `future-result-1`
+returned as its argument, and not what `future-result-2` returns.
+- `future-result-3` adds a success handler on `future-result-2` that again 
+increments `:counter`.
+- Lastly, we dereference `future-result-3`.    
+
+The example shows that multiple parties can be notified on the completion of 
+`FutureResult` and handle it in different ways simultaneously. It also shows
+the result of a `FutureResult` can be processed and transformed in chain by
+different handlers.
+
+---
 
 The rest of the examples assume the following vars are defined
  
@@ -718,10 +778,8 @@ The rest of the examples assume the following vars are defined
  
 ### HTTPS Requests
 
-Making HTTPS requests requires only setting `:ssl` to `true` when creating the 
-client or the request. The port can be omitted and will default to 443. If 
-you've already set a default-port when creating the client, then you must 
-override it when creating the request.
+Making HTTPS requests requires setting `:ssl` to `true` and `:default-port` or 
+`:port` when creating a client or a request respectively.
 
 ```clojure
 (->

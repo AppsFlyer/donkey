@@ -24,7 +24,6 @@
            (com.appsflyer.donkey.client.exception UnsupportedDataTypeException)
            (java.nio.charset StandardCharsets)))
 
-
 (def route-maps
   [routes/root-200
    routes/echo-route
@@ -108,8 +107,8 @@
 
   (testing "it should parse query parameters in the configuration and add them
     to the url"
-    (let [res @(helper/make-request {:method :get,
-                                     :uri "/echo?key=value",
+    (let [res @(helper/make-request {:method       :get,
+                                     :uri          "/echo?key=value",
                                      :query-params {"baz" "3" "foo" "bar"}})
           body (parse-response-body res)
           expected-query-string "key=value&baz=3&foo=bar"
