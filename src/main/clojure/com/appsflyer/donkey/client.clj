@@ -50,7 +50,9 @@
     (when (:compression opts)
       (.setTryUseCompression client-options true))
     (when (:ssl opts)
-      (.setSsl client-options true))
+      (.setSsl client-options true)
+      (when-not (:default-port opts)
+        (.setDefaultPort client-options (int 443))))
     client-options))
 
 (defn ^ClientConfig get-client-config
@@ -138,7 +140,10 @@
   (->
     (request {:method :get :uri "/foo"})                    ; => Create a request. Request not sent yet. Returns Request object
     (submit #_optional-body)                                ; => Send the request. Returns a FutureResult.
-    (on-complete (fn [res ex] (println "success or fail"))) ; => Triggers when the request completes. Returns a FutureResult.
+    (on-complete
+      (fn [res ex]
+        (println "success or fail")
+        res))                                               ; => Triggers when the request completes. Returns a FutureResult.
     (on-success (fn [res] (println "success")))             ; => Triggers when the request is successful. Returns a FutureResult.
     (on-fail (fn [ex] (println "fail"))))                   ; => Triggers when the request fails. Returns a FutureResult.
 
