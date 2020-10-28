@@ -7,7 +7,7 @@
            (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
            (com.appsflyer.donkey.server.ring.route RingRouteCreatorFactory)
            (com.appsflyer.donkey.util DebugUtil)
-           (com.appsflyer.donkey.result FutureResult)))
+           (com.appsflyer.donkey FutureResult)))
 
 (defn- ^HttpServerOptions get-server-options
   "Creates and returns an HttpServerOptions object from the opts map.
@@ -65,9 +65,9 @@
 (deftype DonkeyServer [^Server impl]
   HttpServer
   (start [_this]
-    (FutureResult. (.start ^Server impl)))
+    (FutureResult/create (.start ^Server impl)))
   (stop [_this]
-    (FutureResult. (.shutdown ^Server impl)))
+    (FutureResult/create (.shutdown ^Server impl)))
   (start-sync [_this]
     (try
       (.startSync impl)

@@ -2,8 +2,8 @@
   (:require [com.appsflyer.donkey.result])
   (:import (clojure.lang IPersistentMap)
            (io.vertx.ext.web.client HttpRequest)
-           (com.appsflyer.donkey.result FutureResult)
-           (com.appsflyer.donkey.client.ring RingClient)))
+           (com.appsflyer.donkey.client.ring RingClient)
+           (com.appsflyer.donkey FutureResult)))
 
 (defprotocol Submittable
   (submit [this] [this body]
@@ -42,14 +42,12 @@
 (deftype AsyncRequest [^RingClient client ^HttpRequest req]
   Submittable
   (submit [_this]
-    (FutureResult.
-      (.send ^RingClient client ^HttpRequest req)))
+    (FutureResult/create (.send ^RingClient client ^HttpRequest req)))
   (submit [_this body]
-    (FutureResult.
-      (.send ^RingClient client ^HttpRequest req body)))
+    (FutureResult/create (.send ^RingClient client ^HttpRequest req body)))
   (submit-form [_this body]
-    (FutureResult.
+    (FutureResult/create
       (.sendForm ^RingClient client ^HttpRequest req ^IPersistentMap body)))
   (submit-multipart-form [_this body]
-    (FutureResult.
+    (FutureResult/create
       (.sendMultiPartForm ^RingClient client ^HttpRequest req ^IPersistentMap body))))
