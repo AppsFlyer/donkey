@@ -710,62 +710,36 @@ is available. The result may be either a response map, if the request was
 successful, or an `ExceptionInfo` if it wasn't.           
 
 Each function returns a new `FutureResult` instance, which makes it possible 
-to chain handlers. Let's look at an example that shows the different things
-you can achieve with a `FutureResult`.
+to chain handlers. Let's look at an example:
 
 ```clojure
 (ns com.appsflyer.donkey.exmaple
   (:require [com.appsflyer.donkey.result :as result])
   (:import (com.appsflyer.donkey FutureResult)))
 
-(let [future-result-1 (->
-                        (FutureResult/create {})
-                        (result/on-success
-                          (fn [res]
-                            (println (str "future-result-1 " res))
-                            (assoc res :count 1)))
-                        (result/on-fail (fn [ex] (println ex))))
-      future-result-2 (result/on-success
-                        future-result-1 (fn [res]
-                                          (println (str "future-result-2 " res))
-                                          (update res :count inc)))
-      future-result-2' (result/on-success
-                         future-result-1 (fn [res]
-                                           (println (str "future-result-2' " res))
-                                           (update res :count inc)))
-      future-result-3 (result/on-success
-                        future-result-2 (fn [res]
-                                          (println (str "future-result-3 " res))
-                                          (update res :count inc)))]
-  (println (str "@future-result-3 " @future-result-3)))
+; Chaning example. Each function gets the return value of the previous
 
-# Output:
-# future-result-1 {}
-# future-result-2 {:count 1}
-# future-result-2' {:count 1}
-# future-result-3 {:count 2}
-# @future-result-3 {:count 3}
+(letfn [(increment [val]
+                  (let [res (update val :count (fnil inc 0))]
+                    (println res)
+                    res))]
+  (->
+    (FutureResult/create {})
+    (result/on-success increment)
+    (result/on-success increment)
+    (result/on-success increment)
+    (result/on-fail (fn [_ex] (println "We have a problem"))))
+
+; Output:
+; {:count 1}
+; {:count 2}
+; {:count 3}
 ```
 
-- We start off by creating a `future-result-1` that will complete with an empty map.
-We add success and fail handlers, and because there is no risk of an exception 
-being thrown, the `on-fail` handler will not be called.
-In the `on-success` handler we get the empty map as an argument, we add a
-`:counter` field to it, and return the new map.
-- `future-result-2` adds a success handler on `future-result-1`, which means it 
-will get whatever value the last `on-success` handler of `future-result-1` 
-returned as its sole argument, and increment the `:counter` field.
-- `future-result-2'` adds a success handler on `future-result-1` as well. It's 
-important to understand that it will get the original value `future-result-1`
-returned as its argument, and not what `future-result-2` returns.
-- `future-result-3` adds a success handler on `future-result-2` that again 
-increments `:counter`.
-- Lastly, we dereference `future-result-3`.    
-
-The example shows that multiple parties can be notified on the completion of 
-`FutureResult` and handle it in different ways simultaneously. It also shows
-the result of a `FutureResult` can be processed and transformed in chain by
-different handlers.
+We start off by defining an `increment` function that takes a map and 
+increments a `:counter` key. We then create a `FutureResult` that completes with
+an empty map. The first example shows how chaining the result of one function 
+to the next works. 
 
 ---
 
