@@ -10,7 +10,6 @@
   (:import (io.vertx.ext.web.client HttpRequest)
            (io.netty.handler.codec.http HttpResponseStatus)
            (io.vertx.core MultiMap)
-           (com.appsflyer.donkey.server.ring.middleware RingMiddleware)
            (clojure.lang ExceptionInfo)))
 
 (defn- make-query-param-counter-middleware
@@ -43,47 +42,61 @@
       (is (= expected (:query-params res))))))
 
 (deftest test-middleware-exception-handling
-  (let [middleware (reify RingMiddleware
-                     (handle [_this _request]
-                       (throw (ex-info "foo bar" {}))))]
+  (let [func (fn [_] (throw (ex-info "foo bar" {})))]
 
     (testing "it should call the supplied ex-handler function"
-      (let [ex-handler (fn [obj]
+      (let [handler (constantly {})
+            ex-handler (fn [obj]
                          (is (= "foo bar" (ex-message (:cause obj))))
-                         (is (= "foo bar" (-> obj :request :foo))))
-            handler (make-ring-request-middleware middleware (constantly {}) ex-handler)]
-        (handler {:foo "foo bar"})))
+                         (is (= "foo bar" (-> obj :request :foo)))
+                         (is (= handler (:handler obj))))
+            middleware (make-ring-request-middleware {:middleware func
+                                                      :handler    handler
+                                                      :ex-handler ex-handler})]
+        (middleware {:foo "foo bar"})))
 
     (testing "it should call the supplied ex-handler function"
-      (let [respond (fn [arg] (is (= "foobar" arg)))
+      (let [handler (constantly {})
+            respond (fn [arg] (is (= "foobar" arg)))
             raise (fn [ex] (is (instance? ExceptionInfo ex)))
             ex-handler (fn [obj]
                          (is (= "foo bar" (ex-message (:cause obj))))
                          (is (= "foo bar" (-> obj :request :foo)))
+                         (is (= handler (:handler obj)))
                          ((:respond obj) "foobar")
                          ((:raise obj) (:cause obj)))
-            handler (make-ring-request-middleware middleware (constantly {}) ex-handler)]
-        (handler {:foo "foo bar"} respond raise)))
+            middleware (make-ring-request-middleware {:middleware func
+                                                      :handler    handler
+                                                      :ex-handler ex-handler})]
+        (middleware {:foo "foo bar"} respond raise)))
 
     (testing "it should call the supplied ex-handler function"
-      (let [ex-handler (fn [obj]
+      (let [handler (fn [_] (throw (ex-info "foo bar" {})))
+            ex-handler (fn [obj]
                          (is (= "foo bar" (ex-message (:cause obj))))
-                         (is (= "foo bar" (-> obj :request :foo))))
-            handler (make-ring-response-middleware
-                      middleware (fn [_] (throw (ex-info "foo bar" {}))) ex-handler)]
-        (handler {:foo "foo bar"})))
+                         (is (= "foo bar" (-> obj :request :foo)))
+                         (is (= handler (:handler obj))))
+            middleware (make-ring-response-middleware
+                         {:middleware func
+                          :handler    handler
+                          :ex-handler ex-handler})]
+        (middleware {:foo "foo bar"})))
 
     (testing "it should call the supplied ex-handler function"
-      (let [respond (fn [arg] (is (= "foobar" arg)))
+      (let [handler (fn [& _] (throw (ex-info "foo bar" {})))
+            respond (fn [arg] (is (= "foobar" arg)))
             raise (fn [ex] (is (instance? ExceptionInfo ex)))
             ex-handler (fn [obj]
                          (is (= "foo bar" (ex-message (:cause obj))))
                          (is (= "foo bar" (-> obj :request :foo)))
+                         (is (= handler (:handler obj)))
                          ((:respond obj) "foobar")
                          ((:raise obj) (:cause obj)))
-            handler (make-ring-response-middleware
-                      middleware (fn [& _] (throw (ex-info "foo bar" {}))) ex-handler)]
-        (handler {:foo "foo bar"} respond raise)))))
+            middleware (make-ring-response-middleware
+                         {:middleware func
+                          :handler    handler
+                          :ex-handler ex-handler})]
+        (middleware {:foo "foo bar"} respond raise)))))
 
 (deftest test-keywordize-query-params
   (testing "it should turn string query parameters keys into keywords and call the

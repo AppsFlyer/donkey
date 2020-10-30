@@ -39,7 +39,9 @@
   ([opts]
    (let [deserializer (JsonBodyDeserializer. ^ObjectMapper (:mapper opts))]
      (fn [handler]
-       (base/make-ring-request-middleware deserializer handler (:ex-handler opts))))))
+       (base/make-ring-request-middleware {:middleware deserializer
+                                           :handler    handler
+                                           :ex-handler (:ex-handler opts)})))))
 
 
 (defn ^IFn make-serialize-middleware
@@ -61,4 +63,6 @@
   ([opts]
    (let [serializer (JsonBodySerializer. ^ObjectMapper (:mapper opts))]
      (fn [handler]
-       (base/make-ring-response-middleware serializer handler (:ex-handler opts))))))
+       (base/make-ring-response-middleware {:middleware serializer
+                                            :handler    handler
+                                            :ex-handler (:ex-handler opts)})))))
