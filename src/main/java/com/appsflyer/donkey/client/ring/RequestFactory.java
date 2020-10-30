@@ -26,11 +26,17 @@ public class RequestFactory {
     var method = (HttpMethod) METHOD.from(opts);
     Objects.requireNonNull(method, "HTTP request method is missing");
     
-    HttpRequest<Buffer> request = client.request(method, (String) URI.from(opts));
+    var url = (String) URL.from(opts);
+    HttpRequest<Buffer> request;
+    if (url == null) {
+      request = client.request(method, (String) URI.from(opts));
+      addPort(request, opts);
+      addHost(request, opts);
+      addSsl(request, opts);
+    } else {
+      request = client.requestAbs(method, url);
+    }
     
-    addPort(request, opts);
-    addHost(request, opts);
-    addSsl(request, opts);
     addQueryParams(request, opts);
     addHeaders(request, opts);
     addBasicAuth(request, opts);
@@ -39,7 +45,6 @@ public class RequestFactory {
     
     return request;
   }
-  
   
   private void addPort(HttpRequest<Buffer> request, IPersistentMap opts) {
     var port = (Integer) PORT.from(opts);

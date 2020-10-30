@@ -2,7 +2,6 @@
 ## TODO
 
 - Add a "Troubleshoot" section that explains how to exclude dropwizard 
-- Allow users of client to give absolute urls
 - Add code of conduct
 - Decide on maintenance policy
 - Add PR / issues template
@@ -45,6 +44,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Allow users of client to give absolute urls
 - Add TOC
 - Add FutureResult tests
 - Update FutureResult examples
