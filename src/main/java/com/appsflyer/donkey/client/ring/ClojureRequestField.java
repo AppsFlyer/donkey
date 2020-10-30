@@ -30,6 +30,12 @@ public enum ClojureRequestField implements ValueExtractor<IPersistentMap> {
       return (String) req.valAt(keyword(), "/");
     }
   },
+  URL("url") {
+    @Override
+    public String from(IPersistentMap req) {
+      return (String) req.valAt(keyword(), null);
+    }
+  },
   HOST("host") {
     @Nullable
     @Override

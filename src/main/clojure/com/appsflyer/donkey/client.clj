@@ -100,6 +100,10 @@
       given the URL `http://www.example.com:8080/api/v1/users` the uri would be
       `/api/v1/users`. Defaults to `/`.
 
+    :url [string] The absolute location of the resource being requested.
+      For example, `http://www.example.com:8080/api/v1/users`. When an `:url` is
+      supplied then the `:uri`, `:port`, `:host` and `:ssl` keys are ignored.
+
     :query-params [map] Mapping of string key value pairs. The pairs will be
       added to the query part of the url. It is also possible to include query
       parameters in the `:uri`, for example - `/api/v1/users?id=1`. In that case

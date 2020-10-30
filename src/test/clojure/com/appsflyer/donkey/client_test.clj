@@ -138,6 +138,15 @@
           (is (= "application/x-www-form-urlencoded" (get-in body [:headers "content-type"])))
           (is (= fields (:form-params body))))))))
 
+(deftest test-absolute-url
+  (testing "it should return a 200 response"
+    (let [res @(helper/make-request {:method :get,
+                                     :url    (str "http://localhost:" helper/DEFAULT-PORT "/")})]
+      (is (= 200 (:status res))))
+    (let [res @(helper/make-request {:method :get,
+                                     :url    (str "http://localhost:" helper/DEFAULT-PORT)})]
+      (is (= 200 (:status res))))))
+
 #_(deftest test-https-endpoint
     (let [latch (CountDownLatch. 1)]
       (->

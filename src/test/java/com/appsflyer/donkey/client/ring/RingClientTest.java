@@ -44,22 +44,21 @@ class RingClientTest {
   private static final Keyword getMethod = Keyword.intern(GET.name().toLowerCase());
   private static final int SSL_PORT = 8443;
   private static Vertx vertx;
+  private static RingClient client;
   
   @BeforeAll
   static void beforeAll(Vertx vertx) throws InterruptedException {
     RingClientTest.vertx = vertx;
-    var latch = new CountDownLatch(1);
-    startServer(makeRouter()).onComplete(v -> latch.countDown());
+    client = makeClient();
+    var latch = new CountDownLatch(2);
+    startServer(makeRouter(), DEFAULT_PORT).onComplete(v -> latch.countDown());
+    startServer(makeRouter(), SSL_PORT).onComplete(v -> latch.countDown());
     latch.await(5, TimeUnit.SECONDS);
   }
   
   @AfterAll
   static void afterAll() {
     vertx.close();
-  }
-  
-  static Future<Void> startServer(Handler<HttpServerRequest> router) {
-    return startServer(router, DEFAULT_PORT);
   }
   
   static Future<Void> startServer(Handler<HttpServerRequest> router, int port) {
@@ -100,7 +99,7 @@ class RingClientTest {
     return router;
   }
   
-  private RingClient makeClient() {
+  static RingClient makeClient() {
     return RingClient.create(
         ClientConfig.builder()
                     .clientOptions(new WebClientOptions()
@@ -112,8 +111,6 @@ class RingClientTest {
   
   @Test
   void testHttpMethodRequired() {
-    RingClient client = makeClient();
-    
     assertThrows(NullPointerException.class, () -> client.request(null));
     
     Throwable ex = assertThrows(NullPointerException.class, () -> client.request(RT.map()));
@@ -128,7 +125,6 @@ class RingClientTest {
   @Test
   void testPort(VertxTestContext testContext) throws Throwable {
     Checkpoint responsesReceived = testContext.checkpoint(2);
-    RingClient client = makeClient();
     
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
@@ -156,7 +152,6 @@ class RingClientTest {
   @Test
   void testHost(VertxTestContext testContext) throws Throwable {
     Checkpoint responsesReceived = testContext.checkpoint(2);
-    RingClient client = makeClient();
     
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
@@ -185,24 +180,20 @@ class RingClientTest {
   
   @Test
   void testSsl(VertxTestContext testContext) throws Throwable {
-    RingClient client = makeClient();
+    HttpRequest<Buffer> request = client.request(
+        RT.map(METHOD.keyword(), getMethod,
+               URI.keyword(), "/echo",
+               PORT.keyword(), SSL_PORT,
+               SSL.keyword(), true));
     
-    startServer(makeRouter(), SSL_PORT).onComplete(v -> {
-      HttpRequest<Buffer> request = client.request(
-          RT.map(METHOD.keyword(), getMethod,
-                 URI.keyword(), "/echo",
-                 PORT.keyword(), SSL_PORT,
-                 SSL.keyword(), true));
-      
-      client.send(request).onComplete(testContext.succeeding(
-          response -> testContext.verify(() -> {
-            assert200(response);
-            IPersistentMap ringRequest = (IPersistentMap) parseResponseBody(response);
-            assertEquals(SSL_PORT, ringRequest.valAt("server-port"));
-            assertEquals("https", ringRequest.valAt("scheme"));
-            testContext.completeNow();
-          })));
-    });
+    client.send(request).onComplete(testContext.succeeding(
+        response -> testContext.verify(() -> {
+          assert200(response);
+          IPersistentMap ringRequest = (IPersistentMap) parseResponseBody(response);
+          assertEquals(SSL_PORT, ringRequest.valAt("server-port"));
+          assertEquals("https", ringRequest.valAt("scheme"));
+          testContext.completeNow();
+        })));
     
     assertContextSuccess(testContext);
   }
@@ -210,8 +201,6 @@ class RingClientTest {
   @Test
   void testQueryParams(VertxTestContext testContext) throws
                                                      Throwable {
-    RingClient client = makeClient();
-    
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
                URI.keyword(), "/echo",
@@ -233,7 +222,6 @@ class RingClientTest {
   @Test
   void testHeaders(VertxTestContext testContext) throws
                                                  Throwable {
-    RingClient client = makeClient();
     Map<String, String> headers = Map.of(
         "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Accept-Encoding", "gzip, deflate, br",
@@ -267,8 +255,6 @@ class RingClientTest {
   @Test
   void testBasicAuth(VertxTestContext testContext) throws
                                                    Throwable {
-    RingClient client = makeClient();
-    
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
                URI.keyword(), "/echo",
@@ -294,8 +280,6 @@ class RingClientTest {
   @Test
   void testBearerTokenAuth(VertxTestContext testContext) throws
                                                          Throwable {
-    RingClient client = makeClient();
-    
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
                URI.keyword(), "/echo",
@@ -317,9 +301,7 @@ class RingClientTest {
   
   @Test
   void testTimeout(VertxTestContext testContext) throws
-                                                         Throwable {
-    RingClient client = makeClient();
-    
+                                                 Throwable {
     HttpRequest<Buffer> request = client.request(
         RT.map(METHOD.keyword(), getMethod,
                URI.keyword(), "/timeout",
@@ -329,6 +311,95 @@ class RingClientTest {
     client.send(request).onComplete(testContext.failing(
         ex -> testContext.verify(() -> {
           assertTrue(ex.getMessage().contains("timeout period of 1000ms"));
+          testContext.completeNow();
+        })));
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @SuppressWarnings("JUnitTestMethodWithNoAssertions")
+  @Test
+  void testAbsoluteUrl(VertxTestContext testContext) throws
+                                                     Throwable {
+    HttpRequest<Buffer> request = client.request(
+        RT.map(METHOD.keyword(), getMethod,
+               URL.keyword(), "http://localhost:" + DEFAULT_PORT));
+    
+    client.send(request).onComplete(testContext.succeeding(
+        response -> testContext.verify(() -> {
+          assert200(response);
+          testContext.completeNow();
+        })));
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testAbsoluteHttpsUrl(VertxTestContext testContext) throws
+                                                          Throwable {
+    HttpRequest<Buffer> request = client.request(
+        RT.map(METHOD.keyword(), getMethod,
+               URL.keyword(), "https://localhost:" + SSL_PORT + "/echo",
+               SSL.keyword(), true));
+    
+    client.send(request).onComplete(testContext.succeeding(
+        response -> testContext.verify(() -> {
+          assert200(response);
+          IPersistentMap ringRequest = (IPersistentMap) parseResponseBody(response);
+          assertEquals(SSL_PORT, ringRequest.valAt("server-port"));
+          assertEquals("https", ringRequest.valAt("scheme"));
+          testContext.completeNow();
+        })));
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testAbsoluteUrlQueryParams(VertxTestContext testContext) throws
+                                                                Throwable {
+    HttpRequest<Buffer> request = client.request(
+        RT.map(METHOD.keyword(), getMethod,
+               URL.keyword(), "http://localhost:" + DEFAULT_PORT + "/echo?foo=bar",
+               QUERY_PARAMS.keyword(), RT.map("fizz", "baz")));
+    
+    client.send(request).onComplete(testContext.succeeding(
+        response -> testContext.verify(() -> {
+          assert200(response);
+          IPersistentMap ringRequest = (IPersistentMap) parseResponseBody(response);
+          assertEquals("foo=bar&fizz=baz", ringRequest.valAt("query-string"));
+          
+          testContext.completeNow();
+        })));
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testAbsoluteUrlHeaders(VertxTestContext testContext) throws
+                                                            Throwable {
+    Map<String, String> headers = Map.of(
+        "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Encoding", "gzip, deflate, br",
+        "Accept-Language", "en-US,en;q=0.9,he;q=0.8",
+        "Cache-Control", "max-age=0",
+        "Connection", "keep-alive",
+        "Cookie", "_octo=GH1.1.956261828.1568396491; _device_id=c4b7e18bd12b94e02574324db958df2a; user_session=yB5jlrFVEQ4B41-CTybGsWbbew2VFVAJygNznBsrc0B_yuVd; __Host-user_session_same_site=yB5jlrFVEQ4B41-CTybGsWbbew2VFVAJygNznBsrc0B_yuVd; logged_in=yes; dotcom_user=yaronel; tz=Asia%2FJerusalem; _gh_sess=t05fUjSAe%2Bwrhsv%2FPgFg7zc%2B5d0ZKQHpwxq%2FNwyrxIOY0JrzDQ1yCBXJaJe4aJvErQW326uDpYl29mlyed30nVnJeiYDLYAGjuiy7%2Br%2FT9ZX6Vu8zt1LEFFgF5a0iLPkYPDipj0bmM09YvnM%2FEmv%2BZgZ3eUH6lXMr%2FEUDG10dDkUB%2Fk4i8ipTBr3SCUTiVxfs%2BE%2FNVOEZ3duG0ni05ozRBZ2pyBmD3MlhfUBeZLSxzxzpZDQZSkOX%2FFmItMuIDImKUKu91bUESk%2BiDrmjRI3kJbxHNRA2mSoMl27Awb05AaucT2miOixybgwNz9Lu%2Bz9%2BTf37p6ND6Z5nEghtKdpwW1ZP5Nli0kz%2BvDXEoyAuBBxc%2B4xDPNBryyn1KTHpjj0dF7xogyBp7IdIMbxjgtwYAEY%2F83jSLI%2BywXQgc9hCd2t5Y%2BUFYCoAzO2PJw%3D--NDAZ6dNgZV9Xqsq%2F--wBb1qDkI7qcIlUXPu2Ev4w%3D%3D",
+        "DNT", "1",
+        "Referer", "https://example.com/donkey",
+        "Sec-Fetch-Site", "same-origin",
+        "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
+    
+    HttpRequest<Buffer> request = client.request(
+        RT.map(METHOD.keyword(), getMethod,
+               URL.keyword(), "http://localhost:" + DEFAULT_PORT + "/echo",
+               HEADERS.keyword(), PersistentHashMap.create(headers)));
+    
+    client.send(request).onComplete(testContext.succeeding(
+        response -> testContext.verify(() -> {
+          assert200(response);
+          IPersistentMap ringRequest = (IPersistentMap) parseResponseBody(response);
+          IPersistentMap ringRequestHeaders = (IPersistentMap) ringRequest.valAt("headers");
+          headers.forEach((k, v) -> assertEquals(v, ringRequestHeaders.valAt(k.toLowerCase())));
           testContext.completeNow();
         })));
     

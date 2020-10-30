@@ -653,7 +653,28 @@ again.
 (stop donkey-client)
 ```
 
----
+### Creating a Request
+
+When creating a request we supply an options map that defines it. The map has
+to contain a `:method` key, and either an `:uri` or an `:url`. The `:uri` key
+defines the location of the resource being requested, for example: 
+```clojure
+(-> 
+  donkey-client
+  (request {:method :get
+            :uri    "/api/v1/users"}))
+```
+
+The `:url` key defines the absolute URL of the resource, for example: 
+```clojure
+(-> 
+  donkey-client
+  (request {:method :get
+            :url    "http://www.example.com/api/v1/users"}))
+```
+
+When an `:url` is supplied then the `:uri`, `:port`, `:host` and `:ssl`
+keys are ignored. 
 
 ### Submitting a Request
 
