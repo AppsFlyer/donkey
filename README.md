@@ -12,7 +12,43 @@
 Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use 
 and performance
 
+Table of Contents
+-----------------
 
+* [Usage](#usage)
+* [Requirements](#requirements)
+* [Building](#building)
+* [Start up options](#start-up-options)
+* [Creating a Donkey](#creating-a-donkey)
+* [Server](#server)
+    * [Creating a Server](#creating-a-server)
+    * [Routes](#routes)
+    * [Support for Routing Libraries](#support-for-routing-libraries)
+    * [reitit](#reitit)
+    * [Compojure](#compojure)
+    * [Middleware](#middleware)
+        * [Overview](#overview)
+        * [Examples](#examples)
+        * [Common Middleware](#common-middleware)
+    * [Examples](#server-examples)
+* [Client](#client)
+    * [Creating a Client](#creating-a-client)
+    * [Stopping a Client](#stopping-a-client)
+    * [Submitting a Request](#submitting-a-request)
+    * [FutureResult](#futureresult)
+    * [HTTPS Requests](#https-requests)
+* [Metrics](#metrics)
+    * [List of Exposed Metrics](#list-of-exposed-metrics)
+        * [Thread Pool Metrics](#thread-pool-metrics)
+        * [Server Metrics](#server-metrics)
+        * [Client Metrics](#client-metrics)
+* [Debug mode](#debug-mode)
+    * [Logging](#logging)
+* [License](#license)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
+### Usage
 Including the library in `project.clj`
 ```clojure
 [com.appsflyer/donkey "0.1.0-SNAPSHOT"]

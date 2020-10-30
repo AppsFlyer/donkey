@@ -1,7 +1,6 @@
 
 ## TODO
 
-- Add FutureResult tests
 - Add a "Troubleshoot" section that explains how to exclude dropwizard 
 - Allow users of client to give absolute urls
 - Add code of conduct
@@ -46,6 +45,8 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Add TOC
+- Add FutureResult tests
 - Update FutureResult examples
 - Fix RingClientTest.testSSL on CI server 
 - Add client request API documentation. 
