@@ -36,7 +36,9 @@
   ([opts]
    (fn [handler]
      (base/make-ring-request-middleware
-       (QueryParamsParser/getInstance) handler (:ex-handler opts)))))
+       {:middleware (QueryParamsParser/getInstance)
+        :handler    handler
+        :ex-handler (:ex-handler opts)}))))
 
 (defn keywordize-query-params
   "Converts `query-params` string keys into keywords. Parses `query-string` if
@@ -54,7 +56,9 @@
   ([opts]
    (fn [handler]
      (base/make-ring-request-middleware
-       (QueryParamsKeywordizer/getInstance) handler (:ex-handler opts)))))
+       {:middleware (QueryParamsKeywordizer/getInstance)
+        :handler    handler
+        :ex-handler (:ex-handler opts)}))))
 
 (defn keywordize-form-params
   "Parses the request's `body` into a map of `form-params`.
@@ -71,7 +75,6 @@
   ([opts]
    (fn [handler]
      (base/make-ring-request-middleware
-       (FormParamsKeywordizer.
-         (FormParamsKeywordizer$Options. (:deep opts)))
-       handler
-       (:ex-handler opts)))))
+       {:middleware (FormParamsKeywordizer. (FormParamsKeywordizer$Options. (:deep opts)))
+        :handler    handler
+        :ex-handler (:ex-handler opts)}))))
