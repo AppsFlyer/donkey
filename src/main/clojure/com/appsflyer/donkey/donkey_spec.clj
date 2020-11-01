@@ -33,8 +33,6 @@
                                         ::worker-threads
                                         ::event-loops]))
 
-
-(s/def ::pos-int (s/and int? pos?))
 (s/def ::handler fn?)
 (s/def ::handlers (s/coll-of ::handler))
 (s/def ::strings (s/coll-of string?))
@@ -107,9 +105,9 @@
 ;; ------- Client Specification ------- ;;
 
 (s/def ::keep-alive boolean?)
-(s/def ::keep-alive-timeout-seconds ::pos-int)
-(s/def ::connect-timeout-seconds ::pos-int)
-(s/def ::max-redirects ::pos-int)
+(s/def ::keep-alive-timeout-seconds pos-int?)
+(s/def ::connect-timeout-seconds pos-int?)
+(s/def ::max-redirects pos-int?)
 (s/def ::default-port ::port)
 (s/def ::default-host ::host)
 (s/def ::user-agent string?)
