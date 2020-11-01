@@ -8,6 +8,7 @@ import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -351,17 +352,10 @@ class FutureResultTest {
   
   @Test
   void testDerefThrowsInterruptedException() throws Exception {
-    IFn increment = mock(IFn.class);
-    when(increment.invoke(anyInt())).thenAnswer(incrementImpl);
-    
-    /*
-    We have to specify the type as CompletableFuture<Object> so the correct
-    overloaded constructor is called.
-     */
-    @SuppressWarnings("unchecked")
-    CompletableFuture<Object> throwsInterruptedException = mock(CompletableFuture.class);
+    var throwsInterruptedException = mock(CompletableFuture.class);
     when(throwsInterruptedException.get()).thenThrow(new InterruptedException());
     
+    @SuppressWarnings("unchecked")
     Throwable result = (Throwable)
         FutureResult.create(throwsInterruptedException).deref();
     
@@ -375,13 +369,70 @@ class FutureResultTest {
     when(increment.invoke(anyInt())).thenAnswer(incrementImpl);
     
     IFn throwsExecutionException = mock(IFn.class);
-    when(throwsExecutionException.invoke(anyInt()))
-        .thenAnswer(invocation -> { throw new RuntimeException(); });
+    when(throwsExecutionException.invoke(anyInt())).thenThrow(new RuntimeException());
     
     Throwable result = (Throwable) FutureResult.create(0)
                                                .onSuccess(increment)
                                                .onSuccess(throwsExecutionException)
                                                .deref();
+    
+    assertThat(result, instanceOf(ExceptionInfo.class));
+    assertThat(result.getCause(), instanceOf(RuntimeException.class));
+  }
+  
+  @Test
+  void testDerefWithTimeoutReturnsResult() {
+    IFn increment = mock(IFn.class);
+    when(increment.invoke(anyInt())).thenAnswer(incrementImpl);
+    
+    int result = (int) FutureResult.create(0)
+                                   .onSuccess(increment)
+                                   .onSuccess(increment)
+                                   .deref(100, null);
+    assertEquals(2, result);
+  }
+  
+  @Test
+  void testDerefReturnsDefaultValueWhenTimeoutExceeds() throws Exception {
+    IFn increment = mock(IFn.class);
+    when(increment.invoke(anyInt())).thenAnswer(incrementImpl);
+    
+    var task = mock(CompletableFuture.class);
+    when(task.get(anyLong(), any())).thenThrow(new TimeoutException());
+    
+    var timeoutReturnValue = new Object();
+    @SuppressWarnings("unchecked")
+    Object result = FutureResult.create(task).deref(100, timeoutReturnValue);
+    assertEquals(timeoutReturnValue, result);
+  }
+  
+  @Test
+  void testDerefWithTimeoutThrowsInterruptedException() throws Exception {
+    var throwsInterruptedException = mock(CompletableFuture.class);
+    when(throwsInterruptedException.get(anyLong(), any()))
+        .thenThrow(new InterruptedException());
+    
+    @SuppressWarnings("unchecked")
+    Throwable result = (Throwable)
+        FutureResult.create(throwsInterruptedException).deref(100, null);
+    
+    assertThat(result, instanceOf(ExceptionInfo.class));
+    assertThat(result.getCause(), instanceOf(InterruptedException.class));
+  }
+  
+  @Test
+  void testDerefWithTimeoutThrowsExecutionException() {
+    IFn increment = mock(IFn.class);
+    when(increment.invoke(anyInt())).thenAnswer(incrementImpl);
+    
+    IFn throwsExecutionException = mock(IFn.class);
+    when(throwsExecutionException.invoke(anyInt()))
+        .thenThrow(new RuntimeException());
+    
+    Throwable result = (Throwable) FutureResult.create(0)
+                                               .onSuccess(increment)
+                                               .onSuccess(throwsExecutionException)
+                                               .deref(100, null);
     
     assertThat(result, instanceOf(ExceptionInfo.class));
     assertThat(result.getCause(), instanceOf(RuntimeException.class));
