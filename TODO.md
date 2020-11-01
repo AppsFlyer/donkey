@@ -44,6 +44,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Have FutureResult Implement IBlockingDeref so it can supply a timeout.
 - Allow users of client to give absolute urls
 - Add TOC
 - Add FutureResult tests

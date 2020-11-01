@@ -1,13 +1,9 @@
 package com.appsflyer.donkey;
 
-import clojure.lang.ExceptionInfo;
-import clojure.lang.IDeref;
-import clojure.lang.IFn;
-import clojure.lang.RT;
+import clojure.lang.*;
 import io.vertx.core.Future;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 /**
  * An abstraction over {@link CompletableFuture} that makes it easier to use
@@ -36,7 +32,7 @@ import java.util.concurrent.ExecutionException;
  *
  * @param <T>
  */
-public final class FutureResult<T> implements CompletableResult<T>, IDeref {
+public final class FutureResult<T> implements CompletableResult<T>, IDeref, IBlockingDeref {
   
   private final CompletableFuture<Object> impl;
   
@@ -101,11 +97,25 @@ public final class FutureResult<T> implements CompletableResult<T>, IDeref {
   public Object deref() {
     try {
       return impl.get();
-    } catch (InterruptedException e) {
+    } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      return new ExceptionInfo(e.getMessage(), RT.map(), e);
-    } catch (ExecutionException e) {
-      return new ExceptionInfo(e.getCause().getMessage(), RT.map(), e.getCause());
+      return new ExceptionInfo(ex.getMessage(), RT.map(), ex);
+    } catch (ExecutionException ex) {
+      return new ExceptionInfo(ex.getCause().getMessage(), RT.map(), ex.getCause());
+    }
+  }
+  
+  @Override
+  public Object deref(long ms, Object timeoutValue) {
+    try {
+      return impl.get(ms, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return new ExceptionInfo(ex.getMessage(), RT.map(), ex);
+    } catch (ExecutionException ex) {
+      return new ExceptionInfo(ex.getCause().getMessage(), RT.map(), ex.getCause());
+    } catch (TimeoutException ex) {
+      return timeoutValue;
     }
   }
 }
