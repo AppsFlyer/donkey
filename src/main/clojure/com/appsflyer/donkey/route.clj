@@ -66,7 +66,18 @@
     (.addProduces route content-type))
   route)
 
-(defn- get-last-handler-result [^RoutingContext ctx]
+(defn- get-last-handler-result
+  "The RoutingContext can maintain arbitrary data. We use it to pass the
+  Ring request / response maps between the clojure and java layers.
+  When the java layer creates the request map, it adds it to the context
+  so it is available in the clojure layer. When the clojure layer creates a
+  response map, it adds it to the context so it is available in the java layer.
+
+  * Note about thread safety:
+  The values are immutable clojure maps, and therefore thread safe.
+  The routing context is always handled by the same thread, and therefore thread
+  safe."
+  [^RoutingContext ctx]
   (if-let [last-response (.get ctx RingHandler/RING_HANDLER_RESULT)]
     last-response
     (throw (IllegalStateException.
@@ -105,17 +116,15 @@
       (catch Throwable ex
         (handle-exception ctx ex)))))
 
-(defmulti
-  ^:private create-handler
-  (fn [route-map]
-    (:handler-mode route-map :non-blocking)))
+(defmulti ^:private create-handler (fn [route-map]
+                                     (:handler-mode route-map :non-blocking)))
 
-(defmethod
-  ^:private create-handler :blocking [route-map]
+(defmethod ^:private
+  create-handler :blocking [route-map]
   (->BlockingRouteHandler (:handler route-map)))
 
-(defmethod
-  ^:private create-handler :non-blocking [route-map]
+(defmethod ^:private
+  create-handler :non-blocking [route-map]
   (->RouteHandler (:handler route-map)))
 
 (defn- add-handler [^RouteDefinition route route-map]
@@ -154,7 +163,7 @@
         (comp-fn handler)))))
 
 (defn- create-route-definitions
-  "Returns a List<RouteDefinition>"
+  "Returns a List of RouteDefinition"
   [opts]
   (reduce
     (fn [res route]
@@ -166,5 +175,5 @@
     (ArrayList. (int (count (:routes opts))))
     (:routes opts)))
 
-(defn get-route-list [opts]
+(defn map->RouteList [opts]
   (RouteList. (create-route-definitions opts)))

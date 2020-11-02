@@ -1,15 +1,16 @@
 (ns com.appsflyer.donkey.server
-  (:require [com.appsflyer.donkey.route :refer [get-route-list]]
+  (:require [com.appsflyer.donkey.route :refer [map->RouteList]]
             [com.appsflyer.donkey.result])
   (:import (io.vertx.core.http HttpServerOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
            (com.appsflyer.donkey.server Server ServerConfig)
-           (com.appsflyer.donkey.server.exception ServerInitializationException ServerShutdownException)
+           (com.appsflyer.donkey.server.exception ServerInitializationException
+                                                  ServerShutdownException)
            (com.appsflyer.donkey.server.ring.route RingRouteCreatorFactory)
            (com.appsflyer.donkey.util DebugUtil)
            (com.appsflyer.donkey FutureResult)))
 
-(defn- ^HttpServerOptions get-server-options
+(defn- ^HttpServerOptions map->HttpServerOptions
   "Creates and returns an HttpServerOptions object from the opts map.
   The server options are use to define basic things such as the host and port
   the server should listen to, as well as lower level connection parameters."
@@ -28,9 +29,9 @@
   [opts]
   (let [builder (doto (ServerConfig/builder)
                   (.vertx (:vertx opts))
-                  (.serverOptions (get-server-options opts))
+                  (.serverOptions (map->HttpServerOptions opts))
                   (.routeCreatorFactory (RingRouteCreatorFactory.))
-                  (.routeList (get-route-list opts))
+                  (.routeList (map->RouteList opts))
                   (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
                   (.debug (:debug opts false))
                   (.addDateHeader (:date-header opts false))
