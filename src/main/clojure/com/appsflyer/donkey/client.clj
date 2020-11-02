@@ -23,40 +23,43 @@
   The client options are used to define global default settings that will be
   applied to each request. Some of these settings can be overridden on a pair
   request basis."
-  [opts]
-  (let [client-options (WebClientOptions.)]
-    (.setForceSni client-options (boolean (:force-sni opts true)))
-    (when-let [keep-alive (:keep-alive opts)]
-      (.setKeepAlive client-options ^boolean keep-alive)
-      (when-let [timeout (:keep-alive-timeout-seconds opts)]
-        (.setKeepAliveTimeout client-options (int timeout))))
-    (when-let [proxy-options (:proxy-options opts)]
-      (.setProxyOptions client-options ^ProxyOptions (map->ProxyOptions proxy-options)))
-    (when-let [default-host (:default-host opts)]
-      (.setDefaultHost client-options ^String default-host))
-    (when-let [default-port (:default-port opts)]
-      (.setDefaultPort client-options (int default-port)))
-    (when-let [max-redirects (:max-redirects opts)]
-      (.setMaxRedirects client-options (int max-redirects)))
-    (when-let [connect-timeout (:connect-timeout-seconds opts)]
-      (.setConnectTimeout client-options (int (* 1000 connect-timeout))))
-    (when-let [idle-timeout (:idle-timeout-seconds opts)]
-      (.setIdleTimeout client-options (int idle-timeout)))
-    (.setUserAgentEnabled client-options (:enable-user-agent opts false))
-    (if-let [user-agent (:user-agent opts)]
-      (.setUserAgent client-options user-agent)
-      (.setUserAgent client-options "Donkey-Client"))
-    (when (:debug opts)
-      (.setLogActivity client-options true))
-    (when (:compression opts)
-      (.setTryUseCompression client-options true))
-    (when (:ssl opts)
-      (.setSsl client-options true)
-      (when-not (:default-port opts)
-        (.setDefaultPort client-options (int 443))))
-    client-options))
+  [{:keys [force-sni
+           enable-user-agent
+           user-agent
+           default-host
+           default-port
+           max-redirects
+           keep-alive
+           keep-alive-timeout-seconds
+           connect-timeout-seconds
+           idle-timeout-seconds
+           debug
+           proxy-options
+           compression
+           ssl]
+    :or   {force-sni         true
+           enable-user-agent false
+           user-agent        "Donkey-Client"}}]
 
-(defn ^ClientConfig get-client-config
+  (cond->
+    (doto (WebClientOptions.)
+      (.setForceSni force-sni)
+      (.setUserAgentEnabled enable-user-agent)
+      (.setUserAgent user-agent))
+    keep-alive (.setKeepAlive ^boolean keep-alive)
+    keep-alive-timeout-seconds (.setKeepAliveTimeout (int keep-alive-timeout-seconds))
+    proxy-options (.setProxyOptions ^ProxyOptions (map->ProxyOptions proxy-options))
+    default-host (.setDefaultHost ^String default-host)
+    default-port (.setDefaultPort (int default-port))
+    max-redirects (.setMaxRedirects (int max-redirects))
+    connect-timeout-seconds (.setConnectTimeout (int (* 1000 connect-timeout-seconds)))
+    idle-timeout-seconds (.setIdleTimeout (int idle-timeout-seconds))
+    debug (.setLogActivity true)
+    compression (.setTryUseCompression true)
+    ssl (.setSsl true)
+    (and ssl (not default-port)) (.setDefaultPort (int 443))))
+
+(defn ^ClientConfig map->ClientConfig
   "Creates and returns a ClientConfig object from the opts map.
   See the ClientConfig docs for more information."
   [opts]
