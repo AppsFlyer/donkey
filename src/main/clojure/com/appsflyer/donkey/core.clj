@@ -185,7 +185,7 @@
   (create-server [_this opts]
     (-> (spec/assert ::donkey-spec/server-config opts)
         (assoc :vertx vertx)
-        server/get-server-config
+        server/map->ServerConfig
         Server/create
         server/->DonkeyServer))
   (create-client [this]
@@ -193,7 +193,7 @@
   (create-client [_this opts]
     (-> (spec/assert ::donkey-spec/client-config opts)
         (assoc :vertx vertx)
-        client/get-client-config
+        client/map->ClientConfig
         RingClient/create
         client/->DonkeyClient)))
 

@@ -18,7 +18,7 @@
     (.setPort (:port opts))
     (.setType (keyword->ProxyType (:proxy-type opts)))))
 
-(defn- ^HttpClientOptions get-client-options
+(defn- ^HttpClientOptions map->HttpClientOptions
   "Creates and returns an HttpClientOptions object from the opts map.
   The client options are used to define global default settings that will be
   applied to each request. Some of these settings can be overridden on a pair
@@ -62,7 +62,7 @@
   [opts]
   (let [builder (doto (ClientConfig/builder)
                   (.vertx (:vertx opts))
-                  (.clientOptions (get-client-options opts))
+                  (.clientOptions (map->HttpClientOptions opts))
                   (.debug (:debug opts false)))
         config (.build builder)]
     ; We need to initialize debug logging before a Logger
