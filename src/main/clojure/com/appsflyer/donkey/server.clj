@@ -23,7 +23,7 @@
     (.setCompressionSupported (:compression opts false))
     (.setDecompressionSupported (:compression opts false))))
 
-(defn ^ServerConfig get-server-config
+(defn ^ServerConfig map->ServerConfig
   "Creates and returns a ServerConfig object from the opts map.
   See the ServerConfig docs for more information."
   [opts]
