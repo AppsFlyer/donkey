@@ -12,16 +12,17 @@
 (defn- ^ProxyType keyword->ProxyType [type]
   (ProxyType/valueOf (-> type name .toUpperCase)))
 
-(defn get-proxy-options [proxy]
+(defn map->ProxyOptions [opts]
   (doto (ProxyOptions.)
-    (.setHost (:host proxy))
-    (.setPort (:port proxy))
-    (.setType (keyword->ProxyType (:proxy-type proxy)))))
+    (.setHost (:host opts))
+    (.setPort (:port opts))
+    (.setType (keyword->ProxyType (:proxy-type opts)))))
 
 (defn- ^HttpClientOptions get-client-options
   "Creates and returns an HttpClientOptions object from the opts map.
-  The client options are used to define global default settings that will be applied
-  to each request. Some of these settings can be overridden on each request."
+  The client options are used to define global default settings that will be
+  applied to each request. Some of these settings can be overridden on a pair
+  request basis."
   [opts]
   (let [client-options (WebClientOptions.)]
     (.setForceSni client-options (boolean (:force-sni opts true)))
@@ -29,8 +30,8 @@
       (.setKeepAlive client-options ^boolean keep-alive)
       (when-let [timeout (:keep-alive-timeout-seconds opts)]
         (.setKeepAliveTimeout client-options (int timeout))))
-    (when-let [proxy (:proxy opts)]
-      (.setProxyOptions client-options ^ProxyOptions (get-proxy-options proxy)))
+    (when-let [proxy-options (:proxy-options opts)]
+      (.setProxyOptions client-options ^ProxyOptions (map->ProxyOptions proxy-options)))
     (when-let [default-host (:default-host opts)]
       (.setDefaultHost client-options ^String default-host))
     (when-let [default-port (:default-port opts)]
@@ -123,13 +124,13 @@
       'Authorization: Bearer <bearerToken>', where bearerToken is the bearer
       token issued by an authorization server to access protected resources.
 
-    :basic-auth [map] Configure the request to perform basic access
+    :basic-auth-options [map] Configure the request to perform basic access
       authentication. In basic HTTP authentication, a request contains a header
       field of the form 'Authorization: Basic <credentials>',
       where credentials is the base64 encoding of id and password joined by a
       colon. The map must contain these fields:
-        id [string] The id used for the authentication.
-        password [string] The password used for the authentication.")
+      - id [string] The id used for the authentication.
+      - password [string] The password used for the authentication.")
   (stop [this]
     "Stops the client and releases any resources associated with it."))
 

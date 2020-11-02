@@ -20,53 +20,11 @@
             [com.appsflyer.donkey.server :as server]
             [com.appsflyer.donkey.client :as client]
             [com.appsflyer.donkey.metrics :as metrics]
-            [com.appsflyer.donkey.middleware.params :as middleware]
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
-  (:import (com.appsflyer.donkey.server Server DonkeyServer)
+  (:import (com.appsflyer.donkey.server Server)
            (com.appsflyer.donkey.client.ring RingClient)
            (io.vertx.core Vertx VertxOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)))
-
-(comment
-  ;;; Server API
-  {:port                 8080
-   :compression          false
-   :host                 "0.0.0.0"
-   :metric-registry      nil
-   :metrics-prefix       "donkey"
-   :worker-threads       20
-   :event-loops          16
-   :debug                false
-   :idle-timeout-seconds 0
-   :middleware           []
-   :routes               []}
-
-  ;;; Route API
-  {:methods      [:get :post]
-   :consumes     ["application/json" "application/x-www-form-urlencoded" "text/plain"]
-   :produces     ["application/json" "text/plain"]
-   :handler-mode :non-blocking
-   :handler      (fn [req respond raise] (respond {:status 200}))
-   :middleware   [(fn [handler] (fn [req respond raise]
-                                  (-> req handler identity respond)))]
-   :path         "/foo"
-   :match-type   :simple})
-
-(comment
-  ;;; Client API
-  {:keep-alive                 false
-   :keep-alive-timeout-seconds 60
-   :debug                      false
-   :idle-timeout-seconds       0
-   :connect-timeout-seconds    60
-   :default-port               80
-   :default-host               "localhost"
-   :max-redirects              16
-   :proxy-type                 {:host "localhost"
-                                :port 3128
-                                :type :http|:sock4|:sock5}
-   :compression                false
-   :ssl                        false})
 
 (defprotocol IDonkey
   (create-server [_this opts]
@@ -215,8 +173,8 @@
       request. Ignored if :user-agent-enabled is set to false. Defaults to
       'Donkey-Client'.
 
-    :proxy [map] Options for connecting to a proxy client. All values are
-      required.
+    :proxy-options [map] Options for connecting to a proxy client. All values
+      are required.
       - :host [string] The host to connect to.
       - :port [int] The port to connect to.
       - :proxy-type [keyword] :http, :socks4, or :socks5
@@ -239,9 +197,9 @@
         RingClient/create
         client/->DonkeyClient)))
 
-(defn- ^VertxOptions get-vertx-options
+(defn- ^VertxOptions map->VertxOptions
   "Creates and returns a VertxOptions object from the opts map.
-  The vertx options are used to initialise the Vertx object which is an
+  The vertx options are used to initialize the Vertx object which is an
   integral part of the server and client. It allows configuring thread pools
   and metrics."
   [opts]
@@ -251,7 +209,7 @@
     (when-let [worker-threads (:worker-threads opts)]
       (.setWorkerPoolSize vertx-options (int worker-threads)))
     (when (:metric-registry opts)
-      (.setMetricsOptions vertx-options (metrics/get-metrics-options opts)))
+      (.setMetricsOptions vertx-options (metrics/map->MetricsOptions opts)))
     vertx-options))
 
 (defn ^Donkey create-donkey
@@ -280,43 +238,6 @@
   ([] (create-donkey {}))
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
-       get-vertx-options
+       map->VertxOptions
        Vertx/vertx
        ->Donkey)))
-
-;;;;;;;;;; Example ;;;;;;;;;;
-
-(comment
-  (defn- print-query-params-and-headers [req respond _raise]
-    (respond
-      {:body (format "Query parameters: %s. Headers: %s"
-                     (apply str (seq (:query-params req)))
-                     (apply str (seq (:headers req))))}))
-
-  (defn- add-headers [handler]
-    (fn [req respond raise]
-      (handler
-        (update req :headers assoc "DNT" 1 "Cache-Control" "no-cache")
-        respond
-        raise)))
-
-  (defn- ^DonkeyServer new-server [^Donkey donkey]
-    (create-server
-      donkey
-      {:port                8080
-       :middleware          [(middleware/keywordize-query-params)
-                             add-headers]
-       :debug               false
-       :date-header         true
-       :content-type-header true
-       :server-header       true
-       :routes              [{:path     "/plaintext"
-                              :methods  [:get]
-                              :produces ["text/plain"]
-                              :handler  (fn [_req res _err] (res {:body "Hello, world!"}))}
-                             {:path    "/benchmark"
-                              :methods [:get]
-                              :handler print-query-params-and-headers}]})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-

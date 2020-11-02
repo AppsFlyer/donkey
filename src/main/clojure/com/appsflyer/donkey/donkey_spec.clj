@@ -113,7 +113,7 @@
 (s/def ::user-agent string?)
 (s/def ::enable-user-agent boolean?)
 (s/def ::proxy-type #{:http :sock4 :sock5})
-(s/def ::proxy (s/keys :req-un [::host ::port ::proxy-type]))
+(s/def ::proxy-options (s/keys :req-un [::host ::port ::proxy-type]))
 (s/def ::force-sni boolean?)
 (s/def ::ssl boolean?)
 
@@ -129,7 +129,7 @@
                                         ::max-redirects
                                         ::user-agent
                                         ::enable-user-agent
-                                        ::proxy
+                                        ::proxy-options
                                         ::ssl]))
 
 (comment
@@ -155,7 +155,7 @@
 
 (s/def ::uri ::not-blank)
 (s/def ::bearer-token ::not-blank)
-(s/def ::basic-auth (s/map-of #{"id" "password"} ::not-blank))
+(s/def ::basic-auth-options (s/map-of #{"id" "password"} ::not-blank))
 (s/def ::query-params (s/every string? :kind map?))
 (s/def ::headers (s/every string? :kind map?))
 
@@ -165,6 +165,6 @@
                                          ::port
                                          ::idle-timeout-seconds
                                          ::bearer-token
-                                         ::basic-auth
+                                         ::basic-auth-options
                                          ::query-params
                                          ::headers]))

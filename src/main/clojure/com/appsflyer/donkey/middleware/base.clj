@@ -9,7 +9,8 @@
         (handle [_this val]
           (exec val)))
       (throw
-        (ex-info "middleware must be a function or implement RingMiddleware" {})))))
+        (ex-info
+          "middleware must be a function or implement RingMiddleware" {:arg exec})))))
 
 (defn make-ring-request-middleware
   "Returns a function that will call `handler` with the result of applying
