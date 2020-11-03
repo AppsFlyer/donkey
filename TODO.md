@@ -1,7 +1,6 @@
 
 ## TODO
 
-- Add a "Troubleshoot" section that explains how to exclude dropwizard 
 - Add code of conduct
 - Decide on maintenance policy
 - Add PR / issues template
@@ -44,6 +43,7 @@ A "healthy" health check would require the user to provide a handler.
 ========================================
 
 ## DONE
+- Add a "Troubleshoot" section that explains how to exclude dropwizard 
 - Have FutureResult Implement IBlockingDeref so it can supply a timeout.
 - Allow users of client to give absolute urls
 - Add TOC

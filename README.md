@@ -24,8 +24,8 @@ Table of Contents
     * [Creating a Server](#creating-a-server)
     * [Routes](#routes)
     * [Support for Routing Libraries](#support-for-routing-libraries)
-    * [reitit](#reitit)
-    * [Compojure](#compojure)
+        * [reitit](#reitit)
+        * [Compojure](#compojure)
     * [Middleware](#middleware)
         * [Overview](#overview)
         * [Examples](#examples)
@@ -44,6 +44,7 @@ Table of Contents
         * [Client Metrics](#client-metrics)
 * [Debug mode](#debug-mode)
     * [Logging](#logging)
+* [Troubleshooting](#troubleshooting)
 * [License](#license)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -925,6 +926,29 @@ the logging level without forcing users to add XML configuration files, Donkey
 uses [Logback](http://logback.qos.ch/) as its implementation. It should be 
 included on the project's classpath, otherwise a warning will be printed and
 debug logging will be disabled.
+
+## Troubleshooting
+
+#### ClassNotFoundException - com.codahale.metrics.JmxAttributeGauge
+```
+Execution error (ClassNotFoundException) at jdk.internal.loader.BuiltinClassLoader/loadClass (BuiltinClassLoader.java:581). com.codahale.metrics.JmxAttributeGauge
+```
+Donkey has a transitive dependency `io.dropwizard.metrics/metrics-core` version 
+4.X.X. If you are using a library that is dependent on version 3.X.X then you
+could get a dependency collision. To avoid it you can exclude the dependency 
+when importing Donkey. For example:
+
+project.clj
+```clojure
+:dependencies [com.appsflyer/donkey "0.1.0" :exclusions [io.dropwizard.metrics/metrics-core]]
+```   
+
+deps.edn
+```clojure
+{:deps
+ {com.appsflyer/donkey {:mvn/version "0.1.0"
+                       :exclusions [io.dropwizard.metrics/metrics-core]}}}
+```
 
 
 ## License
