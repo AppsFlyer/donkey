@@ -20,8 +20,9 @@
     (.setHost ^String (:host opts "0.0.0.0"))
     (.setLogActivity ^boolean (:debug opts false))
     (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
-    (.setCompressionSupported (:compression opts false))
-    (.setDecompressionSupported (:compression opts false))))
+    (.setTcpKeepAlive ^boolean (:keep-alive opts false))
+    (.setCompressionSupported ^boolean (:compression opts false))
+    (.setDecompressionSupported ^boolean (:compression opts false))))
 
 (defn ^ServerConfig map->ServerConfig
   "Creates and returns a ServerConfig object from the opts map.

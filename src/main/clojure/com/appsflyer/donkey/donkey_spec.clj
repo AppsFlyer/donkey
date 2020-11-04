@@ -38,6 +38,7 @@
 (s/def ::strings (s/coll-of string?))
 (s/def ::not-blank (s/and string? (comp not clojure.string/blank?)))
 (s/def ::method #{:get :post :put :delete :options :head :trace :connect :patch})
+(s/def ::keep-alive boolean?)
 
 
 
@@ -87,24 +88,12 @@
                                         ::date-header
                                         ::content-type-header
                                         ::server-header
+                                        ::keep-alive
                                         ::idle-timeout-seconds]))
-
-(comment
-  (let [config {:port                 8080
-                :compression          false
-                :host                 "localhost"
-                :debug                false
-                :date-header          false
-                :content-type-header  false
-                :server-header        false
-                :idle-timeout-seconds 0
-                :routes               [{:middleware [identity]
-                                        :handler    [identity]}]}]))
 
 
 ;; ------- Client Specification ------- ;;
 
-(s/def ::keep-alive boolean?)
 (s/def ::keep-alive-timeout-seconds pos-int?)
 (s/def ::connect-timeout-seconds pos-int?)
 (s/def ::max-redirects pos-int?)
