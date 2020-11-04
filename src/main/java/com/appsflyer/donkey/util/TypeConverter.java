@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 public final class TypeConverter {
@@ -48,9 +49,10 @@ public final class TypeConverter {
       Function<String, String> keyTransformer,
       Function<List<String>, Object> aggregator) {
     
-    Object[] entriesArray = new Object[(entries.size() * 2)];
+    Set<String> names = entries.names();
+    Object[] entriesArray = new Object[(names.size() * 2)];
     int i = 0;
-    for (String name : entries.names()) {
+    for (String name : names) {
       entriesArray[i] = keyTransformer.apply(name);
       List<String> entryList = entries.getAll(name);
       if (entryList.size() == 1) {
@@ -64,9 +66,10 @@ public final class TypeConverter {
   }
   
   public static IPersistentMap toUrlDecodedPersistentMap(MultiMap entries) {
-    Object[] entriesArray = new Object[(entries.size() * 2)];
+    Set<String> names = entries.names();
+    Object[] entriesArray = new Object[(names.size() * 2)];
     int i = 0;
-    for (String name : entries.names()) {
+    for (String name : names) {
       entriesArray[i] = QueryStringDecoder.decodeComponent(name);
       entriesArray[i + 1] = QueryStringDecoder.decodeComponent(entries.get(name));
       i += 2;
