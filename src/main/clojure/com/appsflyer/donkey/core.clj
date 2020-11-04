@@ -109,6 +109,12 @@
       connection will timeout and be closed if no data is received. Defaults to
       never.
 
+    :keep-alive [boolean] Enable keep alive connections. When enabled multiple
+      requests will be transmitted on the same connection rather than opening
+      and closing a connection for each request. It is recommended to use this
+      option when it is known that multiple consecutive requests will be made
+      from the same client. Defaults to false.
+
     :debug [boolean] Enable debug mode. Debug mode is not suitable for
       production use since it outputs a large amount of logs. Use with
       discretion. Defaults to false.
