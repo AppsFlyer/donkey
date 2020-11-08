@@ -33,21 +33,39 @@ package com.appsflyer.donkey.server.route;
  * expression, e.g {@code /user/[0-9]+} in which case the path will match only
  * if the part after {@code /user/} includes one or more numbers.
  */
-public interface PathDefinition {
+public final class PathDefinition {
   
-  static PathDefinition create(String value) {
-    return new PathDefinitionImpl(value);
+  public static PathDefinition create(String value) {
+    return new PathDefinition(value);
   }
   
-  static PathDefinition create(String value, MatchType matchType) {
-    return new PathDefinitionImpl(value, matchType);
+  public static PathDefinition create(String value, MatchType matchType) {
+    return new PathDefinition(value, matchType);
   }
   
-  String value();
+  private final String value;
+  private final MatchType matchType;
   
-  MatchType matchType();
+  private PathDefinition(String value, MatchType matchType) {
+    this.value = value;
+    this.matchType = matchType;
+  }
   
-  enum MatchType {
+  private PathDefinition(String value) {
+    this(value, MatchType.SIMPLE);
+  }
+  
+  public String value() {
+    return value;
+  }
+  
+  @SuppressWarnings("WeakerAccess")
+  public MatchType matchType() {
+    return matchType;
+  }
+  
+  
+  public enum MatchType {
     REGEX, SIMPLE
   }
 }

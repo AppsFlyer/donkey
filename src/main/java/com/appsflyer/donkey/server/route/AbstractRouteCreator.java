@@ -37,7 +37,9 @@ public abstract class AbstractRouteCreator implements RouteCreator {
   
   /**
    * @return True if one of the route's HTTP methods supports clients sending
-   * a body in the request.
+   * a body in the request. Note, if no methods are defined for the route, then
+   * the route supports all methods, and in that case the method will return
+   * true.
    */
   private static boolean hasBody(Route route) {
     var methods = route.methods();

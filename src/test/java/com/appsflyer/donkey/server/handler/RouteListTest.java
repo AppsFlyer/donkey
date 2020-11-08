@@ -36,10 +36,10 @@ class RouteListTest {
   @BeforeAll
   static void beforeAll() {
     routeDefinition = RouteDefinition.create()
-                                     .path(PathDefinition.create("/"))
-                                     .addConsumes("application/json")
-                                     .handlerMode(HandlerMode.BLOCKING)
-                                     .handler(RoutingContext::next);
+                                      .path(PathDefinition.create("/"))
+                                      .addConsumes("application/json")
+                                      .handlerMode(HandlerMode.BLOCKING)
+                                      .handler(RoutingContext::next);
   }
   
   @Test
@@ -56,8 +56,8 @@ class RouteListTest {
         RouteList.from(routeDefinition).addFirst(newRouteDefinition);
     
     assertEquals(2, routeList.routes().size());
-    assertEquals(newRouteDefinition, routeList.routes().get(0));
-    assertEquals(routeDefinition, routeList.routes().get(1));
+    assertSame(newRouteDefinition, routeList.routes().get(0));
+    assertSame(routeDefinition, routeList.routes().get(1));
   }
   
   @Test
@@ -67,8 +67,8 @@ class RouteListTest {
         RouteList.from(routeDefinition).addLast(newRouteDefinition);
   
     assertEquals(2, routerList.routes().size());
-    assertEquals(routeDefinition, routerList.routes().get(0));
-    assertEquals(newRouteDefinition, routerList.routes().get(1));
+    assertSame(routeDefinition, routerList.routes().get(0));
+    assertSame(newRouteDefinition, routerList.routes().get(1));
   }
   
   @Test
