@@ -32,19 +32,19 @@
     - raise [fn] Only for the three arity middleware.
     "
   [{:keys [middleware handler ex-handler]}]
-  (let [^RingMiddleware middleware# (normalize-middleware middleware)]
+  (let [^RingMiddleware -middleware (normalize-middleware middleware)]
     (if (fn? ex-handler)
       (fn
         ([request]
          (try
-           (handler (.handle middleware# request))
+           (handler (.handle -middleware request))
            (catch Exception ex
              (ex-handler {:cause   ex
                           :request request
                           :handler handler}))))
         ([request respond raise]
          (try
-           (handler (.handle middleware# request) respond raise)
+           (handler (.handle -middleware request) respond raise)
            (catch Exception ex
              (ex-handler {:cause   ex
                           :handler handler
@@ -53,10 +53,10 @@
                           :raise   raise})))))
       (fn
         ([request]
-         (handler (.handle middleware# request)))
+         (handler (.handle -middleware request)))
         ([request respond raise]
          (try
-           (handler (.handle middleware# request) respond raise)
+           (handler (.handle -middleware request) respond raise)
            (catch Exception ex
              (raise ex))))))))
 
@@ -79,12 +79,12 @@
   - respond [fn] Only for the three arity middleware.
   - raise [fn] Only for the three arity middleware."
   [{:keys [middleware handler ex-handler]}]
-  (let [^RingMiddleware middleware# (normalize-middleware middleware)]
+  (let [^RingMiddleware -middleware (normalize-middleware middleware)]
     (if (fn? ex-handler)
       (fn
         ([request]
          (try
-           (.handle middleware# (handler request))
+           (.handle -middleware (handler request))
            (catch Exception ex
              (ex-handler {:cause   ex
                           :request request
@@ -95,7 +95,7 @@
              request
              (fn [response]
                (try
-                 (respond (.handle middleware# response))
+                 (respond (.handle -middleware response))
                  (catch Exception ex
                    (ex-handler {:cause   ex
                                 :handler handler
@@ -111,13 +111,13 @@
                           :raise   raise})))))
       (fn
         ([request]
-         (.handle middleware# (handler request)))
+         (.handle -middleware (handler request)))
         ([request respond raise]
          (handler
            request
            (fn [response]
              (try
-               (respond (.handle middleware# response))
+               (respond (.handle -middleware response))
                (catch Exception ex
                  (raise ex))))
            raise))))))
