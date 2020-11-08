@@ -17,11 +17,10 @@
   (on-fail [this fun]
     (.onFail ^FutureResult this ^IFn fun)))
 
-(defn make []
-  (FutureResult/create))
-
-(defn make-with-value [value]
-  (FutureResult/create ^Object value))
-
-(defn make-with-completable-future [^CompletableFuture a-future]
-  (FutureResult/create a-future))
+(defn create
+  ([]
+   (FutureResult/create))
+  ([value]
+   (case (class value)
+     CompletableFuture (FutureResult/create ^CompletableFuture value)
+     (FutureResult/create ^Object value))))
