@@ -40,10 +40,10 @@ class RingRouteCreatorTest {
   void testBuildRoute(Vertx vertx, VertxTestContext testContext) {
     var routeDefinition =
         RouteDefinition.create()
-                       .addMethod(HttpMethod.GET)
-                       .addMethod(HttpMethod.POST)
-                       .path(PathDefinition.create("/foo"))
-                       .handler(RoutingContext::next);
+                        .addMethod(HttpMethod.GET)
+                        .addMethod(HttpMethod.POST)
+                        .path(PathDefinition.create("/foo"))
+                        .handler(RoutingContext::next);
   
     RouteCreator routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();
@@ -61,8 +61,8 @@ class RingRouteCreatorTest {
   void testBuildRegexRoute(Vertx vertx, VertxTestContext testContext) {
     var routeDefinition =
         RouteDefinition.create()
-                       .path(PathDefinition.create("/foo/[0-9]+", REGEX))
-                       .handler(RoutingContext::next);
+                        .path(PathDefinition.create("/foo/[0-9]+", REGEX))
+                        .handler(RoutingContext::next);
   
     RouteCreator routeCreator = new RingRouteCreator(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();

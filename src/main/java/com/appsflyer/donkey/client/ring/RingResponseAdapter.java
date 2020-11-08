@@ -29,21 +29,21 @@ public class RingResponseAdapter implements Handler<AsyncResult<HttpResponse<Buf
       HttpResponse<Buffer> res = event.result();
       RingResponseField[] fields = RingResponseField.values();
       var values = new Object[fields.length * 2];
-      var j = 0;
+      var valueIndex = 0;
       for (var i = 0; i < fields.length; i++) {
         var field = fields[i];
         Object v = field.from(res);
         if (v != null) {
-          values[j] = field.keyword();
-          values[j + 1] = v;
-          j += 2;
+          values[valueIndex] = field.keyword();
+          values[valueIndex + 1] = v;
+          valueIndex += 2;
         }
       }
-      if (j == values.length) {
+      if (valueIndex == values.length) {
         promise.complete(toPersistentMap(values));
       } else {
-        var copy = new Object[j];
-        System.arraycopy(values, 0, copy, 0, j);
+        var copy = new Object[valueIndex];
+        System.arraycopy(values, 0, copy, 0, valueIndex);
         promise.complete(toPersistentMap(copy));
       }
   

@@ -20,40 +20,112 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.Collection;
+import java.util.*;
 
-/**
- * The class is used to describe how to construct a {@link io.vertx.ext.web.Route}.
- */
-public interface RouteDefinition {
+public final class RouteDefinition {
   
-  static RouteDefinition create() {
-    return new RouteDefinitionImpl();
+  public static RouteDefinition create() {
+    return new RouteDefinition();
   }
   
-  PathDefinition path();
+  private static void assertNonEmptyContentType(String val) {
+    Objects.requireNonNull(val, "contentType cannot be null");
+    if (val.isBlank()) {
+      throw new IllegalArgumentException(String.format("Invalid content type: %s", val));
+    }
+  }
   
-  RouteDefinition path(PathDefinition path);
+  private final Collection<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
+  private final Collection<String> consumes = new HashSet<>(6);
+  private final Collection<String> produces = new HashSet<>(6);
+  private HandlerMode handlerMode = HandlerMode.NON_BLOCKING;
+  private Handler<RoutingContext> handler;
+  private PathDefinition path;
   
-  RouteDefinition path(String path);
+  private RouteDefinition() {
+  }
   
-  Collection<HttpMethod> methods();
+  public PathDefinition path() {
+    return path;
+  }
   
-  RouteDefinition addMethod(HttpMethod method);
+  public RouteDefinition path(String path) {
+    return path(PathDefinition.create(path));
+  }
   
-  Collection<String> consumes();
+  public RouteDefinition path(PathDefinition path) {
+    this.path = path;
+    return this;
+  }
   
-  RouteDefinition addConsumes(String contentType);
+  public Collection<HttpMethod> methods() {
+    if (methods.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return Set.copyOf(methods);
+  }
   
-  Collection<String> produces();
+  /**
+   * Can be called multiple times to add multiple HTTP verbs
+   */
+  public RouteDefinition addMethod(HttpMethod method) {
+    Objects.requireNonNull(method, "method cannot be null");
+    methods.add(method);
+    return this;
+  }
   
-  RouteDefinition addProduces(String contentType);
+  public Collection<String> consumes() {
+    if (consumes.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return Set.copyOf(consumes);
+  }
   
-  Handler<RoutingContext> handler();
+  /**
+   * Can be called multiple times to add multiple content types
+   */
+  public RouteDefinition addConsumes(String contentType) {
+    assertNonEmptyContentType(contentType);
+    consumes.add(contentType);
+    return this;
+  }
   
-  RouteDefinition handler(Handler<RoutingContext> handler);
+  public Collection<String> produces() {
+    if (produces.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return Set.copyOf(produces);
+  }
   
-  HandlerMode handlerMode();
+  /**
+   * Can be called multiple times to add multiple content types
+   */
+  public RouteDefinition addProduces(String contentType) {
+    assertNonEmptyContentType(contentType);
+    produces.add(contentType);
+    return this;
+  }
   
-  RouteDefinition handlerMode(HandlerMode handlerMode);
+  public Handler<RoutingContext> handler() {
+    if (handler == null) {
+      throw new IllegalStateException("No handlers were set");
+    }
+    return handler;
+  }
+  
+  public RouteDefinition handler(Handler<RoutingContext> handler) {
+    Objects.requireNonNull(handler, "Handler cannot be null");
+    this.handler = handler;
+    return this;
+  }
+  
+  public HandlerMode handlerMode() {
+    return handlerMode;
+  }
+  
+  public RouteDefinition handlerMode(HandlerMode handlerMode) {
+    Objects.requireNonNull(handlerMode, "handler mode cannot be null");
+    this.handlerMode = handlerMode;
+    return this;
+  }
 }

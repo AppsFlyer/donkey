@@ -66,10 +66,10 @@ class RouteDefinitionTest {
     assertEquals(Set.of(POST), routeDefinition.methods());
     
     routeDefinition = RouteDefinition.create()
-                                     .addMethod(GET)
-                                     .addMethod(POST)
-                                     .addMethod(PUT)
-                                     .addMethod(DELETE);
+                                      .addMethod(GET)
+                                      .addMethod(POST)
+                                      .addMethod(PUT)
+                                      .addMethod(DELETE);
     assertEquals(Set.of(GET, POST, PUT, DELETE), routeDefinition.methods());
   }
   
@@ -79,9 +79,9 @@ class RouteDefinitionTest {
     assertEquals(Set.of("text/plain"), routeDefinition.consumes());
     
     routeDefinition = RouteDefinition.create()
-                                     .addConsumes("text/plain")
-                                     .addConsumes("application/json")
-                                     .addConsumes("application/x-www-form-urlencoded");
+                                      .addConsumes("text/plain")
+                                      .addConsumes("application/json")
+                                      .addConsumes("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",
@@ -95,9 +95,9 @@ class RouteDefinitionTest {
     assertEquals(Set.of("text/plain"), routeDefinition.produces());
     
     routeDefinition = RouteDefinition.create()
-                                     .addProduces("text/plain")
-                                     .addProduces("application/json")
-                                     .addProduces("application/x-www-form-urlencoded");
+                                      .addProduces("text/plain")
+                                      .addProduces("application/json")
+                                      .addProduces("application/x-www-form-urlencoded");
     
     assertEquals(Set.of("text/plain",
                         "application/json",

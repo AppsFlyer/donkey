@@ -43,7 +43,7 @@
 
   (cond->
     (doto (WebClientOptions.)
-      (.setForceSni force-sni)
+      (.setForceSni ^boolean force-sni)
       (.setUserAgentEnabled enable-user-agent)
       (.setUserAgent user-agent))
     keep-alive (.setKeepAlive ^boolean keep-alive)

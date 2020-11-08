@@ -38,19 +38,19 @@ public class RingRouteSupplier implements RouteSupplier {
   @Override
   public RouteDefinition echo(Checkpoint requestsServed) {
     return RouteDefinition.create()
-                          .path("/echo")
-                          .handler(returnRequest(requestsServed));
+                           .path("/echo")
+                           .handler(returnRequest(requestsServed));
   }
   
   @Override
   public RouteDefinition postFormOrFile(Checkpoint requestsServed) {
     return RouteDefinition.create()
-                          .path("/post/form")
-                          .addMethod(POST)
-                          .addConsumes(APPLICATION_X_WWW_FORM_URLENCODED.toString())
-                          .addConsumes(MULTIPART_FORM_DATA.toString())
-                          .addConsumes(APPLICATION_OCTET_STREAM.toString())
-                          .handler(returnRequest(requestsServed));
+                           .path("/post/form")
+                           .addMethod(POST)
+                           .addConsumes(APPLICATION_X_WWW_FORM_URLENCODED.toString())
+                           .addConsumes(MULTIPART_FORM_DATA.toString())
+                           .addConsumes(APPLICATION_OCTET_STREAM.toString())
+                           .handler(returnRequest(requestsServed));
   }
   
   
