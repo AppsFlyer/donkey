@@ -111,7 +111,7 @@
     (try
       (-> ^RoutingContext ctx
           (.put RingHandler/RING_HANDLER_RESULT
-                (fun (get-last-handler-result ^RoutingContext ctx)))
+                (fun (get-last-handler-result ctx)))
           .next)
       (catch Throwable ex
         (handle-exception ctx ex)))))
