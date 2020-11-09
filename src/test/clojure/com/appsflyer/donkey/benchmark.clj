@@ -5,7 +5,7 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,14 +13,14 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 ;
+;
 
 (ns com.appsflyer.donkey.benchmark
   (:gen-class)
   (:require [criterium.core :as cc]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
-            [com.appsflyer.donkey.middleware.params :refer [parse-query-params
-                                                            keywordize-query-params]]))
+            [com.appsflyer.donkey.middleware.params :refer [parse-query-params]]))
 
 (declare -main)
 
@@ -60,7 +60,7 @@
 (defn bench-donkey-keywordize-query-params []
   (title bench-donkey-keywordize-query-params)
 
-  (let [middleware ((comp (parse-query-params) (keywordize-query-params)) identity)]
+  (let [middleware ((parse-query-params {:keywordize true}) identity)]
     (cc/bench
       (middleware
         {:query-string "foo=bar&city=New%20York&occupation=Shop%20Keeper&age=49"})
