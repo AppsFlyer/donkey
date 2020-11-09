@@ -524,7 +524,7 @@ if we also had a map of name value pairs we can easily use.
                                                            (get-in req [:query-params "fname"])
                                                            " "
                                                            (get-in req [:query-params "lname"]))}))
-                            :middleware [parse-query-params]}]})
+                            :middleware [(parse-query-params)]}]})
   start)
 ```
  
@@ -537,7 +537,7 @@ Another common use case is converting the names of each query parameter into
 a keyword. We can achieve both objectives with one middleware:
 
 ```clojure
-(:require [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params]])
+(:require [com.appsflyer.donkey.middleware.params :refer [parse-query-params]])
 
 (->
   (create-donkey)
@@ -549,12 +549,9 @@ a keyword. We can achieve both objectives with one middleware:
                                                            (-> req :query-params :fname)
                                                            " "
                                                            (-> req :query-params :lname))}))
-                            :middleware [keywordize-query-params]}]})
+                            :middleware [(parse-query-params {:keywordize true})]}]})
   start)
 ```
-
-`keywordize-query-params` will first parse the query string if it wasn't parsed 
-before, and then turn each parameter name into a keyword.
 
 ### Server Examples
 

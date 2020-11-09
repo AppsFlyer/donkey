@@ -5,7 +5,7 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,17 +13,20 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 ;
+;
 
 (ns com.appsflyer.donkey.middleware.params
   (:require [com.appsflyer.donkey.middleware.base :as base])
-  (:import (com.appsflyer.donkey.server.ring.middleware QueryParamsKeywordizer
-                                                        QueryParamsParser
-                                                        FormParamsKeywordizer
-                                                        FormParamsKeywordizer$Options)))
+  (:import (com.appsflyer.donkey.server.ring.middleware
+             QueryParamsParser
+             FormParamsKeywordizer
+             FormParamsKeywordizer$Options QueryParamsParser$Options)))
 
 (defn parse-query-params
   "Parses the request's `query-string` into a map of `query-params`.
   `opts` is an optional map with the following keys:
+  - :keywordize [boolean] Whether query params keys should be turned into
+      keywords.
   - :ex-handler [fn] A function that will be called if an exception is thrown.
     It will be called with a map with the following keys:
       - :cause [Exception] The caught exception
@@ -33,32 +36,15 @@
       - :raise [fn] A function that should be called with an exception. Only
         available in the 3 argument arity."
   ([] (parse-query-params nil))
-  ([opts]
+  ([{:keys [keywordize ex-handler] :or {keywordize false}}]
    (fn [handler]
      (base/make-ring-request-middleware
-       {:middleware (QueryParamsParser/getInstance)
+       {:middleware (QueryParamsParser.
+                      (doto
+                        (QueryParamsParser$Options.)
+                        (.keywordizeKeys (boolean keywordize))))
         :handler    handler
-        :ex-handler (:ex-handler opts)}))))
-
-(defn keywordize-query-params
-  "Converts `query-params` string keys into keywords. Parses `query-string` if
-  not previously parsed.
-  `opts` is an optional map with the following keys:
-  - :ex-handler [fn] A function that will be called if an exception is thrown.
-  It will be called with a map with the following keys:
-  - :cause [Exception] The caught exception
-  - :request [map] The request
-  - :respond [fn] A function that should be called with the response. Only
-  available in the 3 argument arity.
-  - :raise [fn] A function that should be called with an exception. Only
-  available in the 3 argument arity."
-  ([] (keywordize-query-params nil))
-  ([opts]
-   (fn [handler]
-     (base/make-ring-request-middleware
-       {:middleware (QueryParamsKeywordizer/getInstance)
-        :handler    handler
-        :ex-handler (:ex-handler opts)}))))
+        :ex-handler ex-handler}))))
 
 (defn keywordize-form-params
   "Parses the request's `body` into a map of `form-params`.

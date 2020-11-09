@@ -18,7 +18,7 @@
 (ns com.appsflyer.donkey.middleware.middleware-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.test-helper :as helper]
-            [com.appsflyer.donkey.middleware.params :refer [keywordize-query-params
+            [com.appsflyer.donkey.middleware.params :refer [parse-query-params
                                                             keywordize-form-params]]
             [com.appsflyer.donkey.middleware.base :refer [make-ring-request-middleware
                                                           make-ring-response-middleware]]
@@ -123,7 +123,7 @@
         (execute-keywordize-params-test (:path routes/echo-route))
         (execute-keywordize-params-test (:path routes/echo-route-non-blocking)))
       [routes/echo-route routes/echo-route-non-blocking]
-      [(keywordize-query-params)
+      [(parse-query-params {:keywordize true})
        (make-query-param-counter-middleware :added-by-middleware)
        (make-query-param-counter-middleware :added-by-middleware)])))
 
