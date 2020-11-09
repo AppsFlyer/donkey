@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.appsflyer.donkey.server.ring.middleware;
 
 import clojure.lang.IPersistentMap;
@@ -30,14 +47,14 @@ class JsonBodySerializerTest {
   void testEmptyResponse() {
     assertEquals(RT.map(), middleware.handle(RT.map()));
   }
-
+  
   @Test
   void testEmptyBody() {
     IPersistentMap response = RT.map(BODY.keyword(), RT.map());
     assertArrayEquals("{}".getBytes(),
                       (byte[])middleware.handle(response).valAt(BODY.keyword()));
   }
-
+  
   @Test
   void testBodyIsNull() {
     IPersistentMap response = RT.map(BODY.keyword(), null);
@@ -47,7 +64,7 @@ class JsonBodySerializerTest {
   @Test
   void testValidJSON() {
     IPersistentMap response = RT.map(BODY.keyword(),
-                                    RT.map("foo", "bar", "fizz", "baz"));
+                                     RT.map("foo", "bar", "fizz", "baz"));
     assertArrayEquals("{\"foo\":\"bar\",\"fizz\":\"baz\"}".getBytes(),
                       (byte[])middleware.handle(response).valAt(BODY.keyword()));
   }
