@@ -5,13 +5,14 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
 ; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
+;
 ;
 
 (ns com.appsflyer.donkey.core
@@ -21,7 +22,7 @@
             [com.appsflyer.donkey.client :as client]
             [com.appsflyer.donkey.metrics :as metrics]
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
-  (:import (com.appsflyer.donkey.server Server)
+  (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
            (io.vertx.core Vertx VertxOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)))
@@ -192,7 +193,7 @@
     (-> (spec/assert ::donkey-spec/server-config opts)
         (assoc :vertx vertx)
         server/map->ServerConfig
-        Server/create
+        ServerImpl/create
         server/->DonkeyServer))
   (create-client [this]
     (create-client this {}))

@@ -21,6 +21,7 @@ import com.appsflyer.donkey.TestUtil;
 import com.appsflyer.donkey.server.Server;
 import com.appsflyer.donkey.server.ServerConfig;
 import com.appsflyer.donkey.server.ServerConfig.ServerConfigBuilder;
+import com.appsflyer.donkey.server.ServerImpl;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import com.appsflyer.donkey.server.route.RouteDefinition;
@@ -75,7 +76,7 @@ class ContentTypeHandlerTest {
   @Test
   void testContentTypeNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) throws
                                                                                       ServerInitializationException {
-    server = Server.create(TestUtil.getDefaultConfigBuilder(vertx).build());
+    server = ServerImpl.create(TestUtil.getDefaultConfigBuilder(vertx).build());
     server.startSync();
     
     doGet(vertx, "/")
@@ -116,8 +117,8 @@ class ContentTypeHandlerTest {
     ServerConfig config = getDefaultConfigBuilder(vertx, RouteList.from(routeDefinitions))
         .addContentTypeHeader(true)
         .build();
-    
-    server = Server.create(config);
+  
+    server = ServerImpl.create(config);
     server.startSync();
     
     WebClient client = WebClient.create(vertx);

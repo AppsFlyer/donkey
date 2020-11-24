@@ -27,15 +27,6 @@ import java.util.concurrent.TimeUnit;
 public interface Server {
   
   /**
-   * Create a new instance with the given {@link ServerConfig}
-   *
-   * @param config See {@link ServerConfig} for configuration options.
-   */
-  static Server create(ServerConfig config) {
-    return new ServerImpl(config);
-  }
-  
-  /**
    * @return The Vertx instance associated with the server
    */
   Vertx vertx();

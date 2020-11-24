@@ -18,6 +18,7 @@
 package com.appsflyer.donkey.server.handler;
 
 import com.appsflyer.donkey.server.Server;
+import com.appsflyer.donkey.server.ServerImpl;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.Handler;
@@ -52,7 +53,7 @@ class DateHeaderHandlerTest {
   @Test
   void testDateHeaderNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) throws
                                                                                      ServerInitializationException {
-    server = Server.create(getDefaultConfigBuilder(vertx).build());
+    server = ServerImpl.create(getDefaultConfigBuilder(vertx).build());
     server.startSync();
     
     doGet(vertx, "/")
@@ -66,9 +67,9 @@ class DateHeaderHandlerTest {
   @Test
   void testAddingDateHeader(Vertx vertx, VertxTestContext testContext) throws
                                                                        ServerInitializationException {
-    server = Server.create(getDefaultConfigBuilder(vertx)
-                               .addDateHeader(true)
-                               .build());
+    server = ServerImpl.create(getDefaultConfigBuilder(vertx)
+                                   .addDateHeader(true)
+                                   .build());
     server.startSync();
     
     Checkpoint responsesReceived = testContext.checkpoint(2);
