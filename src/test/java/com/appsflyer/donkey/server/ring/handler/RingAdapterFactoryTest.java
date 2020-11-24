@@ -27,13 +27,13 @@ class RingAdapterFactoryTest {
   
   @Test
   void testCreatingRequestHandler() {
-    AdapterFactory adapterFactory = new RingAdapterFactory();
+    AdapterFactory adapterFactory = RingAdapterFactory.create();
     assertThat(adapterFactory.requestAdapter(), instanceOf(RingRequestAdapter.class));
   }
   
   @Test
   void testCreatingResponseHandler() {
-    AdapterFactory adapterFactory = new RingAdapterFactory();
+    AdapterFactory adapterFactory = RingAdapterFactory.create();
     assertThat(adapterFactory.responseAdapter(), instanceOf(RingResponseAdapter.class));
   }
 }

@@ -38,7 +38,7 @@ class QueryParamsParserTest {
   
   @BeforeAll
   static void beforeAll() {
-    middleware = new QueryParamsParser();
+    middleware = QueryParamsParser.create();
   }
   
   private static String encode(String val) throws UnsupportedEncodingException {

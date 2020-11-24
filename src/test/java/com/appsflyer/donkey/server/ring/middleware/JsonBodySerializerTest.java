@@ -35,7 +35,7 @@ class JsonBodySerializerTest {
   
   @BeforeAll
   static void beforeAll() {
-    middleware = new JsonBodySerializer(new ObjectMapper());
+    middleware = JsonBodySerializer.create(new ObjectMapper());
   }
   
   @Test

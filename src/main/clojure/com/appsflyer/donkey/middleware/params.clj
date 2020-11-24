@@ -39,7 +39,7 @@
   ([{:keys [keywordize ex-handler] :or {keywordize false}}]
    (fn [handler]
      (base/make-ring-request-middleware
-       {:middleware (QueryParamsParser.
+       {:middleware (QueryParamsParser/create
                       (doto
                         (QueryParamsParser$Options.)
                         (.keywordizeKeys (boolean keywordize))))
@@ -61,6 +61,6 @@
   ([opts]
    (fn [handler]
      (base/make-ring-request-middleware
-       {:middleware (FormParamsKeywordizer. (FormParamsKeywordizer$Options. (:deep opts)))
+       {:middleware (FormParamsKeywordizer/create (FormParamsKeywordizer$Options. (:deep opts)))
         :handler    handler
         :ex-handler (:ex-handler opts)}))))

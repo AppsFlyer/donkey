@@ -37,7 +37,7 @@ class KeywordizeQueryParamsTest {
   
   @BeforeAll
   static void beforeAll() {
-    middleware = new QueryParamsParser(new Options().keywordizeKeys(true));
+    middleware = QueryParamsParser.create(new Options().keywordizeKeys(true));
   }
   
   @Test

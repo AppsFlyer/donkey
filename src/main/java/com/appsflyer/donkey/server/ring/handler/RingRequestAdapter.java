@@ -27,7 +27,13 @@ import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
  * <p></p>
  * See the Ring <a href="https://github.com/ring-clojure/ring/blob/master/SPEC">specification</a> for more details.
  */
-public class RingRequestAdapter implements RingHandler {
+public final class RingRequestAdapter implements RingHandler {
+  
+  public static RingHandler create() {
+    return new RingRequestAdapter();
+  }
+  
+  private RingRequestAdapter() {}
   
   @Override
   public void handle(RoutingContext ctx) {
