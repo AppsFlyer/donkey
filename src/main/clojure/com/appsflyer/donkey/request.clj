@@ -18,9 +18,11 @@
 (ns com.appsflyer.donkey.request
   (:require [com.appsflyer.donkey.result])
   (:import (clojure.lang IPersistentMap)
+           (io.vertx.core Promise Future)
            (io.vertx.ext.web.client HttpRequest)
-           (com.appsflyer.donkey.client.ring RingClient)
-           (com.appsflyer.donkey FutureResult)))
+           (com.appsflyer.donkey FutureResult)
+           (com.appsflyer.donkey.util TypeConverter)
+           (com.appsflyer.donkey.client Client)))
 
 (defprotocol Submittable
   (submit [this] [this body]
@@ -56,15 +58,32 @@
     Returns a FutureResult that will be notified if the request succeeds or
     fails."))
 
-(deftype AsyncRequest [^RingClient client ^HttpRequest req]
+
+(declare submit-with-body)
+
+(deftype AsyncRequest [^Client client ^HttpRequest req]
   Submittable
   (submit [_this]
-    (FutureResult/create (.send ^RingClient client ^HttpRequest req)))
+    (FutureResult/create (.send client req)))
+
   (submit [_this body]
-    (FutureResult/create (.send ^RingClient client ^HttpRequest req body)))
+    (FutureResult/create ^Future (submit-with-body client req body)))
+
   (submit-form [_this body]
     (FutureResult/create
-      (.sendForm ^RingClient client ^HttpRequest req ^IPersistentMap body)))
+      (.sendForm client req (TypeConverter/toMultiMap ^IPersistentMap body))))
+
   (submit-multipart-form [_this body]
     (FutureResult/create
-      (.sendMultiPartForm ^RingClient client ^HttpRequest req ^IPersistentMap body))))
+      (.sendMultiPartForm client req (TypeConverter/toMultipartForm ^IPersistentMap body)))))
+
+(defn- handle-exception [^Throwable ex]
+  (let [p (Promise/promise)]
+    (.fail p ex)
+    (.future p)))
+
+(defn- submit-with-body [^Client client ^AsyncRequest req ^Object body]
+  (try
+    (.send client req (TypeConverter/toBuffer ^Object body))
+    (catch Throwable ex
+      (handle-exception ex))))

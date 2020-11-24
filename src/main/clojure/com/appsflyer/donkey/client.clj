@@ -17,8 +17,7 @@
 
 (ns com.appsflyer.donkey.client
   (:require [com.appsflyer.donkey.request])
-  (:import (com.appsflyer.donkey.client ClientConfig)
-           (com.appsflyer.donkey.client.ring RingClient)
+  (:import (com.appsflyer.donkey.client ClientConfig Client)
            (com.appsflyer.donkey.request AsyncRequest)
            (com.appsflyer.donkey.util DebugUtil)
            (io.vertx.core.http HttpClientOptions)
@@ -154,22 +153,9 @@
   (stop [this]
     "Stops the client and releases any resources associated with it."))
 
-(deftype DonkeyClient [^RingClient impl]
+(deftype DonkeyClient [^Client impl]
   HttpClient
   (request [_this opts]
-    (AsyncRequest. impl (.request ^RingClient impl ^IPersistentMap opts)))
+    (AsyncRequest. impl (.request ^Client impl ^IPersistentMap opts)))
   (stop [_this]
     (.shutdown impl)))
-
-(comment
-  (->
-    (request {:method :get :uri "/foo"})                    ; => Create a request. Request not sent yet. Returns Request object
-    (submit #_optional-body)                                ; => Send the request. Returns a FutureResult.
-    (on-complete
-      (fn [res ex]
-        (println "success or fail")
-        res))                                               ; => Triggers when the request completes. Returns a FutureResult.
-    (on-success (fn [res] (println "success")))             ; => Triggers when the request is successful. Returns a FutureResult.
-    (on-fail (fn [ex] (println "fail"))))                   ; => Triggers when the request fails. Returns a FutureResult.
-
-  )

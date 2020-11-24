@@ -23,17 +23,21 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-public interface Client<T> {
+/**
+ * @param <T> The type of the request options object
+ * @param <R> The type of the response
+ */
+public interface Client<T, R> {
   
   HttpRequest<Buffer> request(T opts);
   
-  Future<T> send(HttpRequest<Buffer> request);
+  Future<R> send(HttpRequest<Buffer> request);
   
-  Future<T> send(HttpRequest<Buffer> request, Buffer body);
+  Future<R> send(HttpRequest<Buffer> request, Buffer body);
   
-  Future<T> sendForm(HttpRequest<Buffer> request, MultiMap body);
+  Future<R> sendForm(HttpRequest<Buffer> request, MultiMap body);
   
-  Future<T> sendMultiPartForm(HttpRequest<Buffer> request, MultipartForm body);
+  Future<R> sendMultiPartForm(HttpRequest<Buffer> request, MultipartForm body);
   
   void shutdown();
 }
