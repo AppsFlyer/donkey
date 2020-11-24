@@ -19,7 +19,6 @@ package com.appsflyer.donkey;
 
 import clojure.lang.*;
 import io.vertx.core.Future;
-
 import java.util.concurrent.*;
 
 /**

@@ -18,6 +18,7 @@
 package com.appsflyer.donkey.client.ring;
 
 import clojure.lang.IPersistentMap;
+import com.appsflyer.donkey.client.Client;
 import com.appsflyer.donkey.client.ClientConfig;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -27,10 +28,7 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import static com.appsflyer.donkey.util.TypeConverter.*;
-
-@SuppressWarnings("WeakerAccess")
-public final class RingClient {
+public final class RingClient implements Client<IPersistentMap, IPersistentMap> {
   
   public static RingClient create(ClientConfig config) {
     return new RingClient(config);
