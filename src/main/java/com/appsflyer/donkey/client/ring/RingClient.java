@@ -37,11 +37,11 @@ public final class RingClient {
   }
   
   private final WebClient client;
-  private final RequestFactory requestFactory;
+  private final RingRequestFactory requestFactory;
   
   private RingClient(ClientConfig config) {
     client = WebClient.create(config.vertx(), config.clientOptions());
-    requestFactory = new RequestFactory(client);
+    requestFactory = RingRequestFactory.create(client);
   }
   
   public HttpRequest<Buffer> request(IPersistentMap opts) {
@@ -50,45 +50,25 @@ public final class RingClient {
   
   public Future<IPersistentMap> send(HttpRequest<Buffer> request) {
     Promise<IPersistentMap> promise = Promise.promise();
-    request.send(new RingResponseAdapter(promise));
+    request.send(RingResponseAdapter.create(promise));
     return promise.future();
-  }
-  
-  public Future<IPersistentMap> send(HttpRequest<Buffer> request, Object body) {
-    Buffer buffer;
-    try {
-      buffer = toBuffer(body);
-    } catch (Throwable ex) {
-      Promise<IPersistentMap> promise = Promise.promise();
-      promise.fail(ex);
-      return promise.future();
-    }
-    return send(request, buffer);
   }
   
   public Future<IPersistentMap> send(HttpRequest<Buffer> request, Buffer body) {
     Promise<IPersistentMap> promise = Promise.promise();
-    request.sendBuffer(body, new RingResponseAdapter(promise));
+    request.sendBuffer(body, RingResponseAdapter.create(promise));
     return promise.future();
-  }
-  
-  public Future<IPersistentMap> sendForm(HttpRequest<Buffer> request, IPersistentMap body) {
-    return sendForm(request, toMultiMap(body));
   }
   
   public Future<IPersistentMap> sendForm(HttpRequest<Buffer> request, MultiMap body) {
     Promise<IPersistentMap> promise = Promise.promise();
-    request.sendForm(body, new RingResponseAdapter(promise));
+    request.sendForm(body, RingResponseAdapter.create(promise));
     return promise.future();
-  }
-  
-  public Future<IPersistentMap> sendMultiPartForm(HttpRequest<Buffer> request, IPersistentMap body) {
-    return sendMultiPartForm(request, toMultipartForm(body));
   }
   
   public Future<IPersistentMap> sendMultiPartForm(HttpRequest<Buffer> request, MultipartForm body) {
     Promise<IPersistentMap> promise = Promise.promise();
-    request.sendMultipartForm(body, new RingResponseAdapter(promise));
+    request.sendMultipartForm(body, RingResponseAdapter.create(promise));
     return promise.future();
   }
   
