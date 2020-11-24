@@ -18,6 +18,7 @@
 package com.appsflyer.donkey.server.handler;
 
 import com.appsflyer.donkey.server.Server;
+import com.appsflyer.donkey.server.ServerImpl;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
@@ -45,7 +46,7 @@ class ServerHeaderHandlerTest {
   
   @Test
   void testDateHeaderNotIncludedByDefault(Vertx vertx, VertxTestContext testContext) {
-    server = Server.create(getDefaultConfigBuilder(vertx).build());
+    server = ServerImpl.create(getDefaultConfigBuilder(vertx).build());
     server.start()
           .onSuccess(
               v -> doGet(vertx, "/")
@@ -58,7 +59,7 @@ class ServerHeaderHandlerTest {
   
   @Test
   void testAddingDateHeader(Vertx vertx, VertxTestContext testContext) {
-    server = Server.create(getDefaultConfigBuilder(vertx).addServerHeader(true).build());
+    server = ServerImpl.create(getDefaultConfigBuilder(vertx).addServerHeader(true).build());
     server.start()
           .onSuccess(
               v -> doGet(vertx, "/")
