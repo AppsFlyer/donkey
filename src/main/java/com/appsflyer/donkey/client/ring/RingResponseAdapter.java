@@ -32,11 +32,15 @@ import static com.appsflyer.donkey.util.TypeConverter.toPersistentMap;
  * <p></p>
  * See the Ring <a href="https://github.com/ring-clojure/ring/blob/master/SPEC">specification</a> for more details.
  */
-public class RingResponseAdapter implements Handler<AsyncResult<HttpResponse<Buffer>>> {
+public final class RingResponseAdapter implements Handler<AsyncResult<HttpResponse<Buffer>>> {
+  
+  public static RingResponseAdapter create(Promise<IPersistentMap> promise) {
+    return new RingResponseAdapter(promise);
+  }
   
   private final Promise<IPersistentMap> promise;
   
-  RingResponseAdapter(Promise<IPersistentMap> promise) {
+  private RingResponseAdapter(Promise<IPersistentMap> promise) {
     this.promise = promise;
   }
   
