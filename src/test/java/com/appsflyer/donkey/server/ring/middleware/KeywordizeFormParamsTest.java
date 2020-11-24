@@ -36,7 +36,7 @@ class KeywordizeFormParamsTest {
   
   @BeforeAll
   static void beforeAll() {
-    middleware = new FormParamsKeywordizer(new Options(true));
+    middleware = FormParamsKeywordizer.create(new Options(true));
   }
   
   @Test

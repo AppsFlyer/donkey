@@ -30,7 +30,7 @@ import java.util.function.Function;
 import static com.appsflyer.donkey.server.ring.handler.RingRequestField.QUERY_STRING;
 import static com.appsflyer.donkey.util.TypeConverter.toVector;
 
-public class QueryParamsParser implements RingMiddleware {
+public final class QueryParamsParser implements RingMiddleware {
   
   public static class Options {
     
@@ -43,19 +43,22 @@ public class QueryParamsParser implements RingMiddleware {
     }
   }
   
+  public static RingMiddleware create() {
+    return new QueryParamsParser(Options.DEFAULT);
+  }
+  
+  public static RingMiddleware create(Options opts) {
+    return new QueryParamsParser(opts);
+  }
+  
   private static final Keyword QUERY_PARAMS = Keyword.intern("query-params");
   
   private final Function<String, ?> mappingFunc;
   
-  public QueryParamsParser(Options opts) {
+  private QueryParamsParser(Options opts) {
     mappingFunc = opts.keywordizeKeys ?
         Keyword::intern :
         Function.identity();
-  }
-  
-  @SuppressWarnings("WeakerAccess")
-  public QueryParamsParser() {
-    this(Options.DEFAULT);
   }
   
   @Override

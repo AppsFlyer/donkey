@@ -21,10 +21,11 @@ import clojure.lang.*;
 
 import java.util.Objects;
 
-public class FormParamsKeywordizer implements RingMiddleware {
+public final class FormParamsKeywordizer implements RingMiddleware {
   
-  private static final Keyword FORM_PARAMS = Keyword.intern("form-params");
-  private final Options options;
+  public static RingMiddleware create(Options options) {
+    return new FormParamsKeywordizer(options);
+  }
   
   public static class Options {
     
@@ -33,7 +34,10 @@ public class FormParamsKeywordizer implements RingMiddleware {
     public Options(boolean deep) {this.deep = deep;}
   }
   
-  public FormParamsKeywordizer(Options options) {
+  private static final Keyword FORM_PARAMS = Keyword.intern("form-params");
+  private final Options options;
+  
+  private FormParamsKeywordizer(Options options) {
     this.options = options;
   }
   

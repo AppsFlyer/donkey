@@ -22,9 +22,15 @@ import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NotFoundErrorHandler implements Handler<RoutingContext> {
+public final class NotFoundErrorHandler implements Handler<RoutingContext> {
   
   private static final Logger logger = LoggerFactory.getLogger(NotFoundErrorHandler.class.getName());
+  
+  public static NotFoundErrorHandler create() {
+    return new NotFoundErrorHandler();
+  }
+  
+  private NotFoundErrorHandler() {}
   
   @Override
   public void handle(RoutingContext ctx) {

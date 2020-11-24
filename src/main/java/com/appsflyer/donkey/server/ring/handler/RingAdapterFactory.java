@@ -21,16 +21,22 @@ import com.appsflyer.donkey.server.handler.*;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
-public class RingAdapterFactory implements AdapterFactory {
+public final class RingAdapterFactory implements AdapterFactory {
+  
+  public static AdapterFactory create() {
+    return new RingAdapterFactory();
+  }
+  
+  private RingAdapterFactory() {}
   
   @Override
   public Handler<RoutingContext> requestAdapter() {
-    return new RingRequestAdapter();
+    return RingRequestAdapter.create();
   }
   
   @Override
   public Handler<RoutingContext> responseAdapter() {
-    return new RingResponseAdapter();
+    return RingResponseAdapter.create();
   }
   
 }

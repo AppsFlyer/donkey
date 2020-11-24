@@ -48,7 +48,7 @@
   (let [builder (doto (ServerConfig/builder)
                   (.vertx (:vertx opts))
                   (.serverOptions (map->HttpServerOptions opts))
-                  (.routeCreatorFactory (RingRouteCreatorFactory.))
+                  (.routeCreatorFactory (RingRouteCreatorFactory/create))
                   (.routeList (map->RouteList opts))
                   (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
                   (.debug (:debug opts false))

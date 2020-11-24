@@ -5,13 +5,14 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
 ; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
+;
 ;
 
 (ns com.appsflyer.donkey.middleware.json
@@ -37,7 +38,7 @@
   ([]
    (make-deserialize-middleware {:mapper (jsonista/object-mapper {:decode-key-fn true})}))
   ([opts]
-   (let [deserializer (JsonBodyDeserializer. ^ObjectMapper (:mapper opts))]
+   (let [deserializer (JsonBodyDeserializer/create ^ObjectMapper (:mapper opts))]
      (fn [handler]
        (base/make-ring-request-middleware {:middleware deserializer
                                            :handler    handler
@@ -61,7 +62,7 @@
   ([]
    (make-serialize-middleware {:mapper (jsonista/object-mapper)}))
   ([opts]
-   (let [serializer (JsonBodySerializer. ^ObjectMapper (:mapper opts))]
+   (let [serializer (JsonBodySerializer/create ^ObjectMapper (:mapper opts))]
      (fn [handler]
        (base/make-ring-response-middleware {:middleware serializer
                                             :handler    handler

@@ -108,7 +108,7 @@ class RingClientTest {
   
   private static Router makeRouter() {
     var router = Router.router(vertx);
-    router.route().handler(new RingRequestAdapter());
+    router.route().handler(RingRequestAdapter.create());
     routeSupplier.root200(router);
     routeSupplier.echo(router);
     routeSupplier.timeout(router);

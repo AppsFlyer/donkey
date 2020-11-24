@@ -25,7 +25,13 @@ import io.vertx.ext.web.RoutingContext;
 import static com.appsflyer.donkey.server.ring.handler.RingResponseField.*;
 import static com.appsflyer.donkey.util.TypeConverter.toBuffer;
 
-public class RingResponseAdapter implements RingHandler {
+public final class RingResponseAdapter implements RingHandler {
+  
+  public static RingHandler create() {
+    return new RingResponseAdapter();
+  }
+  
+  private RingResponseAdapter() {}
   
   @Override
   public void handle(RoutingContext ctx) {
