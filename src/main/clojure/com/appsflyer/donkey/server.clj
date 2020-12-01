@@ -29,32 +29,49 @@
 
 (defn- ^HttpServerOptions map->HttpServerOptions
   "Creates and returns an HttpServerOptions object from the opts map.
-  The server options are use to define basic things such as the host and port
+  The server options are used to define basic things such as the host and port
   the server should listen to, as well as lower level connection parameters."
-  [opts]
+  [{:keys [port
+           host
+           debug
+           idle-timeout-seconds
+           keep-alive
+           compression
+           decompression]
+    :or   {host                 "0.0.0.0"
+           idle-timeout-seconds 0
+           compression          true
+           decompression        true}}]
+
   (doto (HttpServerOptions.)
-    (.setPort (int (:port opts)))
-    (.setHost ^String (:host opts "0.0.0.0"))
-    (.setLogActivity ^boolean (:debug opts false))
-    (.setIdleTimeout (int (:idle-timeout-seconds opts 0)))
-    (.setTcpKeepAlive ^boolean (:keep-alive opts false))
-    (.setCompressionSupported ^boolean (:compression opts false))
-    (.setDecompressionSupported ^boolean (:compression opts false))))
+    (.setPort (int port))
+    (.setHost ^String host)
+    (.setIdleTimeout (int idle-timeout-seconds))
+    (.setLogActivity (boolean debug))
+    (.setTcpKeepAlive (boolean keep-alive))
+    (.setCompressionSupported (boolean compression))
+    (.setDecompressionSupported (boolean decompression))))
 
 (defn ^ServerConfig map->ServerConfig
-  "Creates and returns a ServerConfig object from the opts map.
-  See the ServerConfig docs for more information."
-  [opts]
+  "Creates and returns a ServerConfig object from the opts map."
+  [{:keys [vertx
+           instances
+           debug
+           date-header
+           content-type-header
+           server-header]
+    :or   {instances (CpuCoreSensor/availableProcessors)}
+    :as   opts}]
   (let [builder (doto (ServerConfig/builder)
-                  (.vertx (:vertx opts))
                   (.serverOptions (map->HttpServerOptions opts))
                   (.routeCreatorFactory (RingRouteCreatorFactory/create))
                   (.routeList (map->RouteList opts))
-                  (.instances (:instances opts (CpuCoreSensor/availableProcessors)))
-                  (.debug (:debug opts false))
-                  (.addDateHeader (:date-header opts false))
-                  (.addContentTypeHeader (:content-type-header opts false))
-                  (.addServerHeader (:server-header opts false)))
+                  (.vertx vertx)
+                  (.instances instances)
+                  (.debug (boolean debug))
+                  (.addDateHeader (boolean date-header))
+                  (.addContentTypeHeader (boolean content-type-header))
+                  (.addServerHeader (boolean server-header)))
         config (.build builder)]
     ; We need to initialize debug logging before a Logger
     ; is created, so SLF4J will use Logback instead of another provider.
