@@ -100,8 +100,11 @@
       arguments (blocking vs. non blocking mode). The middleware is responsible
       calling the handler before or after the handler processes the request.
 
-    :compression [boolean] Include support for gzip  request / response inflate /
-      deflate. Defaults to false.
+    :compression [boolean] Include support for gzip response deflation.
+      Defaults to true.
+
+    :decompression [boolean] Include support for gzip request inflation.
+      Defaults to true.
 
     :host [string] The hostname or ip the server will listen to incoming
       connections. Defaults to '0.0.0.0'.

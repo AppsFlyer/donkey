@@ -153,7 +153,9 @@
    In the simplest case where there's no middleware, it returns the route handler.
    If there's global or route middleware, then it applies the global middleware first,
    then the route specific middleware, and finally the route handler."
-  [{:keys [handler middleware] :or {middleware []}} global-middleware]
+  [{:keys [handler middleware]
+    :or   {middleware []}}
+   global-middleware]
   (let [handlers (concat
                    (if (empty? global-middleware) [] global-middleware)
                    middleware)]

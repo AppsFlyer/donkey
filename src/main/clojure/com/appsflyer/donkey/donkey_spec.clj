@@ -5,13 +5,14 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
 ; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
+;
 ;
 
 (ns com.appsflyer.donkey.donkey-spec
@@ -71,6 +72,7 @@
 (s/def ::instances #(s/int-in-range? 1 500 %))
 (s/def ::port #(s/int-in-range? 1 65536 %))
 (s/def ::compression boolean?)
+(s/def ::decompression boolean?)
 (s/def ::host ::not-blank)
 (s/def ::debug boolean?)
 (s/def ::date-header boolean?)
@@ -83,6 +85,7 @@
                                :opt-un [::instances
                                         ::middleware
                                         ::compression
+                                        ::decompression
                                         ::host
                                         ::debug
                                         ::date-header
@@ -120,23 +123,6 @@
                                         ::enable-user-agent
                                         ::proxy-options
                                         ::ssl]))
-
-(comment
-  (let [config {:keep-alive                 false
-                :keep-alive-timeout-seconds 60
-                :idle-timeout-seconds       0
-                :connect-timeout-seconds    60
-                :debug                      false
-                :default-port               80
-                :default-host               "localhost"
-                :max-redirects              16
-                :user-agent                 "Donkey-Client"
-                :enable-user-agent          true
-                :proxy-type                 {:host "localhost"
-                                             :port 3128
-                                             :type :http|:sock4|:sock5}
-                :compression                false
-                :middleware                 []}]))
 
 
 ;; ------- Client Request Specification ------- ;;
