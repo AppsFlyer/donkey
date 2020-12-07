@@ -20,24 +20,37 @@
            (com.appsflyer.donkey FutureResult)
            (java.util.concurrent CompletableFuture)))
 
-(defprotocol IResult
-  (on-complete [this fun])
-  (on-success [this fun])
-  (on-fail [this fun]))
+(defn on-complete
+  "The `on-complete` handler can be used to handle both 'successful'
+   and 'failed' operations. It will be called with the result (or nil) of the
+   previous handler if the operation was 'successful', and the `Throwable`
+   (or nil) if it 'failed'."
+  [^FutureResult res func]
+  (.onComplete res ^IFn func))
 
-(extend-type FutureResult
-  IResult
-  (on-complete [this fun]
-    (.onComplete ^FutureResult this ^IFn fun))
-  (on-success [this fun]
-    (.onSuccess ^FutureResult this ^IFn fun))
-  (on-fail [this fun]
-    (.onFail ^FutureResult this ^IFn fun)))
+(defn on-success
+  "Called when the `FutureResult` succeeds, or previous handler does not 'fail'.
+   A 'successful' operation is considered as such if it doesn't throw an
+   exception. The `on-success` handler function is called with the
+   result of the previous handler as long as an exception is not thrown."
+  [^FutureResult res func]
+  (.onSuccess res ^IFn func))
+
+(defn on-fail
+  "Called when the `FutureResult` fails, or a previous handler throws an
+   exception. The handler is called with the exception as its sole argument.
+   The `on-fail` handler can decide to recover from the error by returning any
+   value. In that case any `on-success` handlers that were defined
+   after the `on-fail` handler will be called with the returned value.
+   If it's not possible to recover from the error, the `on-fail` handler
+   should rethrow the exception (or a different exception)."
+  [^FutureResult res func]
+  (.onFail res ^IFn func))
 
 (defn create
   ([]
    (FutureResult/create))
   ([value]
-   (case (class value)
-     CompletableFuture (FutureResult/create ^CompletableFuture value)
+   (if (identical? (class value) CompletableFuture)
+     (FutureResult/create ^CompletableFuture value)
      (FutureResult/create ^Object value))))
