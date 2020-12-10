@@ -996,14 +996,14 @@ when importing Donkey. For example:
 project.clj
 
 ```clojure
-:dependencies [com.appsflyer/donkey "0.1.0" :exclusions [io.dropwizard.metrics/metrics-core]]
+:dependencies [com.appsflyer/donkey "0.1.0-SNAPSHOT" :exclusions [io.dropwizard.metrics/metrics-core]]
 ```   
 
 deps.edn
 
 ```clojure
 {:deps
- {com.appsflyer/donkey {:mvn/version "0.1.0"
+ {com.appsflyer/donkey {:mvn/version "0.1.0-SNAPSHOT"
                        :exclusions [io.dropwizard.metrics/metrics-core]}}}
 ```
 
