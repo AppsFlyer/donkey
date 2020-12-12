@@ -17,7 +17,6 @@
 
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.server.router.RouterFactory;
 import com.appsflyer.donkey.server.router.RouterFactoryImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

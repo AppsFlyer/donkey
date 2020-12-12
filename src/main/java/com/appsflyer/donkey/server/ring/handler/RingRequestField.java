@@ -27,9 +27,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.security.cert.Certificate;
 import java.util.Locale;
@@ -66,8 +63,8 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
         if (ctx.request().isSSL()) {
           return ctx.request().sslSession().getPeerCertificates();
         }
-      } catch (SSLPeerUnverifiedException e) {
-        logger.warn("Caught exception getting SSL peer certificates: {}", e.getMessage());
+      } catch (SSLPeerUnverifiedException ignore) {
+        //@todo - What should we do here?
       }
       return null;
     }
@@ -201,7 +198,6 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
     }
   };
   
-  private static final Logger logger = LoggerFactory.getLogger(RingRequestField.class.getName());
   private final Keyword keyword;
   
   RingRequestField(String field) {

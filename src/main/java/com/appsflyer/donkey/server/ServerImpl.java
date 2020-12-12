@@ -23,11 +23,11 @@ import com.appsflyer.donkey.server.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import io.vertx.core.*;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;

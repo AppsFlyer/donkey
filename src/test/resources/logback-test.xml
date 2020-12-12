@@ -24,7 +24,7 @@
         </encoder>
     </appender>
 
-    <logger name="ch.qos.logback" level="warn"/>
+    <logger name="ch.qos.logback" level="error"/>
     <logger name="io.netty" level="warn"/>
     <logger name="io.vertx" level="info"/>
     <logger name="com.appsflyer" level="off"/>
