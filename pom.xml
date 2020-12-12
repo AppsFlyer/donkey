@@ -91,7 +91,9 @@
         <junit.version>5.6.2</junit.version>
         <hamcrest.version>2.2</hamcrest.version>
         <mockito.version>3.4.6</mockito.version>
-        <ring.version>1.8.1</ring.version>
+        <ring-core.version>1.8.1</ring-core.version>
+        <ring-json.version>0.5.0</ring-json.version>
+        <criterium.version>0.4.6</criterium.version>
         <jetbrains.version>13.0</jetbrains.version>
     </properties>
 
@@ -186,22 +188,27 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${jetbrains.version}</version>
+        </dependency>
+        <dependency>
             <groupId>criterium</groupId>
             <artifactId>criterium</artifactId>
-            <version>0.4.6</version>
+            <version>${criterium.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ring</groupId>
             <artifactId>ring-core</artifactId>
-            <version>${ring.version}</version>
+            <version>${ring-core.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>${jetbrains.version}</version>
-            <scope>compile</scope>
+            <groupId>ring</groupId>
+            <artifactId>ring-json</artifactId>
+            <version>${ring-json.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

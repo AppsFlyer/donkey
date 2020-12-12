@@ -25,8 +25,9 @@
 (def ^:private ^:const logback-version "1.2.3")
 (def ^:private ^:const hamcrest-version "2.2")
 (def ^:private ^:const mockito-version "3.4.6")
-(def ^:private ^:const ring-version "1.8.1")
 (def ^:private ^:const jetbrains-version "13.0")
+(def ^:private ^:const ring-core-version "1.8.1")
+(def ^:private ^:const ring-json-version "0.5.0")
 (def ^:private ^:const criterium-version "0.4.6")
 
 (defproject com.appsflyer/donkey "0.1.0-SNAPSHOT"
@@ -39,9 +40,7 @@
   :java-source-paths ["src/main/java"]
   :resource-paths ["src/main/resources"]
   :target-path "target/%s"
-  :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"
-                       "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
-                       "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"]
+  :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"]
   :global-vars {*warn-on-reflection* true}
   :javac-options ["-target" "11" "-source" "11"]
   :jar-exclusions [#"^.java"]
@@ -52,22 +51,21 @@
                  [org.clojure/clojure ~clojure-lang-version]
                  [org.clojure/spec.alpha ~clojure-spec-version]
                  [metosin/jsonista ~jsonista-version]
-                 [org.jetbrains/annotations ~jetbrains-version :scope "compile"]]
-  :profiles {:dev     {:dependencies   [[org.clojure/tools.logging ~clojure-logging-version]
-                                        [ch.qos.logback/logback-classic ~logback-version]
-                                        [io.vertx/vertx-junit5 ~vertx-version]
-                                        [org.hamcrest/hamcrest-library ~hamcrest-version]
-                                        [org.junit.jupiter/junit-jupiter ~junit-version]
-                                        [org.mockito/mockito-junit-jupiter ~mockito-version]
+                 [org.jetbrains/annotations ~jetbrains-version]]
+  :profiles {:dev       {:dependencies   [[org.clojure/tools.logging ~clojure-logging-version]
+                                          [ch.qos.logback/logback-classic ~logback-version]
+                                          [io.vertx/vertx-junit5 ~vertx-version]
+                                          [org.hamcrest/hamcrest-library ~hamcrest-version]
+                                          [org.junit.jupiter/junit-jupiter ~junit-version]
+                                          [org.mockito/mockito-junit-jupiter ~mockito-version]]
+                         :resource-paths ["src/test/resources"]
+                         :plugins        [[lein-kibit "0.1.8"]
+                                          [lein-cloverage "1.1.2"]]}
+             :benchmark {:dependencies [[ch.qos.logback/logback-classic ~logback-version]
                                         [criterium ~criterium-version]
-                                        [ring/ring-core ~ring-version :scope "provided"]]
-                       :resource-paths ["src/test/resources"]
-                       :jvm-opts       ^:replace ["-Dclojure.compiler.direct-linking=true"
-                                                  "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"
-                                                  "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory"]
-                       :plugins        [[lein-kibit "0.1.8"]
-                                        [lein-cloverage "1.1.2"]]}
-             :uberjar {:aot :all}}
+                                        [ring/ring-core ~ring-core-version]
+                                        [ring/ring-json ~ring-json-version]]}
+             :uberjar   {:aot :all}}
   :aliases {"coveralls" ["cloverage" "--junit" "--no-html" "--output" "target/coveralls/clojure" "--coveralls"]}
   :pom-location "target/"
   :repl-options {:init-ns com.appsflyer.donkey.core})
