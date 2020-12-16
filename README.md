@@ -1,13 +1,7 @@
 # Donkey
 
-### WIP - ALPHA VERSION
 
-| Branch | Status | Coverage |
-| ------ | ----- | -------- |
-| master | [![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey) | [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master) |  
-| donkey-0.1.0-alpha | [![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=donkey-0.1.0-alpha)](https://travis-ci.com/AppsFlyer/donkey) | [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=donkey-0.1.0-alpha)](https://coveralls.io/github/AppsFlyer/donkey?branch=donkey-0.1.0-alpha) |  
-
-[![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
+[![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)  [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master) [![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
 
 Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use
 and performance
@@ -47,7 +41,7 @@ Table of Contents
 * [Troubleshooting](#troubleshooting)
 * [License](#license)
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+TOC Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ### Usage
 
@@ -85,16 +79,6 @@ Including the library in `pom.xml`
 The preferred way to build the project for local development is using Maven.
 It's also possible to generate an uberjar using Leiningen, but you
 **must** use Maven to install the library locally.
-
-Note **IntelliJ IDEA** users:
-There is a bug when running the Clojure tests via `clojure-maven-plugin`
-in IntelliJ's terminal, that doesn't happen when running them with Leiningen. If
-you are getting this error then run the tests from your OS terminal.
-
-```
-[ERROR] Failed to execute goal com.theoryinpractise:clojure-maven-plugin:1.8.3:test-with-junit (junit-tests) on project donkey: Clojure failed with exit value 2.: Process exited with an error: 2 (Exit value: 2) -> [Help 1]
-org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal com.theoryinpractise:clojure-maven-plugin:1.8.3:test-with-junit (junit-tests) on project donkey: Clojure failed with exit value 2.
-```  
 
 Creating a jar with Maven
 
@@ -207,7 +191,7 @@ by our handler function.
 Our handler is a Ring compliant asynchronous handler. If you are not familiar
 with the [Ring](https://github.com/ring-clojure/ring/blob/master/SPEC)
 async handler specification, here's an excerpt:
-> An asynchronous handler takes 3 arguments: a request map, a callback function for sending a response and a callback function for raising an exception. The response callback takes a response map as its argument. The exception callback takes an exception as its argument.
+> An asynchronous handler takes 3 arguments: a request map, a callback function for sending a response, and a callback function for raising an exception. The response callback takes a response map as its argument. The exception callback takes an exception as its argument.
 
 In the handler we are calling the response callback `respond` with a response
 map where the body of the response is "Hello, world!".
@@ -508,7 +492,7 @@ As mentioned before, the three argument function is called when the
 `:handler-mode` is `:non-blocking`. Notice that we are doing the processing on
 the calling thread - the event loop. That's because the overhead of
 [context switching](https://www.tutorialspoint.com/what-is-context-switching-in-operating-system)
-, and potentially spawning a new thread by offloading a simple `assoc`
+and potentially spawning a new thread by offloading a simple `assoc`
 or `update` to a separate thread pool would greatly outweigh the processing time
 on the event loop. However, if for example we had a middleware that performs
 some operation on a remote database, then we would need to run it on a separate
@@ -907,7 +891,7 @@ Base name:  `<:metrics-prefix>`
 Base name:  `<:metrics-prefix>.pools.worker.vert.x-worker-thread`
 
 - `queue-delay` - A Timer measuring the duration of the delay to obtain the
-  resource, i.e the wait time in the queue
+  resource, i.e. the wait time in the queue
 - `queue-size` - A Counter of the actual number of waiters in the queue
 - `usage` - A Timer measuring the duration of the usage of the resource
 - `in-use` - A count of the actual number of resources used
