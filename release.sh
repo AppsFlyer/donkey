@@ -17,21 +17,23 @@
 #
 #
 
-OLD_PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')
-RELEASE_VERSION=$(echo "$OLD_PROJECT_VERSION" | sed -e "s/-SNAPSHOT$//")
-TAG="v$RELEASE_VERSION"
-DEV_VERSION="$1"-SNAPSHOT
-DEV_BRANCH="v$1"
+helpFunction() {
+  echo ""
+  echo "Usage: $0 [-d,-v version]"
+  printf -- '\t-v | --dev-version\t The next dev version. Will prompt to create a new branch\n'
+  printf -- '\t-d | --dry-run\t\t Runs the release without committing or pushing any of the changes\n'
+  exit 1 # Exit script after printing help
+}
 
 replace_version() {
   find . -name project.clj -exec \
     sed -i '' "s/defproject com.appsflyer\/donkey \".*\"/defproject com.appsflyer\/donkey \"$1\"/g" '{}' \;
 
   find . -name README.md -exec \
-    sed -i '' "s/\[com.appsflyer\/donkey \".*\"\]/[com.appsflyer\/donkey \"$1\"\]/g" '{}' \;
+    sed -i '' "s/\[com.appsflyer\/donkey \".*\"/[com.appsflyer\/donkey \"$1\"/g" '{}' \;
 
   find . -name README.md -exec \
-    sed -i '' "s/com.appsflyer\/donkey {:mvn\/version \".*\"}/com.appsflyer\/donkey {:mvn\/version \"$1\"}/g" '{}' \;
+    sed -i '' "s/com.appsflyer\/donkey {:mvn\/version \".*\"/com.appsflyer\/donkey {:mvn\/version \"$1\"/g" '{}' \;
 
   find . -type f \( -name pom.xml -or -name README.md \) -exec \
     sed -i '' \
@@ -59,6 +61,34 @@ exit_on_error() {
   fi
 }
 
+DRY_RUN=1
+DEV_VERSION=
+
+while [ "$1" != "" ]; do
+  case $1 in
+  -d | --dry-run)
+    DRY_RUN=0
+    ;;
+  -v | --dev-version)
+    shift
+    DEV_VERSION=$1
+    ;;
+  -h | --help)
+    helpFunction
+    ;;
+  *) break ;;
+  esac
+  shift
+done
+
+OLD_PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')
+RELEASE_VERSION=$(echo "$OLD_PROJECT_VERSION" | sed -e "s/-SNAPSHOT$//")
+TAG="v$RELEASE_VERSION"
+
+if [ "$DRY_RUN" = 0 ]; then
+  echo 'running in dry run mode ...'
+fi
+
 echo "updating release version from '$OLD_PROJECT_VERSION' to '$RELEASE_VERSION' ..."
 
 replace_version "$RELEASE_VERSION"
@@ -66,16 +96,30 @@ exit_on_error "version search and replace failed"
 
 echo "committing changes and creating tag '$TAG' ..."
 
-git commit -am "Release version $RELEASE_VERSION"
+if [ "$DRY_RUN" = 0 ]; then
+  echo 'git commit -am "Release version '"$RELEASE_VERSION"'"'
+else
+  git commit -am "Release version $RELEASE_VERSION"
+fi
+
 exit_on_error "commit failed"
 
-git tag -a "$TAG" -m "Release $TAG"
+if [ "$DRY_RUN" = 0 ]; then
+  echo 'git tag -a '"$TAG"' -m "Release '"$TAG"'"'
+else
+  git tag -a "$TAG" -m "Release $TAG"
+fi
+
 exit_on_error "tag creation failed"
 
 ask_do_push
 
 if [ $? = 0 ]; then
-  echo 'git push origin '"$TAG"
+  if [ "$DRY_RUN" = 0 ]; then
+    echo 'git push origin '"$TAG"
+  else
+    git push origin "$TAG"
+  fi
   exit_on_error "push failed"
 fi
 
@@ -83,7 +127,11 @@ while true; do
   read -rp 'Deploy to https://clojars.org? (y/n): ' do_deploy
   case $do_deploy in
   [Yy])
-    echo 'mvn deploy'
+    if [ "$DRY_RUN" = 0 ]; then
+      echo 'mvn deploy'
+    else
+      mvn deploy
+    fi
     exit_on_error "deploy failed"
     break
     ;;
@@ -91,6 +139,14 @@ while true; do
   *) echo 'Please select "y" or "n"' ;;
   esac
 done
+
+if [ -z "$DEV_VERSION" ]; then
+  echo 'done'
+  exit 0
+fi
+
+SNAPSHOT_VERSION="$DEV_VERSION"-SNAPSHOT
+DEV_BRANCH="$DEV_VERSION"
 
 while true; do
   read -rp "Create new development branch '$DEV_BRANCH' ? (y/n): " create_dev_branch
@@ -101,24 +157,38 @@ while true; do
   esac
 done
 
-echo "creating new development branch '$DEV_BRANCH' with version '$DEV_VERSION' ..."
+echo "creating new development branch '$DEV_BRANCH' with version '$SNAPSHOT_VERSION' ..."
 
-git checkout -b "$DEV_BRANCH"
+if [ "$DRY_RUN" = 0 ]; then
+  echo 'git checkout -b '"$DEV_BRANCH"
+else
+  git checkout -b "$DEV_BRANCH"
+fi
+
 exit_on_error "new dev branch creation failed"
 
-replace_version "$DEV_VERSION"
+echo "updating project to new snapshot version '$SNAPSHOT_VERSION' ..."
+replace_version "$SNAPSHOT_VERSION"
 exit_on_error "version search and replace failed"
 
 echo 'committing changes ...'
 
-git commit -am "[skip travis] Preparing next development iteration version $DEV_VERSION"
+if [ "$DRY_RUN" = 0 ]; then
+  echo 'git commit -am "[skip travis] Preparing next development iteration version '"$SNAPSHOT_VERSION"'"'
+else
+  git commit -am "[skip travis] Preparing next development iteration version $SNAPSHOT_VERSION"
+fi
 exit_on_error "commit failed"
 
 ask_do_push
 
 if [ $? = 0 ]; then
-  echo 'git push'
+  if [ "$DRY_RUN" = 0 ]; then
+    echo 'git push'
+  else
+    git push
+  fi
   exit_on_error "push failed"
 fi
 
-echo "version bump succeeded"
+echo "done"
