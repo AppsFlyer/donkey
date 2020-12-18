@@ -75,7 +75,7 @@ exit_on_error "tag creation failed"
 ask_do_push
 
 if [ $? = 0 ]; then
-  git push origin "$TAG"
+  echo 'git push origin '"$TAG"
   exit_on_error "push failed"
 fi
 
@@ -83,7 +83,7 @@ while true; do
   read -rp 'Deploy to https://clojars.org? (y/n): ' do_deploy
   case $do_deploy in
   [Yy])
-    mvn deploy
+    echo 'mvn deploy'
     exit_on_error "deploy failed"
     break
     ;;
@@ -117,7 +117,7 @@ exit_on_error "commit failed"
 ask_do_push
 
 if [ $? = 0 ]; then
-  git push
+  echo 'git push'
   exit_on_error "push failed"
 fi
 
