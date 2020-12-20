@@ -18,9 +18,9 @@
 #
 
 helpFunction() {
-  echo "Release library and deploy to clojars"
-  echo "Usage: $0 [-d]"
-  printf -- '\t-d | --dry-run\t\t Runs the release without committing or pushing any of the changes\n'
+  echo "Create a new development branch."
+  echo "Usage: $0 version"
+  echo "version - The next development version."
   exit 1 # Exit script after printing help
 }
 
@@ -60,13 +60,10 @@ exit_on_error() {
   fi
 }
 
-DRY_RUN=1
+DEV_BRANCH=
 
 while [ "$1" != "" ]; do
   case $1 in
-  -d | --dry-run)
-    DRY_RUN=0
-    ;;
   -h | --help)
     helpFunction
     ;;
@@ -75,65 +72,31 @@ while [ "$1" != "" ]; do
   shift
 done
 
-OLD_PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')
-RELEASE_VERSION=$(echo "$OLD_PROJECT_VERSION" | sed -e "s/-SNAPSHOT$//")
-TAG="v$RELEASE_VERSION"
+DEV_BRANCH=$1
 
-if [ "$DRY_RUN" = 0 ]; then
-  echo 'running in dry run mode ...'
+if [ -z "$DEV_BRANCH" ]; then
+  echo "missing development version"
+  helpFunction
 fi
 
-echo "updating release version from '$OLD_PROJECT_VERSION' to '$RELEASE_VERSION' ..."
+SNAPSHOT_VERSION="$DEV_BRANCH"-SNAPSHOT
 
-replace_version "$RELEASE_VERSION"
+echo "checking out new development branch '$DEV_BRANCH' ..."
+git checkout -b "$DEV_BRANCH"
+exit_on_error "new dev branch creation failed"
+
+echo "updating project to new snapshot version '$SNAPSHOT_VERSION' ..."
+replace_version "$SNAPSHOT_VERSION"
 exit_on_error "version search and replace failed"
-
-echo "committing changes ..."
-
-if [ "$DRY_RUN" = 0 ]; then
-  echo 'git commit -am "Release version '"$RELEASE_VERSION"'"'
-else
-  git commit -am "Release version $RELEASE_VERSION"
-fi
-
-exit_on_error "commit failed"
-
-echo "creating tag '$TAG' ..."
-
-if [ "$DRY_RUN" = 0 ]; then
-  echo 'git tag -a '"$TAG"' -m "Release '"$TAG"'"'
-else
-  git tag -a "$TAG" -m "Release $TAG"
-fi
-
-exit_on_error "tag creation failed"
 
 ask_do_push
 
 if [ $? = 0 ]; then
-  if [ "$DRY_RUN" = 0 ]; then
-    echo 'git push origin '"$TAG"
-  else
-    git push origin "$TAG"
-  fi
+  echo 'committing changes ...'
+  git commit -am "[skip travis] Preparing next development iteration version $SNAPSHOT_VERSION"
+  exit_on_error "commit failed"
+  git push
   exit_on_error "push failed"
 fi
-
-while true; do
-  read -rp 'Deploy to https://clojars.org? (y/n): ' do_deploy
-  case $do_deploy in
-  [Yy])
-    if [ "$DRY_RUN" = 0 ]; then
-      echo 'mvn deploy'
-    else
-      mvn deploy
-    fi
-    exit_on_error "deploy failed"
-    break
-    ;;
-  [Nn]) break ;;
-  *) echo 'Please select "y" or "n"' ;;
-  esac
-done
 
 echo "done"
