@@ -223,32 +223,36 @@ Let's see a route example:
 
 `:handler` A function that accepts 1 or 3 arguments (depending on
 `:handler-mode`). The function will be called if a request matches the route.
-This is where you call your application code.
+This is where you call your application code. The handler should return a
+response map with the following optional fields:
+
+- `:status`: The response status code (defaults to 200)
+- `:headers`: Map of key -> value `String` pairs
+- `:body`: The response body as `byte[]`, `String`, or `InputStream`
 
 `:handler-mode` To better understand the use of the `:handler-mode`, we need to
 first get some background about Donkey. Donkey is an abstraction built on top of
 a web tool-kit called [Vert.x](https://vertx.io/), which in turn is built on a
 very popular and performant networking library called
-[Netty](https://netty.io/). Netty uses an interesting threading model that is
-based on the concept of a single threaded event loop that serves requests. An
-event loop is conceptually a long-running task with a queue of events it needs
-to dispatch. As long as events are dispatched "quickly" and don't occupy too
-much of the event loop's time, it can dispatch events at a very high rate.
-Because it is single threaded, or in other words serial, during the time it
-takes to dispatch one event no other event can be dispatched. Therefore, it's
-extremely important *not to block the event loop*.
+[Netty](https://netty.io/). Netty's architecture is based on the concept of a
+single threaded event loop that serves requests. An event loop is conceptually a
+long-running task with a queue of events it needs to dispatch. As long as events
+are dispatched "quickly" and don't occupy too much of the event loop's time, it
+can dispatch events at a very high rate. Because it is single threaded, or in
+other words serial, during the time it takes to dispatch one event no other
+event can be dispatched. Therefore, it's extremely important *not to block the
+event loop*.
 
 The `:handler-mode` is a contract where you declare the type of handling your
 route does - `:blocking` or `:non-blocking` (default).
-`:non-blocking` means that the handler is either doing a very quick
-computational work, or that the work will offloaded to a separate thread. In
-both cases the guarantee is that it will *not block the event loop*. In this
-case the `:handler` must accept 3 arguments. Sometimes reality has it that we
-have to deal with legacy code that is doing some blocking operations that we
-just cannot change easily. For these occasions we have `:blocking` handler mode.
-In this case, the handler will be called on a separate worker thread pool
-without needing to worry about blocking the event loop. The worker thread pool
-size can be configured when creating a
+`:non-blocking` means that the handler is performing very fast CPU-bound tasks,
+or non-blocking IO bound tasks. In both cases the guarantee is that it will *not
+block the event loop*. In this case the `:handler` must accept 3 arguments.
+Sometimes reality has it that we have to deal with legacy code that is doing
+some blocking operations that we just cannot change easily. For these occasions
+we have `:blocking` handler mode. In this case, the handler will be called on a
+separate worker thread pool without needing to worry about blocking the event
+loop. The worker thread pool size can be configured when creating a
 [`Donkey`](#creating-a-donkey) instance by setting the `:worker-threads` option.
 
 `:path` is the first thing a route is matched on. It is the part after the
@@ -449,31 +453,27 @@ responsibility to call the next `handler` at some point.
 
 #### Examples
 
-Let's start with a one argument middleware that adds a timestamp to a request:
+Let's start with a middleware that adds a timestamp to a request. It can be
+called with `:handler-mode` `:blocking` or `non-blocking`:
 
 ```clojure
 (defn add-timestamp-middleware [handler]
-  (fn [request] 
-    (handler 
-      (assoc request :timestamp (System/currentTimeMillis)))))
-```
-
-Now the same middleware with the non-blocking three arguments variant:
-
-```clojure
-(defn add-timestamp-middleware [handler]
-  (fn [request respond raise]
-    (try
+  (fn
+    ([request]
       (handler
-        (assoc request :timestamp (System/currentTimeMillis)) respond raise)
-      (catch Exception ex
-        (raise ex)))))
+        (assoc request :timestamp (System/currentTimeMillis))))
+    ([request respond raise]
+     (try
+       (handler
+         (assoc request :timestamp (System/currentTimeMillis)) respond raise)
+       (catch Exception ex
+         (raise ex))))))
 ```
 
-In the last examples we've been updating the request and calling the next
-handler with the transformed request. Middleware is not limited to only
-processing and transforming the request. Here is an example of a three argument
-middleware that adds a `Content-Type` header to the _response_.
+In the last example we updated the request and called the next handler with the
+transformed request. However, middleware is not limited to only processing and
+transforming the request. Here is an example of a three argument middleware that
+adds a `Content-Type` header to the _response_.
 
 ```clojure
 (defn add-content-type-middleware [handler]
@@ -495,8 +495,8 @@ the calling thread - the event loop. That's because the overhead of
 and potentially spawning a new thread by offloading a simple `assoc`
 or `update` to a separate thread pool would greatly outweigh the processing time
 on the event loop. However, if for example we had a middleware that performs
-some operation on a remote database, then we would need to run it on a separate
-thread.
+some blocking operation on a remote database, then we would need to run it on a
+separate thread.
 
 In this example we authenticate a user with a remote service. For the sake of
 the example, all we need to know is that we get back a
@@ -625,28 +625,29 @@ The following examples assume these required namespaces
 Creating a client is as simple as this
 
 ```clojure
-(let [donkey-core (donkey/create-donkey)
-      donkey-client (donkey/create-client donkey-core)])
+(let [donkey-client (->
+                      (donkey/create-donkey) 
+                      donkey/create-client)])
 ```
 
 We can set up the client with some default options, so we won't need to supply
 them on every request
 
 ```clojure
-(let [donkey-core (donkey/create-donkey)
-      donkey-client (donkey/create-client 
-                      donkey-core 
-                        {:default-host               "reqres.in"
-                         :default-port               443
-                         :debug                      true
-                         :ssl                        true
-                         :keep-alive                 true
-                         :keep-alive-timeout-seconds 30
-                         :connect-timeout-seconds    10
-                         :idle-timeout-seconds       20
-                         :enable-user-agent          true
-                         :user-agent                 "ClientX-v24.4.98673"
-                         :compression                true})]
+(let [donkey-client (->
+                      (donkey/create-donkey) 
+                      donkey/create-client 
+                      {:default-host               "reqres.in"
+                       :default-port               443
+                       :debug                      false
+                       :ssl                        true
+                       :keep-alive                 true
+                       :keep-alive-timeout-seconds 30
+                       :connect-timeout-seconds    10
+                       :idle-timeout-seconds       20
+                       :enable-user-agent          true
+                       :user-agent                 "Donkey Server"
+                       :compression                true})]
     (-> donkey-client
         (request {:method :get
                   :uri    "/api/users"})
@@ -713,21 +714,21 @@ several ways a request can be submitted:
   by also adding a `Content-Type: application/octet-stream` header to the
   request.
 - `(submit-form async-request body)` submits an urlencoded form. A
-  `Content-Type: application/x-www-form-urlencoded` header will automatically be
-  added to the request, and the body will be urlencoded. `body` is a map of
-  string key-value pairs. For example, this is how you would typically submit a
-  sign in form on a website:
+  `Content-Type: application/x-www-form-urlencoded` header will be added to the
+  request, and the body will be urlencoded. `body` is a map of string key-value
+  pairs. For example, this is how you would typically submit a sign in form on a
+  website:
 
 ```clojure
 (submit-form async-request {"email"    "frankies15@example.com" 
-                            "password" "only-on-ssl"})
+                            "password" "password"})
 ```
 
 - `(submit-multipart-form async-request body)` submits a multipart form. A
-  `Content-Type: multipart/form-data` header will automatically be added to the
-  request. Multipart forms can be used to send simple key-value attribute pairs,
-  and uploading files. For example, you can upload a file from the filesystem
-  along with some attributes like this:
+  `Content-Type: multipart/form-data` header will be added to the request.
+  Multipart forms can be used to send simple key-value attribute pairs, and
+  uploading files. For example, you can upload a file from the filesystem along
+  with some attributes like this:
 
 ```clojure
 (submit-multipart-form 
