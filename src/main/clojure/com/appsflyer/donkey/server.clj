@@ -34,18 +34,33 @@
   [{:keys [port
            host
            debug
+           tcp-no-delay
+           tcp-quick-ack
+           tcp-fast-open
+           accept-backlog
+           socket-linger-seconds
            idle-timeout-seconds
            keep-alive
            compression
            decompression]
-    :or   {host                 "0.0.0.0"
-           idle-timeout-seconds 0
-           compression          true
-           decompression        true}}]
+    :or   {host                  "0.0.0.0"
+           tcp-no-delay          true
+           tcp-quick-ack         false
+           tcp-fast-open         false
+           accept-backlog        1024
+           socket-linger-seconds -1
+           idle-timeout-seconds  30
+           compression           true
+           decompression         true}}]
 
   (doto (HttpServerOptions.)
     (.setPort (int port))
     (.setHost ^String host)
+    (.setTcpNoDelay (boolean tcp-no-delay))
+    (.setTcpQuickAck (boolean tcp-quick-ack))
+    (.setTcpFastOpen (boolean tcp-fast-open))
+    (.setAcceptBacklog (int accept-backlog))
+    (.setSoLinger (int socket-linger-seconds))
     (.setIdleTimeout (int idle-timeout-seconds))
     (.setLogActivity (boolean debug))
     (.setTcpKeepAlive (boolean keep-alive))
