@@ -2,7 +2,7 @@
 
 ---
 
-- Refactored version-bump.sh script into a release and new development branch
+- Refactored version-bump.sh script into release and new development branch
   scripts
 - Updated the README.md documentation
 - Added GitHub issue templates

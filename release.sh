@@ -24,22 +24,6 @@ helpFunction() {
   exit 1 # Exit script after printing help
 }
 
-replace_version() {
-  find . -name project.clj -exec \
-    sed -i '' "s/defproject com.appsflyer\/donkey \".*\"/defproject com.appsflyer\/donkey \"$1\"/g" '{}' \;
-
-  find . -name README.md -exec \
-    sed -i '' "s/\[com.appsflyer\/donkey \".*\"/[com.appsflyer\/donkey \"$1\"/g" '{}' \;
-
-  find . -name README.md -exec \
-    sed -i '' "s/com.appsflyer\/donkey {:mvn\/version \".*\"/com.appsflyer\/donkey {:mvn\/version \"$1\"/g" '{}' \;
-
-  find . -type f \( -name pom.xml -or -name README.md \) -exec \
-    sed -i '' \
-    -e "1s/<version>.*<\/version>/<version>$1<\/version>/;t" \
-    -e "1,/<version>.*<\/version>/s//<version>$1<\/version>/" '{}' \;
-}
-
 ask_do_push() {
   while true; do
     read -rp 'Push changes? (y/n): ' val
@@ -85,7 +69,7 @@ fi
 
 echo "updating release version from '$OLD_PROJECT_VERSION' to '$RELEASE_VERSION' ..."
 
-replace_version "$RELEASE_VERSION"
+"$(dirname $0)"/version-change.sh "$RELEASE_VERSION"
 exit_on_error "version search and replace failed"
 
 echo "committing changes ..."
