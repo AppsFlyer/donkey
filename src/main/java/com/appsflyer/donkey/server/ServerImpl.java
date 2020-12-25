@@ -17,17 +17,15 @@
 
 package com.appsflyer.donkey.server;
 
-import com.appsflyer.donkey.server.route.RouteDefinition;
-import com.appsflyer.donkey.server.handler.DateHeaderHandler;
-import com.appsflyer.donkey.server.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.exception.ServerInitializationException;
 import com.appsflyer.donkey.server.exception.ServerShutdownException;
+import com.appsflyer.donkey.server.handler.DateHeaderHandler;
+import com.appsflyer.donkey.server.handler.ServerHeaderHandler;
+import com.appsflyer.donkey.server.route.RouteDefinition;
 import io.vertx.core.*;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public final class ServerImpl implements Server {
   
-  private static final Logger logger = LoggerFactory.getLogger(ServerImpl.class.getName());
   private static final int TIMEOUT_SECONDS = 10;
   private final ServerConfig config;
   
@@ -52,7 +49,6 @@ public final class ServerImpl implements Server {
   }
   
   private ServerImpl(ServerConfig config) {
-    config.vertx().exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
     this.config = config;
     addOptionalHandlers();
   }

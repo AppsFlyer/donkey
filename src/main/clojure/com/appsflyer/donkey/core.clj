@@ -25,7 +25,8 @@
   (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
            (io.vertx.core Vertx VertxOptions)
-           (io.vertx.core.impl.cpu CpuCoreSensor)))
+           (io.vertx.core.impl.cpu CpuCoreSensor)
+           (com.appsflyer.donkey VertxFactory)))
 
 (defprotocol IDonkey
   (create-server [_this opts]
@@ -270,5 +271,5 @@
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
        map->VertxOptions
-       Vertx/vertx
+       VertxFactory/create
        ->Donkey)))
