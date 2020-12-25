@@ -53,9 +53,10 @@
            proxy-options
            compression
            ssl]
-    :or   {force-sni         true
-           enable-user-agent false
-           user-agent        "Donkey-Client"}}]
+    :or   {force-sni            true
+           idle-timeout-seconds 30
+           enable-user-agent    false
+           user-agent           "Donkey-Client"}}]
 
   (cond->
     (doto (WebClientOptions.)
