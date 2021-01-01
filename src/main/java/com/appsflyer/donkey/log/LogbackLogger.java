@@ -17,25 +17,24 @@
 
 package com.appsflyer.donkey.log;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.spi.logging.LogDelegate;
-
 public class LogbackLogger extends Logger {
   
-  @SuppressWarnings("WeakerAccess")
-  public LogbackLogger(LogDelegate delegate) {
+  LogbackLogger(LogDelegate delegate) {
     super(delegate);
   }
   
+  @Override
   public String getName() {
-    return ((LogbackLogDelegate) getDelegate()).getName();
+    return getDelegate().getName();
   }
   
+  @Override
   public String getLevel() {
-    return ((LogbackLogDelegate) getDelegate()).getLevel().toString();
+    return getDelegate().getLevel();
   }
   
+  @Override
   public void setLevel(String level) {
-    ((LogbackLogDelegate) getDelegate()).setLevel(level);
+    getDelegate().setLevel(level);
   }
 }

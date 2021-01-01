@@ -108,9 +108,9 @@ while true; do
   case $do_deploy in
   [Yy])
     if [ "$DRY_RUN" = 0 ]; then
-      echo 'mvn deploy'
+      echo 'mvn deploy -Pdeploy'
     else
-      mvn deploy
+      mvn deploy -Pdeploy
     fi
     exit_on_error "deploy failed"
     break

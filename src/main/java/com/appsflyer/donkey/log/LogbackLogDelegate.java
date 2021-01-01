@@ -19,27 +19,28 @@ package com.appsflyer.donkey.log;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import io.vertx.core.logging.SLF4JLogDelegate;
 
-public class LogbackLogDelegate extends SLF4JLogDelegate {
+class LogbackLogDelegate extends SLF4JLogDelegate {
   
   LogbackLogDelegate(String name) {
     super(name);
   }
   
-  @SuppressWarnings("WeakerAccess")
-  public LogbackLogDelegate(Object logger) {
+  LogbackLogDelegate(Object logger) {
     super(logger);
   }
   
+  @Override
   public String getName() {
-    return ((org.slf4j.Logger) unwrap()).getName();
+    return ((Logger) unwrap()).getName();
   }
   
-  public Level getLevel() {
-    return ((Logger) unwrap()).getLevel();
+  @Override
+  public String getLevel() {
+    return ((Logger) unwrap()).getLevel().levelStr;
   }
   
+  @Override
   public void setLevel(String level) {
     ((Logger) unwrap()).setLevel(Level.toLevel(level));
   }

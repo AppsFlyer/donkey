@@ -25,12 +25,12 @@
     </appender>
 
     <logger name="ch.qos.logback" level="error"/>
-    <logger name="io.netty" level="warn"/>
-    <logger name="io.vertx" level="info"/>
-    <logger name="com.appsflyer" level="warn"/>
-    <logger name="donkey" level="warn"/>
+    <logger name="io.netty" level="error"/>
+    <logger name="io.vertx" level="error"/>
+    <logger name="com.appsflyer" level="error"/>
+    <logger name="donkey" level="error"/>
 
-    <root level="warn">
+    <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>
 

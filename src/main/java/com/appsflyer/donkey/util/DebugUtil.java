@@ -98,7 +98,7 @@ public final class DebugUtil {
     var appsflyer = LogbackLoggerFactory.getLogger(LOGGER_APPSFLYER);
     
     if (originalLevelsAvailable.get()) {
-      //This is not a contended block that is only called at startup.
+      //This block is called once at startup and is not a source of contention.
       //noinspection SynchronizationOnStaticField
       synchronized (originalLevels) {
         if (originalLevelsAvailable.get()) {

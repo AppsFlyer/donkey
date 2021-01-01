@@ -17,10 +17,6 @@
 
 package com.appsflyer.donkey.log;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.spi.logging.LogDelegate;
-import io.vertx.core.spi.logging.LogDelegateFactory;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class LogbackLoggerFactory {
   
   private static volatile LogDelegateFactory delegateFactory;
-  private static final Map<String, LogbackLogger> loggers = new ConcurrentHashMap<>(10);
+  private static final Map<String, Logger> loggers = new ConcurrentHashMap<>(10);
   private static final String FACTORY_DELEGATE_CLASS_NAME = "com.appsflyer.donkey.log.LogbackDelegateFactory";
   
   static {
@@ -44,9 +40,7 @@ public final class LogbackLoggerFactory {
   
   private LogbackLoggerFactory() {}
   
-  public static synchronized void initialize() {
-    LogDelegateFactory delegateFactory;
-    
+  private static void initialize() {
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
     try {
       Class<?> clz = loader.loadClass(FACTORY_DELEGATE_CLASS_NAME);
@@ -55,8 +49,6 @@ public final class LogbackLoggerFactory {
       throw new IllegalArgumentException(
           String.format("Error instantiating transformer class \"%s\"", FACTORY_DELEGATE_CLASS_NAME), e);
     }
-    LogbackLoggerFactory.delegateFactory = delegateFactory;
-    
   }
   
   public static Logger getLogger(Class<?> clazz) {
@@ -66,15 +58,15 @@ public final class LogbackLoggerFactory {
     return getLogger(name);
   }
   
-  public static LogbackLogger getLogger(String name) {
-    LogbackLogger logger = loggers.get(name);
+  public static Logger getLogger(String name) {
+    Logger logger = loggers.get(name);
     
     if (logger == null) {
       LogDelegate delegate = delegateFactory.createDelegate(name);
       
       logger = new LogbackLogger(delegate);
       
-      LogbackLogger oldLogger = loggers.putIfAbsent(name, logger);
+      Logger oldLogger = loggers.putIfAbsent(name, logger);
       
       if (oldLogger != null) {
         logger = oldLogger;

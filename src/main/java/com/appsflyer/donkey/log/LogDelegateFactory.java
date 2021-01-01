@@ -17,12 +17,13 @@
 
 package com.appsflyer.donkey.log;
 
-import org.slf4j.LoggerFactory;
-
-@SuppressWarnings("unused") //Class is loaded dynamically
-public class LogbackDelegateFactory implements LogDelegateFactory {
+/**
+ * I am responsible for creating {@link LogDelegate} instances.
+ *
+ * @author <a href="kenny.macleod@kizoom.com">Kenny MacLeod</a>
+ */
+@FunctionalInterface
+public interface LogDelegateFactory {
   
-  public LogDelegate createDelegate(String clazz) {
-    return new LogbackLogDelegate(LoggerFactory.getLogger(clazz));
-  }
+  LogDelegate createDelegate(String name);
 }
