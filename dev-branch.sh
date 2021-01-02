@@ -79,7 +79,7 @@ if [ $? = 0 ]; then
   echo 'committing changes ...'
   git commit -am "[skip travis] Preparing next development iteration version $SNAPSHOT_VERSION"
   exit_on_error "commit failed"
-  git push
+  git push --set-upstream origin "$DEV_BRANCH"
   exit_on_error "push failed"
 fi
 
