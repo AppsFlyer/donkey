@@ -133,14 +133,14 @@ public class RoutingTest extends AbstractRoutingTest {
   }
   
   @Test
-  void testPostingFormsAndBinary(Vertx vertx, VertxTestContext testContext) throws
-                                                                            Throwable {
-    Checkpoint requestsServed = testContext.checkpoint(3);
-    Checkpoint responsesReceived = testContext.checkpoint(4);
+  void testPostMultipartForm(Vertx vertx, VertxTestContext testContext) throws
+                                                                        Throwable {
+    Checkpoint requestsServed = testContext.checkpoint(1);
+    Checkpoint responsesReceived = testContext.checkpoint(1);
     RouteDefinition route = routeSupplier.postFormOrFile(requestsServed);
     startServer(vertx, RouteList.from(route)).onComplete(v -> {
       var client = WebClient.create(vertx);
-      
+    
       client.request(POST, getRequestOptions(route.path().value()))
             .sendMultipartForm(
                 MultipartForm.create().attribute("foo", "bar"),
@@ -154,6 +154,19 @@ public class RoutingTest extends AbstractRoutingTest {
                                        .valAt("foo"));
                       responsesReceived.flag();
                     })));
+    });
+  
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testPostForm(Vertx vertx, VertxTestContext testContext) throws
+                                                               Throwable {
+    Checkpoint requestsServed = testContext.checkpoint(1);
+    Checkpoint responsesReceived = testContext.checkpoint(1);
+    RouteDefinition route = routeSupplier.postFormOrFile(requestsServed);
+    startServer(vertx, RouteList.from(route)).onComplete(v -> {
+      var client = WebClient.create(vertx);
       
       client.request(POST, getRequestOptions(route.path().value()))
             .sendForm(
@@ -168,6 +181,19 @@ public class RoutingTest extends AbstractRoutingTest {
                                        .valAt("foo"));
                       responsesReceived.flag();
                     })));
+    });
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testPostOctetStream(Vertx vertx, VertxTestContext testContext) throws
+                                                                      Throwable {
+    Checkpoint requestsServed = testContext.checkpoint(1);
+    Checkpoint responsesReceived = testContext.checkpoint(1);
+    RouteDefinition route = routeSupplier.postFormOrFile(requestsServed);
+    startServer(vertx, RouteList.from(route)).onComplete(v -> {
+      var client = WebClient.create(vertx);
       
       client.request(POST, getRequestOptions(route.path().value()))
             .putHeader(CONTENT_TYPE.toString(), APPLICATION_OCTET_STREAM.toString())
@@ -182,6 +208,18 @@ public class RoutingTest extends AbstractRoutingTest {
                                    request.valAt("body"));
                       responsesReceived.flag();
                     })));
+    });
+    
+    assertContextSuccess(testContext);
+  }
+  
+  @Test
+  void testPostUnsupportedMediaType(Vertx vertx, VertxTestContext testContext) throws
+                                                                               Throwable {
+    Checkpoint responsesReceived = testContext.checkpoint(1);
+    RouteDefinition route = routeSupplier.postFormOrFile(null);
+    startServer(vertx, RouteList.from(route)).onComplete(v -> {
+      var client = WebClient.create(vertx);
       
       client.request(POST, getRequestOptions(route.path().value()))
             .sendJson(

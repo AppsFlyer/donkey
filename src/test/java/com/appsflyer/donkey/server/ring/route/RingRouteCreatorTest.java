@@ -27,7 +27,6 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -38,13 +37,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class RingRouteCreatorTest {
   
   @Test
-  void testBuildRoute(Vertx vertx, VertxTestContext testContext) {
+  void testBuildRoute(Vertx vertx) {
     var routeDefinition =
         RouteDefinition.create()
-                        .addMethod(HttpMethod.GET)
-                        .addMethod(HttpMethod.POST)
-                        .path(PathDefinition.create("/foo"))
-                        .handler(RoutingContext::next);
+                       .addMethod(HttpMethod.GET)
+                       .addMethod(HttpMethod.POST)
+                       .path(PathDefinition.create("/foo"))
+                       .handler(RoutingContext::next);
   
     RouteCreator routeCreator = RingRouteCreator.create(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();
@@ -54,23 +53,19 @@ class RingRouteCreatorTest {
     assertEquals(routeDefinition.path().value(), route.getPath());
     assertEquals(routeDefinition.methods(), route.methods());
     assertFalse(route.isRegexPath());
-    
-    testContext.completeNow();
   }
   
   @Test
-  void testBuildRegexRoute(Vertx vertx, VertxTestContext testContext) {
+  void testBuildRegexRoute(Vertx vertx) {
     var routeDefinition =
         RouteDefinition.create()
-                        .path(PathDefinition.create("/foo/[0-9]+", REGEX))
-                        .handler(RoutingContext::next);
-  
+                       .path(PathDefinition.create("/foo/[0-9]+", REGEX))
+                       .handler(RoutingContext::next);
+    
     RouteCreator routeCreator = RingRouteCreator.create(Router.router(vertx), RouteList.from(routeDefinition));
     Router router = routeCreator.addRoutes();
     assertEquals(1, router.getRoutes().size());
     Route route = router.getRoutes().get(0);
     assertTrue(route.isRegexPath());
-    
-    testContext.completeNow();
   }
 }

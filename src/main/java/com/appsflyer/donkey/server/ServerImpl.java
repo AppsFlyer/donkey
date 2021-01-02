@@ -22,7 +22,10 @@ import com.appsflyer.donkey.server.exception.ServerShutdownException;
 import com.appsflyer.donkey.server.handler.DateHeaderHandler;
 import com.appsflyer.donkey.server.handler.ServerHeaderHandler;
 import com.appsflyer.donkey.server.route.RouteDefinition;
-import io.vertx.core.*;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -78,12 +81,11 @@ public final class ServerImpl implements Server {
   
   @Override
   public Future<String> start() {
-    Promise<String> promise = Promise.promise();
-    var deploymentOptions =
-        new DeploymentOptions().setInstances(config.instances());
-    config.vertx().deployVerticle(() -> new ServerVerticle(config), deploymentOptions, promise);
-  
-    return promise.future();
+    return config.vertx()
+                 .deployVerticle(
+                     () -> new ServerVerticle(config),
+                     new DeploymentOptions()
+                         .setInstances(config.instances()));
   }
   
   @Override
@@ -123,9 +125,7 @@ public final class ServerImpl implements Server {
   
   @Override
   public Future<Void> shutdown() {
-    Promise<Void> promise = Promise.promise();
-    config.vertx().close(promise);
-    return promise.future();
+    return config.vertx().close();
   }
   
   @Override
@@ -138,14 +138,11 @@ public final class ServerImpl implements Server {
                                                        ServerShutdownException {
     var latch = new CountDownLatch(1);
     AtomicReference<Throwable> error = new AtomicReference<>();
-    
-    shutdown().onComplete(v -> {
-      if (v.failed()) {
-        error.set(v.cause());
-      }
-      latch.countDown();
-    });
-    
+  
+    shutdown()
+        .onFailure(error::set)
+        .onComplete(v -> latch.countDown());
+  
     try {
       if (!latch.await(timeout, unit)) {
         throw new ServerShutdownException(

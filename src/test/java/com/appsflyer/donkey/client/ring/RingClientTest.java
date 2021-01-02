@@ -53,7 +53,7 @@ import static com.appsflyer.donkey.client.ring.ClojureRequestField.*;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Tag("Integration")
+@Tag("integration")
 @ExtendWith(VertxExtension.class)
 class RingClientTest {
   
@@ -164,7 +164,8 @@ class RingClientTest {
           assert200(response);
           responsesReceived.flag();
         })));
-    
+  
+  
     request = client.request(
         RT.map(METHOD.keyword(), getMethod,
                PORT.keyword(), 8081));

@@ -130,11 +130,11 @@ class ContentTypeHandlerTest {
         v -> client.request(GET, getDefaultAddress(), v.get("uri"))
                    .putHeader("Accept", v.get(CONTENT_TYPE))
                    .send(testContext.succeeding(response -> testContext.verify(() -> {
-                     shutdownServerLatch.countDown();
                      assert200(response);
                      assertEquals(v.get(CONTENT_TYPE), response.getHeader(CONTENT_TYPE.toString()));
                      assertEquals(v.get("body"), response.bodyAsString());
                      responsesReceived.flag();
+                     shutdownServerLatch.countDown();
                    }))));
     
     shutdownServerLatch.await(5, TimeUnit.SECONDS);

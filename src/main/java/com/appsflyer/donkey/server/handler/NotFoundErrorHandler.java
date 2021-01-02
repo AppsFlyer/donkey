@@ -34,7 +34,9 @@ public final class NotFoundErrorHandler implements Handler<RoutingContext> {
   
   @Override
   public void handle(RoutingContext ctx) {
-    logger.debug("Resource not found {}", ctx.normalisedPath());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Resource not found {}", ctx.normalizedPath());
+    }
     ctx.response().setStatusCode(404).end();
   }
 }

@@ -50,15 +50,11 @@ public abstract class AbstractRoutingTest {
     return server.start();
   }
   
-  protected Server server() {
-    return server;
-  }
-  
   @AfterEach
   void tearDown() throws InterruptedException {
-    if (server() != null) {
+    if (server != null) {
       var latch = new CountDownLatch(1);
-      server().vertx().close(v -> latch.countDown());
+      server.vertx().close(v -> latch.countDown());
       latch.await(2, TimeUnit.SECONDS);
     }
   }

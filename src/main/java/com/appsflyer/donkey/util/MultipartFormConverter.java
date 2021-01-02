@@ -20,8 +20,8 @@ package com.appsflyer.donkey.util;
 import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentMap;
 import io.vertx.ext.web.multipart.MultipartForm;
+import org.jetbrains.annotations.NonNls;
 
-import java.util.Locale;
 import java.util.Objects;
 
 public final class MultipartFormConverter {
@@ -49,7 +49,7 @@ public final class MultipartFormConverter {
     var filename = (String) fileOpts.valAt("filename");
     var pathname = (String) fileOpts.valAt("pathname");
     var mediaType = (String) fileOpts.valAt("media-type");
-    var uploadAs = (String) fileOpts.valAt("upload-as", "");
+    @NonNls var uploadAs = (String) fileOpts.valAt("upload-as", "");
     if ("text".equals(uploadAs)) {
       form.textFileUpload(key, filename, pathname, mediaType);
     } else {

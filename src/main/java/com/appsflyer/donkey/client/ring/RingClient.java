@@ -60,12 +60,15 @@ public final class RingClient implements Client<IPersistentMap, IPersistentMap> 
   
   public Future<IPersistentMap> sendForm(HttpRequest<Buffer> request, MultiMap body) {
     Promise<IPersistentMap> promise = Promise.promise();
+    //Required to avoid NPE. See: https://github.com/vert-x3/vertx-web/issues/1832
+    request.headers();
     request.sendForm(body, RingResponseAdapter.create(promise));
     return promise.future();
   }
   
   public Future<IPersistentMap> sendMultiPartForm(HttpRequest<Buffer> request, MultipartForm body) {
     Promise<IPersistentMap> promise = Promise.promise();
+    //Required to avoid NPE. See: https://github.com/vert-x3/vertx-web/issues/1832
     request.sendMultipartForm(body, RingResponseAdapter.create(promise));
     return promise.future();
   }

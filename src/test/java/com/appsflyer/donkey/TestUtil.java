@@ -24,7 +24,8 @@ import com.appsflyer.donkey.server.route.AbstractRouteCreator;
 import com.appsflyer.donkey.server.route.RouteCreator;
 import com.appsflyer.donkey.server.route.RouteDefinition;
 import com.appsflyer.donkey.server.route.RouteList;
-import io.vertx.core.*;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
@@ -113,24 +114,9 @@ public final class TestUtil {
   
   private static Future<HttpResponse<Buffer>> makeRequest(
       WebClient client, HttpMethod method, String uri) {
-    
-    Promise<HttpResponse<Buffer>> promise = Promise.promise();
-    client.request(method, getDefaultAddress(), uri)
-          .send(asyncResultHandler(promise));
-    
-    return promise.future();
-  }
   
-  private static Handler<AsyncResult<HttpResponse<Buffer>>> asyncResultHandler(
-      Promise<HttpResponse<Buffer>> promise) {
-    
-    return asyncResult -> {
-      if (asyncResult.failed()) {
-        promise.fail(asyncResult.cause());
-      } else {
-        promise.complete(asyncResult.result());
-      }
-    };
+    return client.request(method, getDefaultAddress(), uri)
+                 .send();
   }
   
   public static ServerConfigBuilder getDefaultConfigBuilder(Vertx vertx) {

@@ -15,18 +15,18 @@
 ;
 ;
 
-(def ^:private ^:const vertx-version "3.9.4")
-(def ^:private ^:const junit-version "5.6.2")
+(def ^:private ^:const vertx-version "4.0.0")
+(def ^:private ^:const junit-version "5.7.0")
 (def ^:private ^:const clojure-lang-version "1.10.1")
 (def ^:private ^:const clojure-spec-version "0.2.187")
 (def ^:private ^:const clojure-logging-version "1.1.0")
-(def ^:private ^:const jsonista-version "0.2.7")
+(def ^:private ^:const jsonista-version "0.3.0")
 (def ^:private ^:const slf4j-version "1.7.30")
 (def ^:private ^:const logback-version "1.2.3")
 (def ^:private ^:const hamcrest-version "2.2")
-(def ^:private ^:const mockito-version "3.4.6")
-(def ^:private ^:const jetbrains-version "13.0")
-(def ^:private ^:const ring-core-version "1.8.1")
+(def ^:private ^:const mockito-version "3.6.28")
+(def ^:private ^:const jetbrains-version "20.1.0")
+(def ^:private ^:const ring-core-version "1.8.2")
 (def ^:private ^:const ring-json-version "0.5.0")
 (def ^:private ^:const criterium-version "0.4.6")
 

@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020 AppsFlyer
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.appsflyer.donkey.server.ring.route;
 
 import clojure.lang.IPersistentMap;
@@ -12,13 +29,11 @@ import io.vertx.junit5.Checkpoint;
 
 import static com.appsflyer.donkey.ClojureObjectMapper.serialize;
 import static com.appsflyer.donkey.server.route.PathDefinition.MatchType.REGEX;
-import static io.netty.handler.codec.http.HttpHeaderValues.*;
 import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.core.http.HttpMethod.POST;
 
 public class RingRouteSupplier implements RouteSupplier {
   
-  private static RingHandler returnRequest(Checkpoint requestsServed) {
+  public RingHandler returnRequest(Checkpoint requestsServed) {
     return ctx -> {
       ctx.response()
          .end(Buffer.buffer(
@@ -38,21 +53,9 @@ public class RingRouteSupplier implements RouteSupplier {
   @Override
   public RouteDefinition echo(Checkpoint requestsServed) {
     return RouteDefinition.create()
-                           .path("/echo")
-                           .handler(returnRequest(requestsServed));
+                          .path("/echo")
+                          .handler(returnRequest(requestsServed));
   }
-  
-  @Override
-  public RouteDefinition postFormOrFile(Checkpoint requestsServed) {
-    return RouteDefinition.create()
-                           .path("/post/form")
-                           .addMethod(POST)
-                           .addConsumes(APPLICATION_X_WWW_FORM_URLENCODED.toString())
-                           .addConsumes(MULTIPART_FORM_DATA.toString())
-                           .addConsumes(APPLICATION_OCTET_STREAM.toString())
-                           .handler(returnRequest(requestsServed));
-  }
-  
   
   @Override
   public RouteDefinition getPathVariable(Checkpoint requestsServed, String uri) {
