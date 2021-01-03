@@ -172,13 +172,13 @@ in depth later on, but a route is basically a definition of an endpoint. Let's
 define a route and create a basic "Hello world" endpoint.
 
 ```clojure
-(-> 
+(->
   (create-donkey)
   (create-server {:port   8080
-                  :routes [{:handler (fn [_request respond _raise] 
-                                       (respond {:body "Hello, world!"}))}]}))
+                  :routes [{:handler (fn [_request respond _raise]
+                                       (respond {:body "Hello, world!"}))}]})
   start
-  (on-success (fn [_] (println "Server started listening on port 8080")))
+  (on-success (fn [_] (println "Server started listening on port 8080"))))
 ``` 
 
 As you can see we added a `:routes` key to the options map used to initialise
