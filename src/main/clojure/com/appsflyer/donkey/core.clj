@@ -25,7 +25,8 @@
   (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
            (io.vertx.core Vertx VertxOptions)
-           (io.vertx.core.impl.cpu CpuCoreSensor)))
+           (io.vertx.core.impl.cpu CpuCoreSensor)
+           (com.appsflyer.donkey VertxFactory)))
 
 (defprotocol IDonkey
   (create-server [_this opts]
@@ -45,8 +46,8 @@
           `:handler-mode` is `:blocking` the handler must accept a single
           argument - a request map.
 
-      - :handler-mode [keyword] `:blocking` or `:non-blocking`. See `:handler`
-          description for usage. Defaults to `:non-blocking`.
+      - :handler-mode [keyword=:non-blocking] `:blocking` or `:non-blocking`.
+          See `:handler` description for usage.
 
       - :path [string] Used in matching a request to a route. The path is the
           first element that's examined when matching a request to a route. It is
@@ -54,11 +55,11 @@
           resource on the host the client is trying to access. The path is
           matched based on the value of `:match-type`. Defaults to any path.
 
-      - :match-type [keyword] `:simple` or `:regex`. `:simple` will look for an
-          exact match on the string value of `:path`, or a path variable match
-          for `path` values that follow this pattern: `/(?::[a-zA-Z0-9]+/?)+`.
-          `:regex` will do a regular expression match with the value of `path`.
-          Defaults to `:simple`
+      - :match-type [keyword=:simple] `:simple` or `:regex`. `:simple` will look
+          for an exact match on the string value of `:path`, or a path variable
+          match for `path` values that follow this pattern:
+          `/(?::[a-zA-Z0-9]+/?)+`. `:regex` will do a regular expression match
+          with the value of `path`.
 
       - :methods [keyword [,keyword]*] Sequence of HTTP methods (verbs) that
           this route accepts. Possible values are the method name (e.g `GET`) in
@@ -100,24 +101,47 @@
       arguments (blocking vs. non blocking mode). The middleware is responsible
       calling the handler before or after the handler processes the request.
 
-    :compression [boolean] Include support for gzip response deflation.
-      Defaults to true.
+    :compression [boolean=true] Include support for gzip response deflation.
 
-    :decompression [boolean] Include support for gzip request inflation.
-      Defaults to true.
+    :decompression [boolean=true] Include support for gzip request inflation.
 
-    :host [string] The hostname or ip the server will listen to incoming
-      connections. Defaults to '0.0.0.0'.
+    :host [string='0.0.0.0'] The hostname or ip the server will listen to
+      incoming connections.
 
-    :idle-timeout-seconds [int] Set the duration of time in seconds where a
-      connection will timeout and be closed if no data is received. Defaults to
-      never.
+    :idle-timeout-seconds [int=30] Set the duration of time in seconds where a
+      connection will timeout and be closed if no data is received.
 
-    :keep-alive [boolean] Enable keep alive connections. When enabled multiple
-      requests will be transmitted on the same connection rather than opening
-      and closing a connection for each request. It is recommended to use this
-      option when it is known that multiple consecutive requests will be made
-      from the same client. Defaults to false.
+    :keep-alive [boolean=false] Enable keep alive connections. When enabled
+      multiple requests will be transmitted on the same connection rather than
+      opening and closing a connection for each request. It is recommended to
+      use this option when it is known that multiple consecutive requests will
+      be made from the same client.
+
+    :tcp-no-delay [boolean=true] Determines whether packets are sent to the
+      client as soon as they are available, even if there is only a small amount
+      of data.
+      i.e. `true` disables Nagle's Algorithm, and `false` enables it.
+      See: https://en.wikipedia.org/wiki/Nagle%27s_algorithm
+
+    :tcp-quick-ack [boolean=false] Determines whether an ACK is sent for every
+      tcp segment immediately as it is received rather than delayed if needed in
+      accordance to normal TCP operation.
+      i.e. `true` disables Delayed ACK, and `false` enables it.
+      Only available on Linux transport.
+
+    :tcp-fast-open [boolean=false] Determines whether data can be carried in the
+      SYN and SYN-ACK packets during initial connection handshake to save on
+      full-round trip time.
+      See: https://tools.ietf.org/html/rfc7413
+      Only available on Linux transport.
+
+    :socket-linger-seconds [int] Enable SO_LINGER with the specified linger time
+      in seconds. The maximum timeout value is platform specific.
+      The setting only affects socket close. Disabled by default.
+
+    :accept-backlog [int=1024] The maximum queue length for incoming connection
+      indications (a request to connect). If a connection indication arrives
+      when the queue is full, the connection is refused.
 
     :debug [boolean] Enable debug mode. Debug mode is not suitable for
       production use since it outputs a large amount of logs. Use with
@@ -146,42 +170,40 @@
     :ssl [boolean] Enable SSL handling for all requests. Can be overridden on
       per request basis.
 
-    :debug [boolean] Enable debug mode. Debug mode is not suitable for
+    :debug [boolean=false] Enable debug mode. Debug mode is not suitable for
       production use since it outputs a large amount of logs. Use with
-      discretion. Defaults to false.
+      discretion.
 
-    :compression [boolean] Enable client side compression. Defaults to false.
+    :compression [boolean=false] Enable client side compression.
 
-    :force-sni [boolean] Enable support for Server-Name-Indication. When an SSL
-      connection is attempted, the client will send the hostname it is
-      attempting to connect to during the handshake process. Defaults to true.
+    :force-sni [boolean=true] Enable support for Server-Name-Indication.
+      When an SSL connection is attempted, the client will send the hostname it
+      is attempting to connect to during the handshake process.
 
-    :keep-alive [boolean] Enable keep alive connections. When enabled multiple
-      requests will be transmitted on the same connection rather than opening
-      and closing a connection for each request. It is recommended to use this
-      option when it is known that multiple consecutive requests will be made
-      to the same host. The amount of time a connection is kept alive can be
-      configured with :keep-alive-timeout-seconds. Defaults to false.
+    :keep-alive [boolean=false] Enable keep alive connections. When enabled
+      multiple requests will be transmitted on the same connection rather than
+      opening and closing a connection for each request. It is recommended to
+      use this option when it is known that multiple consecutive requests will
+      be made to the same host. The amount of time a connection is kept alive
+      can be configured with :keep-alive-timeout-seconds.
 
-    :keep-alive-timeout-seconds [int] The duration of seconds to keep a
-      connection alive. Ignored if :keep-alive is false. Defaults to 60 seconds.
+    :keep-alive-timeout-seconds [int=60] The duration of seconds to keep a
+      connection alive. Ignored if :keep-alive is false.
 
-    :connect-timeout-seconds [int] The duration of seconds to allow for a
-      connection to be established. Defaults to 60 seconds.
+    :connect-timeout-seconds [int=60] The duration of seconds to allow for a
+      connection to be established.
 
-    :idle-timeout-seconds [int] The duration of seconds after which the
+    :idle-timeout-seconds [int=30] The duration of seconds after which the
       connection will be closed if no data was received. Can be overridden on
-      per request basis. Defaults to never.
+      per request basis.
 
-    :max-redirects [int] The maximum number of times to follow 3xx redirects.
-      Defaults to 16.
+    :max-redirects [int=16] The maximum number of times to follow 3xx redirects.
 
-    :user-agent-enabled [boolean] Indicates whether to include a 'User-Agent'
-      header in the request. Defaults to false.
+    :user-agent-enabled [boolean=false] Indicates whether to include a 'User-Agent'
+      header in the request.
 
-    :user-agent [string] The value of the 'User-Agent' header sent in the
-      request. Ignored if :user-agent-enabled is set to false. Defaults to
-      'Donkey-Client'.
+    :user-agent [string=Donkey-Client] The value of the 'User-Agent' header sent
+      in the request. Ignored if :user-agent-enabled is set to false.
 
     :proxy-options [map] Options for connecting to a proxy client. All values
       are required.
@@ -232,7 +254,7 @@
     recommended to have at least one event loop per available CPU core, which is
     also the default setting.
 
-  :worker-threads [int] The number of worker threads that will be used when
+  :worker-threads [int=20] The number of worker threads that will be used when
     :handler-mode is :blocking. In blocking mode all user code will be executed
     off the event loop by a worker thread. It is not recommended to run blocking
     handlers, unless absolutely necessary. It is necessary to experiment
@@ -249,5 +271,5 @@
   ([opts]
    (-> (spec/assert ::donkey-spec/donkey-config opts)
        map->VertxOptions
-       Vertx/vertx
+       VertxFactory/create
        ->Donkey)))

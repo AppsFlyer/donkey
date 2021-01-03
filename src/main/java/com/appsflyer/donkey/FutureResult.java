@@ -19,7 +19,11 @@ package com.appsflyer.donkey;
 
 import clojure.lang.*;
 import io.vertx.core.Future;
-import java.util.concurrent.*;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * An abstraction over {@link CompletableFuture} that makes it easier to use
@@ -66,14 +70,10 @@ public final class FutureResult<T> implements CompletableResult<T>, IDeref, IBlo
   
   public static <V> FutureResult<V> create(Future<V> vertxFuture) {
     var impl = new CompletableFuture<>();
-    vertxFuture.onComplete(event -> {
-      if (event.succeeded()) {
-        impl.complete(event.result());
-      } else {
-        impl.completeExceptionally(event.cause());
-      }
-    });
-    
+    vertxFuture
+        .onSuccess(impl::complete)
+        .onFailure(impl::completeExceptionally);
+  
     return new FutureResult<>(impl);
   }
   

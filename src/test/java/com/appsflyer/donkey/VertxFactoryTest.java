@@ -15,14 +15,25 @@
  *
  */
 
-package com.appsflyer.donkey.log;
+package com.appsflyer.donkey;
 
-import org.slf4j.LoggerFactory;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("unused") //Class is loaded dynamically
-public class LogbackDelegateFactory implements LogDelegateFactory {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class VertxFactoryTest {
   
-  public LogDelegate createDelegate(String clazz) {
-    return new LogbackLogDelegate(LoggerFactory.getLogger(clazz));
+  @Test
+  void createsVertxInstance() {
+    assertThat(VertxFactory.create(new VertxOptions()), instanceOf(Vertx.class));
+  }
+  
+  @Test
+  void createsDefaultExceptionHandler() {
+    assertNotNull(VertxFactory.create(new VertxOptions()).exceptionHandler());
   }
 }

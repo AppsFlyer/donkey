@@ -61,10 +61,6 @@ public final class ClojureObjectMapper {
     }
   }
   
-  public static ObjectMapper mapper() {
-    return ClojureObjectMapperHolder.mapper;
-  }
-  
   public static byte[] serialize(Object val) {
     try {
       return ClojureObjectMapperHolder.mapper.writeValueAsBytes(val);

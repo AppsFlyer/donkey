@@ -15,28 +15,21 @@
  *
  */
 
-package com.appsflyer.donkey.server.handler;
+package com.appsflyer.donkey;
 
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class NotFoundErrorHandler implements Handler<RoutingContext> {
+public final class VertxFactory {
   
-  private static final Logger logger = LoggerFactory.getLogger(NotFoundErrorHandler.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(VertxFactory.class.getName());
   
-  public static NotFoundErrorHandler create() {
-    return new NotFoundErrorHandler();
-  }
+  private VertxFactory() {}
   
-  private NotFoundErrorHandler() {}
-  
-  @Override
-  public void handle(RoutingContext ctx) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Resource not found {}", ctx.normalizedPath());
-    }
-    ctx.response().setStatusCode(404).end();
+  public static Vertx create(VertxOptions opts) {
+    return Vertx.vertx(opts)
+                .exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
   }
 }

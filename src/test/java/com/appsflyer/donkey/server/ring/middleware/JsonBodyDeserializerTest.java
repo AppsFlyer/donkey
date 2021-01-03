@@ -29,7 +29,7 @@ import static com.appsflyer.donkey.server.ring.handler.RingResponseField.BODY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Tag("Slow")
+@Tag("slow")
 class JsonBodyDeserializerTest {
   
   private static RingMiddleware middleware;

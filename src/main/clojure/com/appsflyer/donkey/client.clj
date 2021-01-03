@@ -53,16 +53,18 @@
            proxy-options
            compression
            ssl]
-    :or   {force-sni         true
-           enable-user-agent false
-           user-agent        "Donkey-Client"}}]
+    :or   {force-sni            true
+           idle-timeout-seconds 30
+           enable-user-agent    false
+           keep-alive           false
+           user-agent           "Donkey-Client"}}]
 
   (cond->
     (doto (WebClientOptions.)
       (.setForceSni ^boolean force-sni)
-      (.setUserAgentEnabled enable-user-agent)
-      (.setUserAgent user-agent))
-    keep-alive (.setKeepAlive ^boolean keep-alive)
+      (.setUserAgentEnabled ^boolean enable-user-agent)
+      (.setUserAgent user-agent)
+      (.setKeepAlive ^boolean keep-alive))
     keep-alive-timeout-seconds (.setKeepAliveTimeout (int keep-alive-timeout-seconds))
     proxy-options (.setProxyOptions ^ProxyOptions (map->ProxyOptions proxy-options))
     default-host (.setDefaultHost ^String default-host)

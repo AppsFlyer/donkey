@@ -50,7 +50,7 @@ public final class ServerConfig {
     return vertx;
   }
   
-  public HttpServerOptions serverOptions() {
+  HttpServerOptions serverOptions() {
     return serverOptions;
   }
   
@@ -70,15 +70,15 @@ public final class ServerConfig {
     return debug;
   }
   
-  public boolean addDateHeader() {
+  boolean addDateHeader() {
     return addDateHeader;
   }
   
-  public boolean addContentTypeHeader() {
+  boolean addContentTypeHeader() {
     return addContentTypeHeader;
   }
   
-  public boolean addServerHeader() {
+  boolean addServerHeader() {
     return addServerHeader;
   }
   
@@ -147,7 +147,7 @@ public final class ServerConfig {
     }
     
     private void assertValidState() {
-      Objects.requireNonNull(instance.vertx, "Vert.x instance is missing");
+      Objects.requireNonNull(instance.vertx, "Vertx instance is missing");
       Objects.requireNonNull(instance.serverOptions, "Server options is missing");
       Objects.requireNonNull(instance.routeCreatorFactory, "Route creator factory is missing");
       Objects.requireNonNull(instance.routeList, "Router definition list is missing");

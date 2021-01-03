@@ -84,12 +84,7 @@ class ServerTest {
                 response -> testContext.verify(() -> {
                   assert200(response);
                   assertEquals("Hello, World!", response.bodyAsString());
-                  
-                  server.shutdown().onComplete(stopResult -> {
-                    if (stopResult.failed()) {
-                      testContext.failNow(stopResult.cause());
-                    }
-                  });
+                  server.shutdown().onComplete(testContext.succeedingThenComplete());
                 }))));
     
     assertContextSuccess(testContext);

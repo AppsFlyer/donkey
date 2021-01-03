@@ -20,6 +20,7 @@ package com.appsflyer.donkey;
 import clojure.lang.ExceptionInfo;
 import clojure.lang.IFn;
 import io.vertx.core.Future;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@Tag("slow")
 class FutureResultTest {
   
   private static final Answer<Integer> incrementImpl =

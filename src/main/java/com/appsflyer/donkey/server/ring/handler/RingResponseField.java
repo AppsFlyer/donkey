@@ -21,8 +21,6 @@ import clojure.lang.IPersistentMap;
 import clojure.lang.Keyword;
 import com.appsflyer.donkey.ValueExtractor;
 
-import static com.appsflyer.donkey.util.TypeConverter.toBytes;
-
 /**
  * The Enum class encapsulates the logic of extracting data from a Ring response.
  * Each element corresponds to a Ring response field. It implements getting the field's
@@ -45,10 +43,10 @@ public enum RingResponseField implements ValueExtractor<IPersistentMap> {
   },
   BODY("body") {
     @Override
-    public byte[] from(IPersistentMap res) {
+    public Object from(IPersistentMap res) {
       var body = res.valAt(keyword(), null);
       if (body != null) {
-        return toBytes(body);
+        return body;
       }
       return BYTES;
     }

@@ -78,6 +78,11 @@
 (s/def ::date-header boolean?)
 (s/def ::content-type-header boolean?)
 (s/def ::server-header boolean?)
+(s/def ::tcp-no-delay boolean?)
+(s/def ::tcp-quick-ack boolean?)
+(s/def ::tcp-fast-open boolean?)
+(s/def ::socket-linger-seconds (s/and int? #(<= 0 %)))
+(s/def ::accept-backlog (s/and int? pos?))
 (s/def ::idle-timeout-seconds (s/and int? #(<= 0 %)))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 
@@ -91,6 +96,11 @@
                                         ::date-header
                                         ::content-type-header
                                         ::server-header
+                                        ::tcp-no-delay
+                                        ::tcp-quick-ack
+                                        ::tcp-fast-open
+                                        ::socket-linger-seconds
+                                        ::accept-backlog
                                         ::keep-alive
                                         ::idle-timeout-seconds]))
 
