@@ -912,7 +912,7 @@ Base name: `<:metrics-prefix>.http.servers.<host>:<port>`
 - `bytes-written` - A Histogram of the number of bytes written.
 - `requests` - A Throughput Timer of a request and the rate of it’s occurrence
 - `<http-method>-requests` - A Throughput Timer of a specific HTTP method
-  request, and the rate of its occurrence Examples: get-requests, post-requests
+  request, and the rate of its occurrence. Examples: get-requests, post-requests
 - `responses-1xx` - A ThroughputMeter of the 1xx response code
 - `responses-2xx` - A ThroughputMeter of the 2xx response code
 - `responses-3xx` - A ThroughputMeter of the 3xx response code
