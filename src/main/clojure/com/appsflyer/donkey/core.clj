@@ -42,9 +42,11 @@
           depending on the value of `:handler-mode`. The function will be called
           if a request matches the route. When `:handler-mode` is
           `:non-blocking` (the default value) the handler must accept 3
-          arguments - a request map, respond function, and raise function. When
-          `:handler-mode` is `:blocking` the handler must accept a single
-          argument - a request map.
+          arguments - a `request` map, `respond` function, and `raise` function.
+          The handler must call the `respond` function with a Ring response map,
+          or the `raise` function with an exception.
+          When `:handler-mode` is `:blocking` the handler must accept a single
+          argument - a `request` map. It should return a Ring response map.
 
       - :handler-mode [keyword=:non-blocking] `:blocking` or `:non-blocking`.
           See `:handler` description for usage.
@@ -85,6 +87,20 @@
           that accepts 1 or 3 arguments (blocking vs. non blocking mode).
           The middleware is responsible calling the handler before or after the
           handler processes the request.
+
+    :error-handlers [map] A map of HTTP status code to handler function.
+      Provides a mechanism for users to handle unexpected errors such as 4xx
+      and 5xx that are not handled by a route handler. Examples:
+      - An uncaught exception inside a route handler will trigger the 500 status
+       code function.
+      - When no request can be matched to a route then the 404 status code
+       function will be called.
+      - Conversely, when a route handler returns a response with 4xx or 5xx
+       error status code, then no error handler will be called.
+      The function will be called with a map with the following fields:
+        - path [string] The path on which the error occurred.
+        - cause [Throwable] The exception that caused the error if there is one.
+      It should return a Ring response map
 
     :instances [int] The number of server instances to deploy. Each instance
       is assigned to an event loop. Therefore there is a direct relation between

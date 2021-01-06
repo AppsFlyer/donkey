@@ -85,9 +85,12 @@
 (s/def ::accept-backlog (s/and int? pos?))
 (s/def ::idle-timeout-seconds (s/and int? #(<= 0 %)))
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
+(s/def ::error-handlers (s/map-of #(s/int-in-range? 400 600 %) fn?))
 
 (s/def ::server-config (s/keys :req-un [::port]
-                               :opt-un [::instances
+                               :opt-un [::routes
+                                        ::error-handlers
+                                        ::instances
                                         ::middleware
                                         ::compression
                                         ::decompression

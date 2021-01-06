@@ -100,6 +100,10 @@ public final class TestUtil {
                  "It should respond with Unsupported Media Type");
   }
   
+  public static void assert500(HttpResponse<Buffer> response) {
+    assertEquals(INTERNAL_SERVER_ERROR.code(), response.statusCode());
+  }
+  
   public static Future<HttpResponse<Buffer>> doGet(Vertx vertx, String uri) {
     return makeRequest(WebClient.create(vertx), GET, uri);
   }

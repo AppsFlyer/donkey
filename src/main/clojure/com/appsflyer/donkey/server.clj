@@ -17,6 +17,7 @@
 
 (ns com.appsflyer.donkey.server
   (:require [com.appsflyer.donkey.route :refer [map->RouteList]]
+            [com.appsflyer.donkey.error-handler :refer [map->ErrorHandler]]
             [com.appsflyer.donkey.result])
   (:import (io.vertx.core.http HttpServerOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
@@ -81,6 +82,7 @@
                   (.serverOptions (map->HttpServerOptions opts))
                   (.routeCreatorFactory (RingRouteCreatorFactory/create))
                   (.routeList (map->RouteList opts))
+                  (.errorHandler (map->ErrorHandler opts))
                   (.vertx vertx)
                   (.instances instances)
                   (.debug (boolean debug))
