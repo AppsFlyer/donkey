@@ -1,3 +1,11 @@
+## v0.3.0
+
+--- 
+
+- Added support for user-defined error handlers when creating a server. The
+  server options support a new field - `:error-handlers`. Users can supply a map
+  of http-status-code -> handler-function.
+
 ## v0.2.0
 
 ---

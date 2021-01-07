@@ -17,6 +17,7 @@
 
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.server.handler.ErrorHandler;
 import com.appsflyer.donkey.server.route.RouteCreatorFactory;
 import com.appsflyer.donkey.server.route.RouteList;
 import io.vertx.core.Vertx;
@@ -38,6 +39,7 @@ public final class ServerConfig {
   private HttpServerOptions serverOptions;
   private RouteCreatorFactory routeCreatorFactory;
   private RouteList routeList;
+  private ErrorHandler<?> errorHandler;
   private int instances;
   private boolean debug;
   private boolean addDateHeader;
@@ -60,6 +62,10 @@ public final class ServerConfig {
   
   public RouteList routeList() {
     return routeList;
+  }
+  
+  ErrorHandler<?> errorHandler() {
+    return errorHandler;
   }
   
   public int instances() {
@@ -103,22 +109,27 @@ public final class ServerConfig {
       instance.serverOptions = serverOptions;
       return this;
     }
-    
+  
     public ServerConfigBuilder routeCreatorFactory(RouteCreatorFactory routeCreatorFactory) {
       instance.routeCreatorFactory = routeCreatorFactory;
       return this;
     }
-    
+  
     public ServerConfigBuilder routeList(RouteList routeList) {
       instance.routeList = routeList;
       return this;
     }
-    
+  
+    public ServerConfigBuilder errorHandler(ErrorHandler<?> errorHandler) {
+      instance.errorHandler = errorHandler;
+      return this;
+    }
+  
     public ServerConfigBuilder instances(int val) {
       instance.instances = val;
       return this;
     }
-    
+  
     public ServerConfigBuilder debug(boolean val) {
       instance.debug = val;
       return this;
@@ -156,5 +167,4 @@ public final class ServerConfig {
       }
     }
   }
-  
 }

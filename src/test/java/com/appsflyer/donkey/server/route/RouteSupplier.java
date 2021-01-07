@@ -61,6 +61,15 @@ public interface RouteSupplier {
                           .handler(returnRequest(requestsServed));
   }
   
+  default RouteDefinition internalServerError() {
+    return RouteDefinition
+        .create()
+        .path("/internal-server-error")
+        .handler(ctx -> {
+          throw new RuntimeException("Internal server error route");
+        });
+  }
+  
   Handler<RoutingContext> returnRequest(Checkpoint requestsServed);
   
   RouteDefinition echo(Checkpoint requestsServed);

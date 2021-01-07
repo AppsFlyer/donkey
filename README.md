@@ -48,13 +48,13 @@ TOC Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Including the library in `project.clj`
 
 ```clojure
-[com.appsflyer/donkey "0.2.0"]
+[com.appsflyer/donkey "0.3.0-SNAPSHOT"]
 ``` 
 
 Including the library in `deps.edn`
 
 ```clojure
-com.appsflyer/donkey {:mvn/version "0.2.0"}
+com.appsflyer/donkey {:mvn/version "0.3.0-SNAPSHOT"}
 ``` 
 
 Including the library in `pom.xml`
@@ -63,7 +63,7 @@ Including the library in `pom.xml`
 <dependency>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -172,13 +172,13 @@ in depth later on, but a route is basically a definition of an endpoint. Let's
 define a route and create a basic "Hello world" endpoint.
 
 ```clojure
-(-> 
+(->
   (create-donkey)
   (create-server {:port   8080
-                  :routes [{:handler (fn [_request respond _raise] 
-                                       (respond {:body "Hello, world!"}))}]}))
+                  :routes [{:handler (fn [_request respond _raise]
+                                       (respond {:body "Hello, world!"}))}]})
   start
-  (on-success (fn [_] (println "Server started listening on port 8080")))
+  (on-success (fn [_] (println "Server started listening on port 8080"))))
 ``` 
 
 As you can see we added a `:routes` key to the options map used to initialise
@@ -981,14 +981,14 @@ when importing Donkey. For example:
 project.clj
 
 ```clojure
-:dependencies [com.appsflyer/donkey "0.2.0" :exclusions [io.dropwizard.metrics/metrics-core]]
+:dependencies [com.appsflyer/donkey "0.3.0-SNAPSHOT" :exclusions [io.dropwizard.metrics/metrics-core]]
 ```   
 
 deps.edn
 
 ```clojure
 {:deps
- {com.appsflyer/donkey {:mvn/version "0.2.0"
+ {com.appsflyer/donkey {:mvn/version "0.3.0-SNAPSHOT"
                        :exclusions [io.dropwizard.metrics/metrics-core]}}}
 ```
 

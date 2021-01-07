@@ -17,6 +17,7 @@
 
 package com.appsflyer.donkey.server;
 
+import com.appsflyer.donkey.server.handler.ErrorHandler;
 import com.appsflyer.donkey.server.router.RouterFactoryImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -48,7 +49,12 @@ public class ServerVerticle extends AbstractVerticle {
   }
   
   private Router createRouter() {
-    return RouterFactoryImpl.create(vertx, config.routeList())
-                            .withRouteCreator(config.routeCreatorFactory());
+    var router = RouterFactoryImpl.create(vertx, config.routeList())
+                                  .withRouteCreator(config.routeCreatorFactory());
+    ErrorHandler<?> errorHandler = config.errorHandler();
+    if (errorHandler != null) {
+      errorHandler.forEach(router::errorHandler);
+    }
+    return router;
   }
 }
