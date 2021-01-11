@@ -30,6 +30,20 @@ public final class VertxFactory {
   
   public static Vertx create(VertxOptions opts) {
     return Vertx.vertx(opts)
-                .exceptionHandler(ex -> logger.error(ex.getMessage(), ex.getCause()));
+                .exceptionHandler(VertxFactory::defaultExceptionHandler);
+  }
+  
+  private static void defaultExceptionHandler(Throwable ex) {
+    Throwable t = ex;
+    if (logger.isDebugEnabled()) {
+      var stack = ex.getStackTrace();
+      // If we don't have a stack trace we fill it now
+      if (stack == null || stack.length == 0) {
+        t = new RuntimeException(ex);
+      }
+      logger.debug(ex.getMessage(), t);
+    } else {
+      logger.error(ex.getMessage(), ex);
+    }
   }
 }

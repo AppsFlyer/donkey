@@ -30,7 +30,6 @@ public final class ClientConfig {
   
   private Vertx vertx;
   private WebClientOptions clientOptions;
-  private boolean debug;
   
   private ClientConfig() {}
   
@@ -40,10 +39,6 @@ public final class ClientConfig {
   
   public WebClientOptions clientOptions() {
     return clientOptions;
-  }
-  
-  public boolean debug() {
-    return debug;
   }
   
   public static final class ClientConfigBuilder {
@@ -63,11 +58,6 @@ public final class ClientConfig {
     public ClientConfigBuilder clientOptions(WebClientOptions clientOptions) {
       Objects.requireNonNull(clientOptions, "Client options argument cannot be null");
       instance.clientOptions = clientOptions;
-      return this;
-    }
-    
-    public ClientConfigBuilder debug(boolean val) {
-      instance.debug = val;
       return this;
     }
     

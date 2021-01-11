@@ -41,7 +41,6 @@ public final class ServerConfig {
   private RouteList routeList;
   private ErrorHandler<?> errorHandler;
   private int instances;
-  private boolean debug;
   private boolean addDateHeader;
   private boolean addContentTypeHeader;
   private boolean addServerHeader;
@@ -70,10 +69,6 @@ public final class ServerConfig {
   
   public int instances() {
     return instances;
-  }
-  
-  public boolean debug() {
-    return debug;
   }
   
   boolean addDateHeader() {
@@ -127,11 +122,6 @@ public final class ServerConfig {
   
     public ServerConfigBuilder instances(int val) {
       instance.instances = val;
-      return this;
-    }
-  
-    public ServerConfigBuilder debug(boolean val) {
-      instance.debug = val;
       return this;
     }
     

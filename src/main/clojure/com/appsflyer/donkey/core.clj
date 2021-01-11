@@ -24,9 +24,12 @@
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
   (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
-           (io.vertx.core Vertx VertxOptions)
+           (io.vertx.core VertxOptions)
            (io.vertx.core.impl.cpu CpuCoreSensor)
-           (com.appsflyer.donkey VertxFactory)))
+           (com.appsflyer.donkey VertxFactory)
+           (com.appsflyer.donkey.util DebugUtil)))
+
+(spec/check-asserts true)
 
 (defprotocol IDonkey
   (create-server [_this opts]
@@ -124,8 +127,9 @@
     :host [string='0.0.0.0'] The hostname or ip the server will listen to
       incoming connections.
 
-    :idle-timeout-seconds [int=30] Set the duration of time in seconds where a
+    :idle-timeout-seconds [int=0] Set the duration of time in seconds where a
       connection will timeout and be closed if no data is received.
+      Defaults to forever.
 
     :keep-alive [boolean=false] Enable keep alive connections. When enabled
       multiple requests will be transmitted on the same connection rather than
@@ -159,18 +163,13 @@
       indications (a request to connect). If a connection indication arrives
       when the queue is full, the connection is refused.
 
-    :debug [boolean] Enable debug mode. Debug mode is not suitable for
-      production use since it outputs a large amount of logs. Use with
-      discretion. Defaults to false.
+    :date-header [boolean=false] Include the 'Date' header in the response.
 
-    :date-header [boolean] Include the 'Date' header in the response. Defaults
-      to false.
-
-    :server-header [boolean] Include the 'Server' header in the response.
+    :server-header [boolean=false] Include the 'Server' header in the response.
       Defaults to false.
 
-    :content-type-header [boolean] Sets the response content type automatically
-      according to the best 'Accept' header match. Defaults to false.
+    :content-type-header [boolean=false] Sets the response content type automatically
+      according to the best 'Accept' header match.
     ")
 
   (create-client [_this] [_this opts]
@@ -185,10 +184,6 @@
 
     :ssl [boolean] Enable SSL handling for all requests. Can be overridden on
       per request basis.
-
-    :debug [boolean=false] Enable debug mode. Debug mode is not suitable for
-      production use since it outputs a large amount of logs. Use with
-      discretion.
 
     :compression [boolean=false] Enable client side compression.
 
@@ -209,9 +204,9 @@
     :connect-timeout-seconds [int=60] The duration of seconds to allow for a
       connection to be established.
 
-    :idle-timeout-seconds [int=30] The duration of seconds after which the
+    :idle-timeout-seconds [int=0] The duration of seconds after which the
       connection will be closed if no data was received. Can be overridden on
-      per request basis.
+      per request basis. Defaults to forever.
 
     :max-redirects [int=16] The maximum number of times to follow 3xx redirects.
 
@@ -228,19 +223,22 @@
       - :proxy-type [keyword] :http, :socks4, or :socks5
     "))
 
-(deftype Donkey [^Vertx vertx]
+;; config is a map with the following keys:
+;; :vertx [Vertx] The underlining Vertx instance
+;; :debug [boolean=false] Whether to run in debug mode
+(deftype Donkey [config]
   IDonkey
-  (create-server [_this opts]
+  (create-server [this opts]
     (-> (spec/assert ::donkey-spec/server-config opts)
-        (assoc :vertx vertx)
+        (merge (.-config this))
         server/map->ServerConfig
         ServerImpl/create
         server/->DonkeyServer))
   (create-client [this]
     (create-client this {}))
-  (create-client [_this opts]
+  (create-client [this opts]
     (-> (spec/assert ::donkey-spec/client-config opts)
-        (assoc :vertx vertx)
+        (merge (.-config this))
         client/map->ClientConfig
         RingClient/create
         client/->DonkeyClient)))
@@ -277,15 +275,24 @@
     with the size of :worker-threads until you reach the desired application
     requirements.
 
-  :metrics-prefix [string] A prefix that will be added to all metrics. Can be used
-    to differentiate between different projects. Defaults to 'donkey'.
+  :metrics-prefix [string='donkey'] A prefix that will be added to all metrics. Can be used
+    to differentiate between different projects.
 
   :metric-registry [MetricRegistry] Instance of Dropwizard MetricRegistry where
     metrics will be reported to.
+
+  :debug [boolean=false] Enable debug mode. Debug mode is not suitable for production
+    use since it outputs a large amount of logs. Use with discretion.
   "
   ([] (create-donkey {}))
   ([opts]
-   (-> (spec/assert ::donkey-spec/donkey-config opts)
-       map->VertxOptions
-       VertxFactory/create
-       ->Donkey)))
+   (when-let [opts (spec/assert ::donkey-spec/donkey-config opts)]
+     ; We need to initialize debug logging before a Logger
+     ; is created, so SLF4J will use Logback instead of another provider.
+     (if (true? (:debug opts)) (DebugUtil/enable) (DebugUtil/disable))
+
+     (->Donkey
+       (-> (select-keys opts [:debug])
+           (assoc :vertx (-> opts
+                             map->VertxOptions
+                             VertxFactory/create)))))))
