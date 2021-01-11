@@ -35,7 +35,7 @@ public final class InternalServerErrorHandler implements Handler<RoutingContext>
   
   @Override
   public void handle(RoutingContext ctx) {
-    logger.error("Unhandled exception:", ctx.failure());
-    ctx.response().setStatusCode(500);
+    logger.error("Internal Server Error:", ctx.failure());
+    ctx.response().setStatusCode(500).end();
   }
 }
