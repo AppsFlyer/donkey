@@ -1,14 +1,21 @@
-## v0.3.0
+## v0.4.0
 
---- 
+- Debug mode is now set when creating a `Donkey` instance rather than creating
+  a `DonkeyServer` or `DonkeyClient`. This fixes issues where enabling debug
+  mode on the server / client and not on the other would sometimes disable debug
+  mode for both.
+- Turned on Clojure spec assertions
+- Global exception handler - In debug mode, a stack trace is added to the
+  exception if it doesn't include one.
+- Fixed release script not pushing changes to GitHub.
+
+## v0.3.0
 
 - Added support for user-defined error handlers when creating a server. The
   server options support a new field - `:error-handlers`. Users can supply a map
   of http-status-code -> handler-function.
 
 ## v0.2.0
-
----
 
 - `version-bump.sh` script was removed in favor of:
     - `version-change.sh` Update the project to a new version.
