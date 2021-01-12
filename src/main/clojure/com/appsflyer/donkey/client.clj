@@ -19,7 +19,6 @@
   (:require [com.appsflyer.donkey.request])
   (:import (com.appsflyer.donkey.client ClientConfig Client)
            (com.appsflyer.donkey.request AsyncRequest)
-           (com.appsflyer.donkey.util DebugUtil)
            (io.vertx.core.http HttpClientOptions)
            (io.vertx.core.net ProxyOptions ProxyType)
            (io.vertx.ext.web.client WebClientOptions)
@@ -53,15 +52,16 @@
            proxy-options
            compression
            ssl]
-    :or   {force-sni            true
-           idle-timeout-seconds 30
-           enable-user-agent    false
-           keep-alive           false
-           user-agent           "Donkey-Client"}}]
+    :or   {force-sni         true
+           enable-user-agent false
+           keep-alive        false
+           debug             false
+           user-agent        "Donkey-Client"}}]
 
   (cond->
     (doto (WebClientOptions.)
       (.setForceSni ^boolean force-sni)
+      (.setLogActivity ^boolean debug)
       (.setUserAgentEnabled ^boolean enable-user-agent)
       (.setUserAgent user-agent)
       (.setKeepAlive ^boolean keep-alive))
@@ -72,7 +72,6 @@
     max-redirects (.setMaxRedirects (int max-redirects))
     connect-timeout-seconds (.setConnectTimeout (int (* 1000 connect-timeout-seconds)))
     idle-timeout-seconds (.setIdleTimeout (int idle-timeout-seconds))
-    debug (.setLogActivity true)
     compression (.setTryUseCompression true)
     ssl (.setSsl true)
     (and ssl (not default-port)) (.setDefaultPort (int 443))))
@@ -81,17 +80,10 @@
   "Creates and returns a ClientConfig object from the opts map.
   See the ClientConfig docs for more information."
   [opts]
-  (let [builder (doto (ClientConfig/builder)
-                  (.vertx (:vertx opts))
-                  (.clientOptions (map->HttpClientOptions opts))
-                  (.debug (:debug opts false)))
-        config (.build builder)]
-    ; We need to initialize debug logging before a Logger
-    ; is created, so SLF4J will use Logback instead of another provider.
-    (if (.debug config)
-      (DebugUtil/enable)
-      (DebugUtil/disable))
-    config))
+  (-> (ClientConfig/builder)
+      (.vertx (:vertx opts))
+      (.clientOptions (map->HttpClientOptions opts))
+      .build))
 
 (defprotocol HttpClient
   (request [this opts]

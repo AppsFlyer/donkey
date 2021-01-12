@@ -25,7 +25,6 @@
            (com.appsflyer.donkey.server.exception ServerInitializationException
                                                   ServerShutdownException)
            (com.appsflyer.donkey.server.ring.route RingRouteCreatorFactory)
-           (com.appsflyer.donkey.util DebugUtil)
            (com.appsflyer.donkey FutureResult)))
 
 (defn- ^HttpServerOptions map->HttpServerOptions
@@ -44,35 +43,29 @@
            keep-alive
            compression
            decompression]
-    :or   {host                  "0.0.0.0"
-           tcp-no-delay          true
-           tcp-quick-ack         false
-           tcp-fast-open         false
-           accept-backlog        1024
-           socket-linger-seconds -1
-           idle-timeout-seconds  30
-           compression           true
-           decompression         true}}]
+    :or   {compression   true
+           decompression true
+           debug         false}}]
 
-  (doto (HttpServerOptions.)
-    (.setPort (int port))
-    (.setHost ^String host)
-    (.setTcpNoDelay (boolean tcp-no-delay))
-    (.setTcpQuickAck (boolean tcp-quick-ack))
-    (.setTcpFastOpen (boolean tcp-fast-open))
-    (.setAcceptBacklog (int accept-backlog))
-    (.setSoLinger (int socket-linger-seconds))
-    (.setIdleTimeout (int idle-timeout-seconds))
-    (.setLogActivity (boolean debug))
-    (.setTcpKeepAlive (boolean keep-alive))
-    (.setCompressionSupported (boolean compression))
-    (.setDecompressionSupported (boolean decompression))))
+  (cond->
+    (doto (HttpServerOptions.)
+      (.setCompressionSupported ^boolean compression)
+      (.setDecompressionSupported ^boolean decompression)
+      (.setLogActivity ^boolean debug))
+    port (.setPort (int port))
+    host (.setHost ^String host)
+    accept-backlog (.setAcceptBacklog (int accept-backlog))
+    socket-linger-seconds (.setSoLinger (int socket-linger-seconds))
+    idle-timeout-seconds (.setIdleTimeout (int idle-timeout-seconds))
+    (boolean? tcp-no-delay) (.setTcpNoDelay ^boolean tcp-no-delay)
+    (boolean? tcp-quick-ack) (.setTcpQuickAck ^boolean tcp-quick-ack)
+    (boolean? tcp-fast-open) (.setTcpFastOpen ^boolean tcp-fast-open)
+    (boolean? keep-alive) (.setTcpKeepAlive ^boolean keep-alive)))
 
 (defn ^ServerConfig map->ServerConfig
   "Creates and returns a ServerConfig object from the opts map."
   [{:keys [vertx
            instances
-           debug
            date-header
            content-type-header
            server-header]
@@ -85,17 +78,10 @@
                   (.errorHandler (map->ErrorHandler opts))
                   (.vertx vertx)
                   (.instances instances)
-                  (.debug (boolean debug))
                   (.addDateHeader (boolean date-header))
                   (.addContentTypeHeader (boolean content-type-header))
-                  (.addServerHeader (boolean server-header)))
-        config (.build builder)]
-    ; We need to initialize debug logging before a Logger
-    ; is created, so SLF4J will use Logback instead of another provider.
-    (if (.debug config)
-      (DebugUtil/enable)
-      (DebugUtil/disable))
-    config))
+                  (.addServerHeader (boolean server-header)))]
+    (.build builder)))
 
 (defprotocol HttpServer
   (start [this]

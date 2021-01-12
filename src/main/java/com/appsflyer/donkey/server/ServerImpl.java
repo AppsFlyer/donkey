@@ -27,7 +27,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
 import java.util.ArrayList;
@@ -58,9 +57,6 @@ public final class ServerImpl implements Server {
   
   private void addOptionalHandlers() {
     Collection<Handler<RoutingContext>> handlers = new ArrayList<>();
-    if (config.debug()) {
-      handlers.add(LoggerHandler.create());
-    }
     if (config.addDateHeader()) {
       handlers.add(DateHeaderHandler.create(config.vertx()));
     }

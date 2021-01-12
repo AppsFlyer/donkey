@@ -97,8 +97,10 @@ ask_do_push
 if [ $? = 0 ]; then
   if [ "$DRY_RUN" = 0 ]; then
     echo 'git push origin '"$TAG"
+    echo 'git push'
   else
     git push origin "$TAG"
+    git push
   fi
   exit_on_error "push failed"
 fi

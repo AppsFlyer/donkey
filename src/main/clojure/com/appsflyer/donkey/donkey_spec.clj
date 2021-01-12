@@ -32,7 +32,8 @@
 (s/def ::donkey-config (s/keys :opt-un [::metrics-prefix
                                         ::metric-registry
                                         ::worker-threads
-                                        ::event-loops]))
+                                        ::event-loops
+                                        ::debug]))
 
 (s/def ::handler fn?)
 (s/def ::handlers (s/coll-of ::handler))
@@ -95,7 +96,6 @@
                                         ::compression
                                         ::decompression
                                         ::host
-                                        ::debug
                                         ::date-header
                                         ::content-type-header
                                         ::server-header
@@ -105,7 +105,8 @@
                                         ::socket-linger-seconds
                                         ::accept-backlog
                                         ::keep-alive
-                                        ::idle-timeout-seconds]))
+                                        ::idle-timeout-seconds
+                                        ::debug]))
 
 
 ;; ------- Client Specification ------- ;;

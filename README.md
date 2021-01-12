@@ -48,13 +48,13 @@ TOC Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Including the library in `project.clj`
 
 ```clojure
-[com.appsflyer/donkey "0.3.0"]
+[com.appsflyer/donkey "0.4.0-SNAPSHOT"]
 ``` 
 
 Including the library in `deps.edn`
 
 ```clojure
-com.appsflyer/donkey {:mvn/version "0.3.0"}
+com.appsflyer/donkey {:mvn/version "0.4.0-SNAPSHOT"}
 ``` 
 
 Including the library in `pom.xml`
@@ -63,7 +63,7 @@ Including the library in `pom.xml`
 <dependency>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -639,7 +639,6 @@ them on every request
                       donkey/create-client 
                       {:default-host               "reqres.in"
                        :default-port               443
-                       :debug                      false
                        :ssl                        true
                        :keep-alive                 true
                        :keep-alive-timeout-seconds 30
@@ -941,17 +940,17 @@ Base name: `<:metrics-prefix>.http.clients`
 
 ## Debug mode
 
-Debug mode is activated when creating a server or a client with `:debug true`.
-In this mode several loggers are set to log at the `trace` level. It means the
-logs will be *very* verbose. For that reason it is not suitable for production
-use, and should only be enabled in development as needed.
+Debug mode is activated when creating a `Donkey` with `:debug true`. In this
+mode several loggers are set to log at the `trace` level. It means the logs will
+be *very* verbose. For that reason it is not suitable for production use, and
+should only be enabled in development as needed.
 
 The logs include:
 
 - All of Netty's low level networking, system configuration, memory leak
   detection logs and more.
-- Hexadecimal representation of each batch of packets being transmitted to the
-  server.
+- Hexadecimal representation of each batch of packets being transmitted to a
+  server or from a client.
 - Request routing, which is useful to debug a route that is not being matched.
 - Donkey trace logs.
 
@@ -981,14 +980,14 @@ when importing Donkey. For example:
 project.clj
 
 ```clojure
-:dependencies [com.appsflyer/donkey "0.3.0" :exclusions [io.dropwizard.metrics/metrics-core]]
+:dependencies [com.appsflyer/donkey "0.4.0-SNAPSHOT" :exclusions [io.dropwizard.metrics/metrics-core]]
 ```   
 
 deps.edn
 
 ```clojure
 {:deps
- {com.appsflyer/donkey {:mvn/version "0.3.0"
+ {com.appsflyer/donkey {:mvn/version "0.4.0-SNAPSHOT"
                        :exclusions [io.dropwizard.metrics/metrics-core]}}}
 ```
 

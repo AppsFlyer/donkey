@@ -53,7 +53,7 @@
         (.setDefaultPort (int (:port default-server-options))))))
 
 (defn init-web-client [test-fn]
-  (binding [vertx-client (launch-vertx-client (.-vertx donkey-core))]
+  (binding [vertx-client (launch-vertx-client (-> donkey-core .-config :vertx))]
     (test-fn)
     (.close vertx-client)))
 
@@ -68,7 +68,7 @@
     instance))
 
 (defn init-donkey-server
-  ([test-fn routes] (init-donkey-server test-fn routes nil))
+  ([test-fn routes] (init-donkey-server test-fn routes []))
   ([test-fn routes middleware]
    (binding [donkey-server (launch-donkey-server donkey-core {:routes routes :middleware middleware})]
      (test-fn)
@@ -85,11 +85,11 @@
   and a default client. Both will be closed after the `test-fn` returns.
   The server and client are available inside the test as
   `donkey-server` and `vertx-client` respectively."
-  ([test-fn routes] (run-with-server-and-client test-fn routes nil))
+  ([test-fn routes] (run-with-server-and-client test-fn routes []))
   ([test-fn routes middleware]
    (let [^Donkey donkey-instance (donkey/create-donkey default-donkey-options)]
      (binding [donkey-server (launch-donkey-server donkey-instance {:routes routes :middleware middleware})
-               vertx-client (launch-vertx-client (.-vertx donkey-instance))]
+               vertx-client (launch-vertx-client (-> donkey-instance .-config :vertx))]
        (test-fn)
        (.close vertx-client)
        (is (nil? (server/stop-sync donkey-server)))))))
