@@ -168,8 +168,8 @@
     :server-header [boolean=false] Include the 'Server' header in the response.
       Defaults to false.
 
-    :content-type-header [boolean=false] Sets the response content type automatically
-      according to the best 'Accept' header match.
+    :content-type-header [boolean=false] Sets the response content type
+      automatically according to the best 'Accept' header match.
     ")
 
   (create-client [_this] [_this opts]

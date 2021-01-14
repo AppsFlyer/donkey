@@ -263,12 +263,14 @@ access. The way the path is matched depends on the `:match-type`.
 
 `:simple` match type will match in two ways:
 
-1) Exact match. In the example above it means the route will only match requests
-   to `http://localhost:8080/api/v2`. It will _not_ match requests to:
+1) **Exact match**. Going back to the example route at the begining of the
+   section, the route will only match requests to `http://localhost:8080/api/v2`
+   . It will _not_ match requests to:
     - `http://localhost:8080/api`
     - `http://localhost:8080/api/v3`
     - `http://localhost:8080/api/v2/user`
-2) Path variables. Take for example the path `/api/v2/user/:id/address`. `:id`
+2) **Path variables**. Take for example the path `/api/v2/user/:id/address`
+   . `:id`
    is a path variable that matches on any sub-path. All the following paths will
    match:
     - `/api/v2/user/1035/address`
@@ -282,9 +284,9 @@ access. The way the path is matched depends on the `:match-type`.
 
 ```clojure
 {
-... regular request fields
+;; ...
   :path-params {"id" "1035"}
-... more request fields 
+;; ... 
 }
 ```        
 
