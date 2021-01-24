@@ -35,5 +35,5 @@ jobs:
           CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
         if: github.event_name != 'pull_request' && env.CLOJARS_PASSWORD != ''
         run: |
-          echo "::set-env name=BRANCH::${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
+          export BRANCH="${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
           bash .ci.deploy.snapshot.sh
