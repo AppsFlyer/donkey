@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BRANCH: ${{ github.head_ref }}
-      PULL_REQUEST: ${{ github.event_name == pull_request }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -33,7 +32,7 @@ jobs:
 #      - name: "Deploy Snapshot"
 #        env:
 #          CLOJARS_USERNAME: appsflyer
-#        if: type != pull_request AND secrets.CLOJARS_PASSWORD IS present
+#        if: github.event_name != 'pull_request' && secrets.CLOJARS_PASSWORD != ''
 #        run: |
 #          echo "::set-env name=BRANCH::${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
 #          bash .ci.deploy.snapshot.sh
