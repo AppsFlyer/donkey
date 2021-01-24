@@ -396,6 +396,8 @@
                             </dependency>
                         </dependencies>
                         <configuration>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <repoToken>${env.COVERALLS_TOKEN}</repoToken>
                             <coverallsFile>
                                 ${project.build.directory}/coveralls/java/coveralls.json
                             </coverallsFile>

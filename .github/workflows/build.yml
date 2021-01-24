@@ -21,14 +21,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: "Java & Clojure Tests and Coverage Report"
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALL_TOKEN }}
         run: ./build-ci.sh
       #      - name: "Output github vars"
       #        run: echo "${{ toJson(github) }}"
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: target/coveralls/coveralls.json
+
 #      - name: "Deploy Snapshot"
 #        env:
 #          CLOJARS_USERNAME: appsflyer
