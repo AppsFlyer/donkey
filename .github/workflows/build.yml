@@ -21,9 +21,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: "Java & Clojure Tests and Coverage Report"
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-        run: ./build-ci.sh
+        run: |
+          COVERALLS_TOKEN=${{ secrets.COVERALLS_TOKEN }}
+          ./build-ci.sh
       #      - name: "Output github vars"
       #        run: echo "${{ toJson(github) }}"
 
