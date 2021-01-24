@@ -5,6 +5,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BRANCH: ${{ github.head_ref }}
+      PULL_REQUEST: ${{ github.event.number }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -15,6 +18,15 @@ jobs:
         run: ./build-ci.sh
       - name: "Output github vars"
         run: echo "${{ toJson(github) }}"
+      - name: "Coveralls"
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.COVERALLS_TOKEN }}
+          path-to-lcov: target/coveralls/coveralls.json
 #      - name: "Deploy Snapshot"
-#              if: type != pull_request AND env(CLOJARS_USERNAME) IS present
-#              script: bash .travis.deploy.snapshot.sh
+#        env:
+#          CLOJARS_USERNAME: appsflyer
+#        if: type != pull_request AND secrets.CLOJARS_PASSWORD IS present
+#        run: |
+#          echo "::set-env name=BRANCH::${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
+#          bash .travis.deploy.snapshot.sh

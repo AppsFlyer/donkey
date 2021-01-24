@@ -15,13 +15,13 @@
 #
 #
 
-if [[ "${TRAVIS_PULL_REQUEST}" == "true" ]]; then
+if [[ -z "${PULL_REQUEST}" ]]; then
   exit 0
 fi
 
 PROJECT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -B | grep -v '\[')
-if [[ "$PROJECT_VERSION" =~ .*SNAPSHOT ]] && [[ "${TRAVIS_BRANCH}" =~ ^master$|^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+if [[ "$PROJECT_VERSION" =~ .*SNAPSHOT ]] && [[ "${BRANCH}" =~ ^master$|^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   mvn deploy -s .travis.maven.settings.xml -DskipTests -B
 else
-  echo Skipping snapshot deployment for project version "$PROJECT_VERSION" on branch "${TRAVIS_BRANCH}"
+  echo Skipping snapshot deployment for project version "$PROJECT_VERSION" on branch "${BRANCH}"
 fi

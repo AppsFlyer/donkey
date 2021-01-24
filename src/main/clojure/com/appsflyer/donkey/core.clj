@@ -292,7 +292,7 @@
      (if (true? (:debug opts)) (DebugUtil/enable) (DebugUtil/disable))
 
      (->Donkey
-       (-> (select-keys opts [:debug])
-           (assoc :vertx (-> opts
-                             map->VertxOptions
-                             VertxFactory/create)))))))
+       (assoc
+         (select-keys opts [:debug])
+         :vertx
+         (-> opts map->VertxOptions VertxFactory/create))))))
