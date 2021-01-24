@@ -21,5 +21,4 @@ set -ev
 printenv
 mvn clean verify -Pcoverage jacoco:report coveralls:report -DdryRun=true -B -V
 lein do kibit, coveralls, run -m coveralls-report
-cat target/coveralls/coveralls.json
 curl -F 'json_file=@target/coveralls/coveralls.json' 'https://coveralls.io/api/v1/jobs'

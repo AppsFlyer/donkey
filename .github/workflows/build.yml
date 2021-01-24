@@ -1,7 +1,12 @@
 name: Donkey CI
 on:
   push:
+    branches:
+      - master
+      - v*.*.*
   pull_request:
+    branches:
+      - v*.*.*
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,16 +26,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: "Java & Clojure Tests and Coverage Report"
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: ./build-ci.sh
+      - name: "Deploy Snapshot"
+        env:
+          CLOJARS_USERNAME: appsflyer
+          CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+        if: github.event_name != 'pull_request' && secrets.CLOJARS_PASSWORD != ''
         run: |
-          export COVERALLS_TOKEN=${{ secrets.COVERALLS_TOKEN }}
-          ./build-ci.sh
-      #      - name: "Output github vars"
-      #        run: echo "${{ toJson(github) }}"
-
-#      - name: "Deploy Snapshot"
-#        env:
-#          CLOJARS_USERNAME: appsflyer
-#        if: github.event_name != 'pull_request' && secrets.CLOJARS_PASSWORD != ''
-#        run: |
-#          echo "::set-env name=BRANCH::${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
-#          bash .ci.deploy.snapshot.sh
+          echo "::set-env name=BRANCH::${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
+          bash .ci.deploy.snapshot.sh
