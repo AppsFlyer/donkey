@@ -27,7 +27,7 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
-          github-token: ${{ secrets.COVERALLS_TOKEN }}
+          github-token: ${{ secrets.github_token }}
           path-to-lcov: target/coveralls/coveralls.json
 #      - name: "Deploy Snapshot"
 #        env:
