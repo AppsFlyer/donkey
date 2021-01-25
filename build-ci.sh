@@ -19,5 +19,6 @@
 
 set -ev
 mvn clean verify -Pcoverage jacoco:report coveralls:report -DdryRun=true -B -V
+# shellcheck disable=SC1010
 lein do kibit, coveralls, run -m coveralls-report
 curl -F 'json_file=@target/coveralls/coveralls.json' 'https://coveralls.io/api/v1/jobs'

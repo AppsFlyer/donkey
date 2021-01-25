@@ -1,7 +1,8 @@
 # Donkey
 
-
-![Donkey CI](https://github.com/AppsFlyer/donkey/workflows/Donkey%20CI/badge.svg)  [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master) [![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
+![Donkey CI](https://github.com/AppsFlyer/donkey/workflows/Donkey%20CI/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)  
+[![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
 
 Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use
 and performance

@@ -36,4 +36,4 @@ jobs:
         if: github.event_name != 'pull_request' && env.CLOJARS_PASSWORD != ''
         run: |
           export BRANCH="${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
-          bash .ci.deploy.snapshot.sh
+          ./.ci.deploy.snapshot.sh
