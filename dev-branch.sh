@@ -77,7 +77,7 @@ ask_do_push
 
 if [ $? = 0 ]; then
   echo 'committing changes ...'
-  git commit -am "[skip ci] Preparing next development iteration version $SNAPSHOT_VERSION"
+  git commit -S -am "[skip ci] Preparing next development iteration version $SNAPSHOT_VERSION"
   exit_on_error "commit failed"
   git push --set-upstream origin "$DEV_BRANCH"
   exit_on_error "push failed"
