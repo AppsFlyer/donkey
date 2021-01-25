@@ -16,7 +16,7 @@ change is needed proceed to submitting a PR.
 All PRs will be reviewed by project admins. Follow the steps below to submit
 your PR.
 
-- Create a fork of the repository.
+- Create a **fork** of the repository.
 - Checkout the `master` branch and pull the latest changes.
 - We follow the [semantic versioning](https://semver.org/) convention. Use it to
   decide what the next version should be. For example, assuming the current

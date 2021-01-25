@@ -1,7 +1,8 @@
 # Donkey
 
-
-[![Build Status](https://travis-ci.com/AppsFlyer/donkey.svg?token=zfFYSyWcTCemqZqHoxKt&branch=master)](https://travis-ci.com/AppsFlyer/donkey)  [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master) [![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
+![Donkey CI](https://github.com/AppsFlyer/donkey/workflows/Donkey%20CI/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)  
+[![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
 
 Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use
 and performance
@@ -48,13 +49,13 @@ TOC Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Including the library in `project.clj`
 
 ```clojure
-[com.appsflyer/donkey "0.4.0"]
+[com.appsflyer/donkey "0.4.1-SNAPSHOT"]
 ``` 
 
 Including the library in `deps.edn`
 
 ```clojure
-com.appsflyer/donkey {:mvn/version "0.4.0"}
+com.appsflyer/donkey {:mvn/version "0.4.1-SNAPSHOT"}
 ``` 
 
 Including the library in `pom.xml`
@@ -63,7 +64,7 @@ Including the library in `pom.xml`
 <dependency>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -263,12 +264,14 @@ access. The way the path is matched depends on the `:match-type`.
 
 `:simple` match type will match in two ways:
 
-1) Exact match. In the example above it means the route will only match requests
-   to `http://localhost:8080/api/v2`. It will _not_ match requests to:
+1) **Exact match**. Going back to the example route at the begining of the
+   section, the route will only match requests to `http://localhost:8080/api/v2`
+   . It will _not_ match requests to:
     - `http://localhost:8080/api`
     - `http://localhost:8080/api/v3`
     - `http://localhost:8080/api/v2/user`
-2) Path variables. Take for example the path `/api/v2/user/:id/address`. `:id`
+2) **Path variables**. Take for example the path `/api/v2/user/:id/address`
+   . `:id`
    is a path variable that matches on any sub-path. All the following paths will
    match:
     - `/api/v2/user/1035/address`
@@ -282,9 +285,9 @@ access. The way the path is matched depends on the `:match-type`.
 
 ```clojure
 {
-... regular request fields
+;; ...
   :path-params {"id" "1035"}
-... more request fields 
+;; ... 
 }
 ```        
 
@@ -980,14 +983,14 @@ when importing Donkey. For example:
 project.clj
 
 ```clojure
-:dependencies [com.appsflyer/donkey "0.4.0" :exclusions [io.dropwizard.metrics/metrics-core]]
+:dependencies [com.appsflyer/donkey "0.4.1-SNAPSHOT" :exclusions [io.dropwizard.metrics/metrics-core]]
 ```   
 
 deps.edn
 
 ```clojure
 {:deps
- {com.appsflyer/donkey {:mvn/version "0.4.0"
+ {com.appsflyer/donkey {:mvn/version "0.4.1-SNAPSHOT"
                        :exclusions [io.dropwizard.metrics/metrics-core]}}}
 ```
 

@@ -1,0 +1,39 @@
+name: Donkey CI
+on:
+  push:
+    branches:
+      - master
+      - "*.*.*"
+  pull_request:
+    branches:
+      - "*.*.*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: ${{ github.head_ref }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: "Java & Clojure Tests and Coverage Report"
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: ./build-ci.sh
+      - name: "Deploy Snapshot"
+        env:
+          CLOJARS_USERNAME: appsflyer
+          CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+        if: github.event_name != 'pull_request' && env.CLOJARS_PASSWORD != ''
+        run: |
+          export BRANCH="${BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}"
+          ./.ci.deploy.snapshot.sh

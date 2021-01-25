@@ -1,3 +1,7 @@
+## v0.4.1
+
+- Moved from Travis CI to GitHub Actions
+
 ## v0.4.0
 
 - Debug mode is now set when creating a `Donkey` instance rather than creating
