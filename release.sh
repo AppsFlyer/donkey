@@ -75,9 +75,9 @@ exit_on_error "version search and replace failed"
 echo "committing changes ..."
 
 if [ "$DRY_RUN" = 0 ]; then
-  echo 'git commit -S -am "Release version '"$RELEASE_VERSION"'"'
+  echo 'git commit -am "Release version '"$RELEASE_VERSION"'"'
 else
-  git commit -S -am "Release version $RELEASE_VERSION"
+  git commit -am "Release version $RELEASE_VERSION"
 fi
 
 exit_on_error "commit failed"
