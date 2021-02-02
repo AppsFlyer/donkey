@@ -27,6 +27,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.RoutingContext;
 import org.jetbrains.annotations.Nullable;
+
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.security.cert.Certificate;
 import java.util.Locale;
@@ -140,7 +141,7 @@ public enum RingRequestField implements ValueExtractor<RoutingContext> {
       } else {
         SocketAddress remoteAddress = ctx.request().remoteAddress();
         if (remoteAddress != null) {
-          return remoteAddress.toString();
+          return remoteAddress.hostAddress();
         }
       }
       return null;

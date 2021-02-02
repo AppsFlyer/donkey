@@ -5,13 +5,14 @@
 ; you may not use this file except in compliance with the License.
 ; You may obtain a copy of the License at
 ;
-;     http://www.apache.org/licenses/LICENSE-2.0
+;      http://www.apache.org/licenses/LICENSE-2.0
 ;
 ; Unless required by applicable law or agreed to in writing, software
 ; distributed under the License is distributed on an "AS IS" BASIS,
 ; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
+;
 ;
 
 (ns ^:integration com.appsflyer.donkey.server-test
@@ -78,7 +79,7 @@
       (let [^ILookup res (helper/parse-response-body-when-resolved response-promise)]
         (is (= (:port helper/default-server-options) (:server-port res)))
         (is (= (str "localhost:" (:port helper/default-server-options)) (:server-name res)))
-        (is (re-find #"127\.0\.0\.1:\d+" (:remote-addr res)))
+        (is (re-find #"127\.0\.0\.1" (:remote-addr res)))
         (is (= (:path routes/ring-spec) (:uri res)))
         (is (= "foo=bar" (:query-string res)))
         (is (= :http (:scheme res)))
