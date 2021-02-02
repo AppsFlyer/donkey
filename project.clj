@@ -30,7 +30,7 @@
 (def ^:private ^:const ring-json-version "0.5.0")
 (def ^:private ^:const criterium-version "0.4.6")
 
-(defproject com.appsflyer/donkey "0.4.2-SNAPSHOT"
+(defproject com.appsflyer/donkey "0.4.2"
   :description "Clojure Server and Client"
   :url "https://github.com/AppsFlyer/donkey"
   :license {:name "APACHE LICENSE, VERSION 2.0"
