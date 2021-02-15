@@ -85,11 +85,13 @@
           returned. Defaults to any MIME type.
 
       - :middleware [fn [,fn]*] Sequence of functions that will be applied
-          before a request is processed by the handler. Each function should
-          accept a handler function as its only argument, and return a function
-          that accepts 1 or 3 arguments (blocking vs. non blocking mode).
-          The middleware is responsible calling the handler before or after the
-          handler processes the request.
+          before a request is processed by the handler. The middleware provided
+          during server initialization (if any) takes precedence over this
+          middleware. In other words, it is called before the route specific
+          middleware. Each function should accept a handler function as its only
+          argument, and return a function that accepts 1 or 3 arguments
+          (blocking vs. non blocking mode). The middleware is responsible
+          calling the handler before or after the handler processes the request.
 
     :error-handlers [map] A map of HTTP status code to handler function.
       Provides a mechanism for users to handle unexpected errors such as 4xx
@@ -115,10 +117,12 @@
       to serve requests.
 
     :middleware [fn [,fn]*] Sequence of functions that will be applied before
-      a request is processed by a handler. Each function should accept a handler
-      function as its only argument, and return a function that accepts 1 or 3
-      arguments (blocking vs. non blocking mode). The middleware is responsible
-      calling the handler before or after the handler processes the request.
+      a request is processed by a handler. This middleware takes precedence over
+      route specific middleware (if any). In other words, it is called before the
+      latter. Each function should accept a handler function as its only
+      argument, and return a function that accepts 1 or 3 arguments (blocking
+      vs. non blocking mode). The middleware is responsible calling the handler
+      before or after the handler processes the request.
 
     :compression [boolean=true] Include support for gzip response deflation.
 
