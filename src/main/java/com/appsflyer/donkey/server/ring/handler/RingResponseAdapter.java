@@ -21,11 +21,18 @@ import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentMap;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 import static com.appsflyer.donkey.server.ring.handler.RingResponseField.*;
 import static com.appsflyer.donkey.util.TypeConverter.toBuffer;
 
 public final class RingResponseAdapter implements RingHandler {
+  
+  private static final Logger logger = LoggerFactory.getLogger(RingResponseAdapter.class.getName());
   
   public static RingHandler create() {
     return new RingResponseAdapter();
@@ -63,6 +70,29 @@ public final class RingResponseAdapter implements RingHandler {
   }
   
   private void sendResponse(HttpServerResponse serverResponse, IPersistentMap ringResponse) {
-    serverResponse.end(toBuffer(BODY.from(ringResponse)));
+    var body = BODY.from(ringResponse);
+    if (body instanceof File) {
+      sendFile(serverResponse, (File) body);
+    } else {
+      serverResponse.end(toBuffer(body));
+    }
+  }
+  
+  private void sendFile(HttpServerResponse serverResponse, File file) {
+    try {
+      serverResponse.sendFile(file.getCanonicalPath(), 0, file.length())
+                    .onFailure(ex -> {
+                      logFileFailure(file, ex);
+                      serverResponse.setStatusCode(500).end();
+                    });
+    } catch (IOException ex) {
+      logFileFailure(file, ex);
+      serverResponse.setStatusCode(500).end();
+    }
+  }
+  
+  private void logFileFailure(File file, Throwable ex) {
+    logger.error("Failed to send file '{}': {}",
+                 file.getPath(), ex.getMessage());
   }
 }

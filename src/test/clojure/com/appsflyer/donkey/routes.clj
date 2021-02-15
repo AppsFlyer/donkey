@@ -17,7 +17,8 @@
 
 (ns com.appsflyer.donkey.routes
   (:require [com.appsflyer.donkey.test-helper :as helper]
-            [clojure.walk]))
+            [clojure.walk])
+  (:import (java.io File)))
 
 (def glossary-with-keywords
   {:glossary
@@ -237,6 +238,12 @@
                           (raise ex)))))]
    ; Should not be called
    :handler      (fn [_req respond _raise] (respond {:status 200}))})
+
+(def non-existing-file
+  {:path    "/route/serve-missing-file"
+   :methods [:get]
+   :handler (fn [_ respond _]
+              (respond {:status 200 :body (File. "foo.bar")}))})
 
 (def serialize-body-route
   {:path         "/serialize-body"

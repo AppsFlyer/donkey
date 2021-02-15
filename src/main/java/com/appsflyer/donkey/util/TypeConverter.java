@@ -103,7 +103,7 @@ public final class TypeConverter {
    * @return byte[] representation of the argument
    * @throws UnsupportedDataTypeException When argument type cannot be converted to bytes
    */
-  public static byte[] toBytes(Object obj) {
+  static byte[] toBytes(Object obj) {
     if (obj instanceof byte[]) {
       return (byte[]) obj;
     }
