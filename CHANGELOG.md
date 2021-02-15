@@ -1,3 +1,12 @@
+## 0.4.3
+
+- Enhancement. Added support for returning `java.io.File` and Ring response
+  body.
+
+## v0.4.2
+
+- Bug fix. `remote-addr` field in Ring request map includes client port.
+
 ## v0.4.1
 
 - Moved from Travis CI to GitHub Actions
