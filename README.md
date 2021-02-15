@@ -759,7 +759,6 @@ simple:
   executing the request. Client side errors include an unhandled exception, or
   problems connecting with the server. It does not include server errors such as
   4xx or 5xx response status codes. The response will have the usual Ring fields
-    -
   `:status`, `:body`, and optional `:headers`.
 - `(on-fail async-result (fn [ex]))` will call the supplied function with
   an `ExceptionInfo` indicating the request failed due to a client error.
