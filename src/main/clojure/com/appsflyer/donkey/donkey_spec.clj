@@ -88,9 +88,8 @@
 (s/def ::routes (s/coll-of ::route :distinct true :min-count 1))
 (s/def ::error-handlers (s/map-of #(s/int-in-range? 400 600 %) fn?))
 
-(s/def ::server-config (s/keys :req-un [::port]
-                               :opt-un [::routes
-                                        ::error-handlers
+(s/def ::server-config (s/keys :req-un [::port ::routes]
+                               :opt-un [::error-handlers
                                         ::instances
                                         ::middleware
                                         ::compression

@@ -38,8 +38,8 @@
 
     :port [int] Required. The port the server will listen to.
 
-    :routes [map [,map]*] Sequence of routes that the server should handle.
-      All values are optional unless stated otherwise:
+    :routes [map [,map]*] Required. Sequence of routes that the server should
+      handle. All values are optional unless stated otherwise:
 
       - :handler [fn] Required. A function that accepts 1 or 3 arguments
           depending on the value of `:handler-mode`. The function will be called
