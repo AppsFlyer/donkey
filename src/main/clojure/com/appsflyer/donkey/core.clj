@@ -24,9 +24,9 @@
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
   (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
-           (io.vertx.core VertxOptions)
+           (io.vertx.core VertxOptions Vertx)
            (io.vertx.core.impl.cpu CpuCoreSensor)
-           (com.appsflyer.donkey VertxFactory)
+           (com.appsflyer.donkey VertxFactory FutureResult)
            (com.appsflyer.donkey.util DebugUtil)))
 
 (spec/check-asserts true)
@@ -225,7 +225,12 @@
       - :host [string] The host to connect to.
       - :port [int] The port to connect to.
       - :proxy-type [keyword] :http, :socks4, or :socks5
-    "))
+    ")
+  (destroy [this]
+    "Releases all the underlining resources associated with this instance.
+    Servers and clients that were created with this instance cannot be used
+    afterwards. It is equivalent to calling `stop` on any existing server
+    or client instances. The call is asynchronous and returns a `FutureResult`"))
 
 ;; config is a map with the following keys:
 ;; :vertx [Vertx] The underlining Vertx instance
@@ -245,7 +250,10 @@
         (merge (.-config this))
         client/map->ClientConfig
         RingClient/create
-        client/->DonkeyClient)))
+        client/->DonkeyClient))
+  (destroy [this]
+    (let [vertx ^Vertx (-> this .-config :vertx)]
+      (FutureResult/create (.close vertx)))))
 
 (defn- ^VertxOptions map->VertxOptions
   "Creates and returns a VertxOptions object from the opts map.
