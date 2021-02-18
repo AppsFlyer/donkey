@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ public abstract class AbstractRouteCreator implements RouteCreator {
   
   protected abstract void buildRoute(Route route, RouteDefinition rd);
   
+  
   @Override
   public void setPath(Route route, RouteDefinition rd) {
     if (rd.path() != null) {
@@ -72,8 +73,20 @@ public abstract class AbstractRouteCreator implements RouteCreator {
         route.path(rd.path().value());
       }
     }
+  }
+  
+  @Override
+  public void setMethods(Route route, RouteDefinition rd) {
     rd.methods().forEach(route::method);
+  }
+  
+  @Override
+  public void setConsumes(Route route, RouteDefinition rd) {
     rd.consumes().forEach(route::consumes);
+  }
+  
+  @Override
+  public void setProduces(Route route, RouteDefinition rd) {
     rd.produces().forEach(route::produces);
   }
   

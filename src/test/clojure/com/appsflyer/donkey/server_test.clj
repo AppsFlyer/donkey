@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
 (ns ^:integration com.appsflyer.donkey.server-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [clojure.set]
+            [clojure.string]
             [com.appsflyer.donkey.routes :as routes]
             [com.appsflyer.donkey.test-helper :as helper])
   (:import (clojure.lang ILookup)
            (io.netty.handler.codec.http HttpResponseStatus)
            (io.vertx.core.json JsonObject)
            (io.vertx.core MultiMap)
-           (io.vertx.ext.web.client HttpRequest HttpResponse)
+           (io.vertx.ext.web.client HttpRequest)
            (io.vertx.ext.web.multipart MultipartForm)
            (io.vertx.core.buffer Buffer)))
 
@@ -46,8 +47,7 @@
    routes/blocking-exceptional-middleware-handlers
    routes/non-blocking-exceptional-middleware-handlers
    routes/explicit-consumes-json
-   routes/explicit-consumes-multi-part-or-form-encoded-or-octet-stream
-   routes/non-existing-file])
+   routes/explicit-consumes-multi-part-or-form-encoded-or-octet-stream])
 
 (use-fixtures :once
               helper/init-donkey
@@ -259,12 +259,3 @@
   (testing "all header names should be lowercase"
     (execute-lowercase-header-name-test (:path routes/echo-route))
     (execute-lowercase-header-name-test (:path routes/echo-route-non-blocking))))
-
-(deftest test-serve-non-existing-file
-  (testing "it should return 500 internal server error when a file doesn't exist"
-    (let [response-promise (promise)]
-      (-> helper/vertx-client
-          ^HttpRequest (.get (:path routes/non-existing-file))
-          (.send (helper/create-client-handler response-promise)))
-      (let [^HttpResponse res (helper/wait-for-response response-promise)]
-        (is (= (.code HttpResponseStatus/INTERNAL_SERVER_ERROR) (.statusCode res)))))))

@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -258,3 +258,8 @@
   {:path         "/json"
    :handler-mode :blocking
    :handler      (fn [_req] {:status 200 :body glossary-with-keywords})})
+
+(def static-resources
+  [{:path "/"}
+   {:path "/hello\\.json"}
+   {:path "/.+\\.gif"}])

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -42,21 +42,17 @@ public final class RingRouteCreator extends AbstractRouteCreator {
   @Override
   protected void buildRoute(Route route, RouteDefinition rd) {
     setPath(route, rd);
+    setMethods(route, rd);
+    setConsumes(route, rd);
+    setProduces(route, rd);
+  
     if (rd.handler() instanceof RingHandler) {
       addBodyHandler(route);
-      addRequestAdapter(route);
+      route.handler(adapterFactory.requestAdapter());
       addHandler(route, rd.handler(), rd.handlerMode());
-      addResponseAdapter(route);
+      route.handler(adapterFactory.responseAdapter());
     } else {
       addHandler(route, rd.handler(), rd.handlerMode());
     }
-  }
-  
-  private void addRequestAdapter(Route route) {
-    route.handler(adapterFactory.requestAdapter());
-  }
-  
-  private void addResponseAdapter(Route route) {
-    route.handler(adapterFactory.responseAdapter());
   }
 }

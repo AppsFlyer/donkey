@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@
   default-client-options {:default-host DEFAULT-HOST :default-port DEFAULT-PORT})
 
 (def ^:const
-  default-donkey-options {:instances 4 :event-loops 1 :worker-threads 4})
+  default-donkey-options {:instances 4 :event-loops 2 :worker-threads 4})
 
 (defn- ^WebClient launch-vertx-client [^Vertx vertx]
   (WebClient/create
@@ -68,9 +68,12 @@
     instance))
 
 (defn init-donkey-server
-  ([test-fn routes] (init-donkey-server test-fn routes []))
-  ([test-fn routes middleware]
-   (binding [donkey-server (launch-donkey-server donkey-core {:routes routes :middleware middleware})]
+  ([test-fn routes] (init-donkey-server test-fn routes nil))
+  ([test-fn routes resources] (init-donkey-server test-fn routes resources []))
+  ([test-fn routes resources middleware]
+   (binding [donkey-server (launch-donkey-server donkey-core {:routes     routes
+                                                              :middleware middleware
+                                                              :resources  resources})]
      (test-fn)
      (is (nil? (server/stop-sync donkey-server))))))
 
