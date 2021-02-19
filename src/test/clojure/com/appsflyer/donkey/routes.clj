@@ -263,3 +263,7 @@
   [{:path "/"}
    {:path "/hello\\.json"}
    {:path "/.+\\.gif"}])
+
+(def serve-json-file
+  {:path    "/hello/json"
+   :handler (fn [_ res _] (res {:status 200 :body (File. "src/main/resources/public/hello.json")}))})

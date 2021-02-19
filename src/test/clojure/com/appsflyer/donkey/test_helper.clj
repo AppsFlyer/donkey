@@ -71,9 +71,12 @@
   ([test-fn routes] (init-donkey-server test-fn routes nil))
   ([test-fn routes resources] (init-donkey-server test-fn routes resources []))
   ([test-fn routes resources middleware]
-   (binding [donkey-server (launch-donkey-server donkey-core {:routes     routes
-                                                              :middleware middleware
-                                                              :resources  resources})]
+   (binding [donkey-server (launch-donkey-server
+                             donkey-core
+                             (into {} (remove #(nil? (second %))
+                                              {:routes     routes
+                                               :middleware middleware
+                                               :resources  resources})))]
      (test-fn)
      (is (nil? (server/stop-sync donkey-server))))))
 

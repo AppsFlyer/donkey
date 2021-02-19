@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -252,8 +252,8 @@
         RingClient/create
         client/->DonkeyClient))
   (destroy [this]
-    (let [vertx ^Vertx (-> this .-config :vertx)]
-      (FutureResult/create (.close vertx)))))
+    (let [vertx (-> this .-config :vertx)]
+      (FutureResult/create (.close ^Vertx vertx)))))
 
 (defn- ^VertxOptions map->VertxOptions
   "Creates and returns a VertxOptions object from the opts map.

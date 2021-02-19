@@ -15,7 +15,7 @@
 ;
 ;
 
-(ns com.appsflyer.donkey.file-serve-test
+(ns com.appsflyer.donkey.serve-file-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.test-helper :as helper]
             [com.appsflyer.donkey.routes :as routes]
@@ -32,10 +32,15 @@
 
 (use-fixtures :once
               helper/init-donkey
-              (fn [test-fn] (helper/init-donkey-server test-fn [routes/non-existing-file] resources))
-              helper/init-web-client)
+              helper/init-web-client
+              (fn [test-fn]
+                (helper/init-donkey-server
+                  test-fn
+                  [routes/non-existing-file
+                   routes/serve-json-file]
+                  resources)))
 
-(deftest test-serve-non-existing-file
+(deftest test-serve-non-existing-file-programmatically
   (testing "it should return 500 internal server error when a file doesn't exist"
     (let [response-promise (promise)]
       (-> helper/vertx-client
@@ -43,6 +48,17 @@
           (.send (helper/create-client-handler response-promise)))
       (let [^HttpResponse res (helper/wait-for-response response-promise)]
         (is (= (.code HttpResponseStatus/INTERNAL_SERVER_ERROR) (.statusCode res)))))))
+
+(deftest test-serve-file-programmatically
+  (testing "it should return a hello.json file"
+    (let [response-promise (promise)]
+      (-> helper/vertx-client
+          ^HttpRequest (.get (:path routes/serve-json-file))
+          (.send (helper/create-client-handler response-promise)))
+      (let [^HttpResponse res (helper/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/OK) (.statusCode res)))
+        (is (= "application/json" (.getHeader res "content-type")))
+        (is (= "world" (-> res .bodyAsJsonObject (.getString "hello"))))))))
 
 (deftest test-serve-static-index-page
   (testing "it should return an home.html file"
@@ -79,3 +95,12 @@
         (is (-> res .headers (.contains "last-modified")))
         (let [cache-control (clojure.string/split (-> res .headers (.get "cache-control")) #",")]
           (is ((set (map clojure.string/trim cache-control)) "max-age=60")))))))
+
+(deftest test-serve-non-existing-static-file
+  (testing "it should return a 404 NOT FOUND"
+    (let [response-promise (promise)]
+      (-> helper/vertx-client
+          ^HttpRequest (.get "/foo.jpg")
+          (.send (helper/create-client-handler response-promise)))
+      (let [^HttpResponse res (helper/wait-for-response response-promise)]
+        (is (= (.code HttpResponseStatus/NOT_FOUND) (.statusCode res)))))))

@@ -43,10 +43,6 @@ public final class RouteList {
   
   private RouteList(List<RouteDefinition> routes) {
     Objects.requireNonNull(routes, "Routes cannot be null");
-    if (routes.isEmpty()) {
-      throw new IllegalArgumentException("Routes cannot be empty");
-    }
-    
     this.routes = new LinkedList<>(routes);
   }
   

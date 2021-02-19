@@ -15,7 +15,7 @@
 ;
 ;
 
-(ns com.appsflyer.donkey.static-route
+(ns com.appsflyer.donkey.resources
   (:import (java.util ArrayList List)
            (com.appsflyer.donkey.server.route PathDefinition$MatchType
                                               RouteList

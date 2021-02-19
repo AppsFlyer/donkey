@@ -16,7 +16,7 @@
 ;
 
 (ns com.appsflyer.donkey.route
-  (:require [com.appsflyer.donkey.static-route :as static-route])
+  (:require [com.appsflyer.donkey.resources :as static-route])
   (:import (io.vertx.core Handler)
            (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
