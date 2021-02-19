@@ -1,7 +1,11 @@
-## 0.4.3
+## v0.5.0
 
 - Enhancement. Added support for returning `java.io.File` and Ring response
   body.
+- Enhancement. Added support for defining static resources via a `:resources`
+  map when creating a server.
+- The map used when calling `donkey/create-server` can include either
+  `:routes` , `:resources` or both. At least one of them is required.
 
 ## v0.4.2
 

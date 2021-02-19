@@ -427,8 +427,8 @@ To use this router with Donkey we do exactly the same thing we did for
 
 Every server needs to be able to serve static resources such as HTML,
 JavaScript, or image files. In Donkey, you configure how to serve static files
-by providing a `:resources` map when initializing the server. An example is
-worth a thousand words:
+by providing a `:resources` map when creating the server. An example is worth a
+thousand words:
 
 ```clojure
 :resources {:enable-caching               true
