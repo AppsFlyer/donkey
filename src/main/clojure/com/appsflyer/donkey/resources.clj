@@ -75,7 +75,7 @@
 
 (defn map->RouteList [opts]
   (when (some? opts)
-    (let [config (create-static-resources-config opts)]
-      (RouteList/from
-        (create-route-definitions
-          (assoc opts :handler (StaticResourcesHandler/create config)))))))
+    (RouteList/from
+      (create-route-definitions
+        (assoc opts :handler (StaticResourcesHandler/create
+                               (create-static-resources-config opts)))))))

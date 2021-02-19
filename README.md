@@ -21,6 +21,7 @@ Table of Contents
     * [Support for Routing Libraries](#support-for-routing-libraries)
         * [reitit](#reitit)
         * [Compojure](#compojure)
+    * [Static Resources](#static-resources)
     * [Middleware](#middleware)
         * [Overview](#overview)
         * [Examples](#examples)
@@ -182,7 +183,7 @@ define a route and create a basic "Hello world" endpoint.
   (on-success (fn [_] (println "Server started listening on port 8080"))))
 ``` 
 
-As you can see we added a `:routes` key to the options map used to initialise
+As you can see we added a `:routes` key to the options map used to initialize
 the server. A route is a map that describes what kind of requests are handled at
 a specific resource address (or `:path`), and how to handle them. The only
 required key is `:handler`, which will be called when a request matches a route.
@@ -202,7 +203,7 @@ see a page with "Hello, World!".
 
 ### Routes
 
-In Donkey HTTP requests are routed to handlers. When you initialise a server you
+In Donkey HTTP requests are routed to handlers. When you initialize a server you
 define a set of routes that it should handle. When a request arrives the server
 checks if one of the routes can handle the request. If no matching route is
 found, then a `404 Not Found` response is returned to the client.
@@ -421,6 +422,54 @@ To use this router with Donkey we do exactly the same thing we did for
                             :handler-mode :blocking}]})
   start)
 ```   
+
+### Static Resources
+
+Every server needs to be able to serve static resources such as HTML,
+JavaScript, or image files. In Donkey, you configure how to serve static files
+by providing a `:resources` map when initializing the server. An example is
+worth a thousand words:
+
+```clojure
+:resources {:enable-caching               true
+            :max-age-seconds              1800
+            :local-cache-duration-seconds 60
+            :local-cache-size             1000
+            :resources-root               "public"
+            :index-page                   "home.html"
+            :routes                       [{:path "/"}
+                                           {:path "/js/.+\.min\.js"}
+                                           {:path "/images/.+"
+                                           :produces ["image/*"]}]}
+```
+
+The configuration enables cache handling via the `Cache-Control` header, and
+defines when cached resources become stale. The `:index-page` tells the server
+which file to serve when a directory is requested, and the `resources-root` is
+the directory where all assets reside.
+
+Now lets take a look at the `:routes` vector that defines the paths where
+different resources are located. The first route defines the file that's served
+when requesting the root directory of the site. For example, if our site's
+hostname is `example.com`, then when the server gets a request
+for `http://example.com` or `http://example.com/`
+it will serve the index page `home.html`. The file is served from
+`<path to resources directory>/public/home.html`
+
+The second and third routes use regular expressions to define which files should
+be served from the `js` and `image` directories. here is an example of a request
+for a JavaScript file:
+
+`http://example.com/js/app.min.js`
+
+In this example, if the unminified files are requested the route won't match:
+
+`http://example.com/js/app.js ;; will return 404 not found`
+
+The third route defines where images are served from, and it also declares that
+it will only serve files with mime type `image/*`. If the request's
+`Accept` header doesn't match an image mime type, then the request will be
+rejected with a `406 Not Acceptable` code.
 
 ### Middleware
 

@@ -37,12 +37,15 @@ public final class StaticResourcesHandler implements Handler<RoutingContext> {
   @SuppressWarnings("MethodWithMoreThanThreeNegations")
   private StaticResourcesHandler(StaticResourcesConfig config) {
     impl = StaticHandler.create();
+    impl.setIncludeHidden(false);
+  
     if (config.resourcesRoot() != null) {
       impl.setWebRoot(config.resourcesRoot());
     }
     if (config.indexPage() != null) {
       impl.setIndexPage(config.indexPage());
     }
+  
     if (config.enableCaching()) {
       impl.setCachingEnabled(true);
       if (config.localCacheDuration() != null) {
@@ -57,8 +60,6 @@ public final class StaticResourcesHandler implements Handler<RoutingContext> {
     } else {
       impl.setCachingEnabled(false);
     }
-    
-    impl.setIncludeHidden(false);
   }
   
   @Override
