@@ -448,7 +448,7 @@ defines when cached resources become stale. The `:index-page` tells the server
 which file to serve when a directory is requested, and the `resources-root` is
 the directory where all assets reside.
 
-Now lets take a look at the `:routes` vector that defines the paths where
+Now let's take a look at the `:routes` vector that defines the paths where
 different resources are located. The first route defines the file that's served
 when requesting the root directory of the site. For example, if our site's
 hostname is `example.com`, then when the server gets a request
