@@ -116,7 +116,7 @@ public final class TestUtil {
     return makeRequest(client, POST, uri);
   }
   
-  private static Future<HttpResponse<Buffer>> makeRequest(
+  public static Future<HttpResponse<Buffer>> makeRequest(
       WebClient client, HttpMethod method, String uri) {
   
     return client.request(method, getDefaultAddress(), uri)
