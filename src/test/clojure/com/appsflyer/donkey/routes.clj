@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 
 (ns com.appsflyer.donkey.routes
   (:require [com.appsflyer.donkey.test-helper :as helper]
-            [clojure.walk]))
+            [clojure.walk])
+  (:import (java.io File)))
 
 (def glossary-with-keywords
   {:glossary
@@ -238,6 +239,12 @@
    ; Should not be called
    :handler      (fn [_req respond _raise] (respond {:status 200}))})
 
+(def non-existing-file
+  {:path    "/route/serve-missing-file"
+   :methods [:get]
+   :handler (fn [_ respond _]
+              (respond {:status 200 :body (File. "foo.bar")}))})
+
 (def serialize-body-route
   {:path         "/serialize-body"
    :handler-mode :blocking
@@ -251,3 +258,12 @@
   {:path         "/json"
    :handler-mode :blocking
    :handler      (fn [_req] {:status 200 :body glossary-with-keywords})})
+
+(def static-resources
+  [{:path "/"}
+   {:path "/hello\\.json"}
+   {:path "/.+\\.gif"}])
+
+(def serve-json-file
+  {:path    "/hello/json"
+   :handler (fn [_ res _] (res {:status 200 :body (File. "src/main/resources/public/hello.json")}))})

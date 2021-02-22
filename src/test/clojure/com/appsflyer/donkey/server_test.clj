@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 (ns ^:integration com.appsflyer.donkey.server-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [clojure.set]
+            [clojure.string]
             [com.appsflyer.donkey.routes :as routes]
             [com.appsflyer.donkey.test-helper :as helper])
   (:import (clojure.lang ILookup)
@@ -79,7 +80,7 @@
       (let [^ILookup res (helper/parse-response-body-when-resolved response-promise)]
         (is (= (:port helper/default-server-options) (:server-port res)))
         (is (= (str "localhost:" (:port helper/default-server-options)) (:server-name res)))
-        (is (re-find #"127\.0\.0\.1" (:remote-addr res)))
+        (is (= "127.0.0.1" (:remote-addr res)))
         (is (= (:path routes/ring-spec) (:uri res)))
         (is (= "foo=bar" (:query-string res)))
         (is (= :http (:scheme res)))
@@ -235,7 +236,6 @@
       (let [^ILookup res (helper/parse-response-body-when-resolved response-promise)]
         (is (= "bar" (get-in res [:form-params "foo"])))))))
 
-
 (defn- execute-lowercase-header-name-test [uri]
   (let [response-promise (promise)
         headers {"Content-Type"      "text/html"
@@ -257,5 +257,5 @@
 
 (deftest test-lowercase-header-name
   (testing "all header names should be lowercase"
-    (execute-lowercase-header-name-test "/echo")
-    (execute-lowercase-header-name-test "/echo/non-blocking")))
+    (execute-lowercase-header-name-test (:path routes/echo-route))
+    (execute-lowercase-header-name-test (:path routes/echo-route-non-blocking))))

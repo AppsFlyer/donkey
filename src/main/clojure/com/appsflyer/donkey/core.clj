@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@
             [com.appsflyer.donkey.donkey-spec :as donkey-spec])
   (:import (com.appsflyer.donkey.server ServerImpl)
            (com.appsflyer.donkey.client.ring RingClient)
-           (io.vertx.core VertxOptions)
+           (io.vertx.core VertxOptions Vertx)
            (io.vertx.core.impl.cpu CpuCoreSensor)
-           (com.appsflyer.donkey VertxFactory)
+           (com.appsflyer.donkey VertxFactory FutureResult)
            (com.appsflyer.donkey.util DebugUtil)))
 
 (spec/check-asserts true)
@@ -38,8 +38,9 @@
 
     :port [int] Required. The port the server will listen to.
 
-    :routes [map [,map]*] Sequence of routes that the server should handle.
-      All values are optional unless stated otherwise:
+    :routes [map [,map]*] Required when `:resources` is not available. Sequence
+      of routes that the server should handle. All values are optional unless
+      stated otherwise:
 
       - :handler [fn] Required. A function that accepts 1 or 3 arguments
           depending on the value of `:handler-mode`. The function will be called
@@ -85,11 +86,60 @@
           returned. Defaults to any MIME type.
 
       - :middleware [fn [,fn]*] Sequence of functions that will be applied
-          before a request is processed by the handler. Each function should
-          accept a handler function as its only argument, and return a function
-          that accepts 1 or 3 arguments (blocking vs. non blocking mode).
-          The middleware is responsible calling the handler before or after the
-          handler processes the request.
+          before a request is processed by the handler. The middleware provided
+          during server initialization (if any) takes precedence over this
+          middleware. In other words, it is called before the route specific
+          middleware. Each function should accept a handler function as its only
+          argument, and return a function that accepts 1 or 3 arguments
+          (blocking vs. non blocking mode). The middleware is responsible
+          calling the handler before or after the handler processes the request.
+
+    :resources [map] Required when `:routes` is not available. Configuration of
+      static resources the server should handle. All values are optional unless
+      stated otherwise:
+
+      - :resources-root [string=webroot] The root directory from which resources
+          are served. The directory should be placed in the `resources`
+          directory of the project, and included in the final jar. Paths in
+          routes will be resolved relatively to the `:resources-root` directory.
+
+      - :index-page [string=index.html] The page to serve when a directory is
+          requested.
+
+      - :enable-caching [boolean=false] Enable support for handling caching
+          directives sent to and from the client via the Cache-Control header,
+          as well as local file properties caching. The file properties cache
+          is used to reduce the number of filesystem calls required when serving
+          a file.
+
+      - :max-age-seconds [int=86400] The number of seconds to tell a client to
+          cache a resource the first time it is requested. Directly correlates to
+          the `max-age` directive in the Cache-Control header.
+          Ignored if `:enable-caching` is `false`.
+
+      - :local-cache-duration-seconds [int=30] The number of seconds until a
+          file properties cache entry becomes stale. The optimal value depends on
+          how frequently files are modified.
+          Ignored if `:enable-caching` is `false`.
+
+      - :local-cache-size [int=10000] The maximum number of entries to store in
+          the local file properties cache. When the number of entries is greater
+          than the limit, the oldest entry is evicted.
+          Ignored if `:enable-caching` is `false`.
+
+      - :routes [map [,map]*] Required. routes that the server should handle.
+          All values are optional unless stated otherwise:
+
+        - :path [string] Required. Regular expression used in matching a request
+          to a route. The path must start with a backslash `/`, but is resolved
+          relatively to the `:resources-root` directory.
+
+        - :produces [string [,string]*] Sequence of MIME types that this route
+          produces. For example, `application/json`, `application/octet-stream`,
+          or `text/html`. The value will be matched against the request's
+          `Accept` header. If the route matches but the request does not accept
+          any of the MIME types then a `406 Not Acceptable` response will be
+          returned. Defaults to any MIME type.
 
     :error-handlers [map] A map of HTTP status code to handler function.
       Provides a mechanism for users to handle unexpected errors such as 4xx
@@ -115,10 +165,12 @@
       to serve requests.
 
     :middleware [fn [,fn]*] Sequence of functions that will be applied before
-      a request is processed by a handler. Each function should accept a handler
-      function as its only argument, and return a function that accepts 1 or 3
-      arguments (blocking vs. non blocking mode). The middleware is responsible
-      calling the handler before or after the handler processes the request.
+      a request is processed by a handler. This middleware takes precedence over
+      route specific middleware (if any). In other words, it is called before the
+      latter. Each function should accept a handler function as its only
+      argument, and return a function that accepts 1 or 3 arguments (blocking
+      vs. non blocking mode). The middleware is responsible calling the handler
+      before or after the handler processes the request.
 
     :compression [boolean=true] Include support for gzip response deflation.
 
@@ -221,7 +273,12 @@
       - :host [string] The host to connect to.
       - :port [int] The port to connect to.
       - :proxy-type [keyword] :http, :socks4, or :socks5
-    "))
+    ")
+  (destroy [this]
+    "Releases all the underlining resources associated with this instance.
+    Servers and clients that were created with this instance cannot be used
+    afterwards. It is equivalent to calling `stop` on any existing server
+    or client instances. The call is asynchronous and returns a `FutureResult`"))
 
 ;; config is a map with the following keys:
 ;; :vertx [Vertx] The underlining Vertx instance
@@ -241,7 +298,10 @@
         (merge (.-config this))
         client/map->ClientConfig
         RingClient/create
-        client/->DonkeyClient)))
+        client/->DonkeyClient))
+  (destroy [this]
+    (let [vertx (-> this .-config :vertx)]
+      (FutureResult/create (.close ^Vertx vertx)))))
 
 (defn- ^VertxOptions map->VertxOptions
   "Creates and returns a VertxOptions object from the opts map.

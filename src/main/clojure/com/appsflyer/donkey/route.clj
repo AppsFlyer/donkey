@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 ;
 
 (ns com.appsflyer.donkey.route
+  (:require [com.appsflyer.donkey.resources :as static-route])
   (:import (io.vertx.core Handler)
            (io.vertx.ext.web RoutingContext)
            (io.vertx.core.http HttpMethod)
@@ -179,4 +180,5 @@
     (:routes opts)))
 
 (defn map->RouteList [opts]
-  (RouteList/from (create-route-definitions opts)))
+  (let [routes (RouteList/from (create-route-definitions opts))]
+    (.addAll routes (static-route/map->RouteList (:resources opts)))))

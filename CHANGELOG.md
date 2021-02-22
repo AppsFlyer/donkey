@@ -1,3 +1,18 @@
+## v0.5.0
+
+- Enhancement. Added support for returning `java.io.File` and Ring response
+  body. Issue #17.
+- Enhancement. Added support for defining static resources via a `:resources`
+  map when creating a server. The map used when calling `donkey/create-server`
+  can include either `:routes` , `:resources` or both. At least one of them is
+  required. Issue #17.
+- Enhancement. Added a `destroy` function to `IDonkey` protocol, which releases
+  all the resources associated with instance. Issue #19.
+
+## v0.4.2
+
+- Bug fix. `remote-addr` field in Ring request map includes client port.
+
 ## v0.4.1
 
 - Moved from Travis CI to GitHub Actions

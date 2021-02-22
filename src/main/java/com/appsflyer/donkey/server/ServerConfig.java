@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ public final class ServerConfig {
       Objects.requireNonNull(instance.vertx, "Vertx instance is missing");
       Objects.requireNonNull(instance.serverOptions, "Server options is missing");
       Objects.requireNonNull(instance.routeCreatorFactory, "Route creator factory is missing");
-      Objects.requireNonNull(instance.routeList, "Router definition list is missing");
+      Objects.requireNonNull(instance.routeList, "Route definition list is missing");
       if (instance.instances < 1) {
         throw new IllegalArgumentException("Number of instances must be greater than 0");
       }

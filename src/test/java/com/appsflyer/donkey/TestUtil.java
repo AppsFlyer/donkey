@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public final class TestUtil {
     return makeRequest(client, POST, uri);
   }
   
-  private static Future<HttpResponse<Buffer>> makeRequest(
+  public static Future<HttpResponse<Buffer>> makeRequest(
       WebClient client, HttpMethod method, String uri) {
   
     return client.request(method, getDefaultAddress(), uri)
@@ -141,6 +141,9 @@ public final class TestUtil {
       @Override
       protected void buildRoute(Route route, RouteDefinition rd) {
         setPath(route, rd);
+        setMethods(route, rd);
+        setConsumes(route, rd);
+        setProduces(route, rd);
         addBodyHandler(route);
         addHandler(route, rd.handler(), rd.handlerMode());
       }

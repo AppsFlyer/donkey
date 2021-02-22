@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,6 @@ public final class RouteList {
   
   private RouteList(List<RouteDefinition> routes) {
     Objects.requireNonNull(routes, "Routes cannot be null");
-    if (routes.isEmpty()) {
-      throw new IllegalArgumentException("Routes cannot be empty");
-    }
-    
     this.routes = new LinkedList<>(routes);
   }
   
@@ -63,6 +59,14 @@ public final class RouteList {
   public RouteList addLast(RouteDefinition rd) {
     Objects.requireNonNull(rd, "Route definition cannot be null");
     routes.addLast(rd);
+    return this;
+  }
+  
+  public RouteList addAll(RouteList other) {
+    if (other == null) {
+      return this;
+    }
+    routes.addAll(other.routes);
     return this;
   }
 }

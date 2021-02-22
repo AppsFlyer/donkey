@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,6 @@ class RouteListTest {
   @Test
   void testRequiredArgument() {
     assertThrows(NullPointerException.class, () -> RouteList.from((RouteDefinition) null));
-    assertThrows(IllegalArgumentException.class, () -> RouteList.from(List.of()));
-    assertThrows(IllegalArgumentException.class, () -> RouteList.from(new RouteDefinition[0]));
   }
   
   @Test
