@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import static io.netty.util.ResourceLeakDetector.Level.ADVANCED;
 import static io.netty.util.ResourceLeakDetector.Level.DISABLED;
-import static io.netty.util.ResourceLeakDetector.Level.SIMPLE;
 
 public final class DebugUtil {
   
@@ -36,7 +36,7 @@ public final class DebugUtil {
   private static final AtomicBoolean logbackAvailable = new AtomicBoolean();
   private static final AtomicBoolean originalLevelsAvailable = new AtomicBoolean();
   private static final Map<String, String> originalLevels = new HashMap<>(4);
-  private static final String LEAK_DETECTOR_SIMPLE = SIMPLE.name().toLowerCase();
+  private static final String LEAK_DETECTOR_ADVANCED = ADVANCED.name().toLowerCase();
   private static final String LEAK_DETECTOR_DISABLED = DISABLED.name().toLowerCase();
   private static final String LOGGER_NETTY = "io.netty";
   private static final String LOGGER_VERTX = "io.vertx";
@@ -47,7 +47,7 @@ public final class DebugUtil {
   
   public static void enable() {
     enableDebugLogging();
-    System.setProperty(LEAK_DETECTION_LEVEL, LEAK_DETECTOR_SIMPLE);
+    System.setProperty(LEAK_DETECTION_LEVEL, LEAK_DETECTOR_ADVANCED);
   }
   
   public static void disable() {

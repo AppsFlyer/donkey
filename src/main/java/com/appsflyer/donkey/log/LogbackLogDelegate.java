@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 AppsFlyer
+ * Copyright 2020-2021 AppsFlyer
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.appsflyer.donkey.log;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import org.jetbrains.annotations.Nullable;
 
 class LogbackLogDelegate extends SLF4JLogDelegate {
   
@@ -36,8 +37,9 @@ class LogbackLogDelegate extends SLF4JLogDelegate {
   }
   
   @Override
-  public String getLevel() {
-    return ((Logger) unwrap()).getLevel().levelStr;
+  public @Nullable String getLevel() {
+    var level = ((Logger) unwrap()).getLevel();
+    return level == null ? null : level.levelStr;
   }
   
   @Override

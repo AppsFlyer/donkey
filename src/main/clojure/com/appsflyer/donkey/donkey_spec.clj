@@ -135,6 +135,7 @@
 
 (s/def ::keep-alive-timeout-seconds pos-int?)
 (s/def ::connect-timeout-seconds pos-int?)
+(s/def ::follow-redirects boolean?)
 (s/def ::max-redirects pos-int?)
 (s/def ::default-port ::port)
 (s/def ::default-host ::host)
@@ -153,6 +154,7 @@
                                         ::keep-alive-timeout-seconds
                                         ::connect-timeout-seconds
                                         ::idle-timeout-seconds
+                                        ::follow-redirects
                                         ::max-redirects
                                         ::user-agent
                                         ::enable-user-agent

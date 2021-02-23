@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 (def ^:private ^:const ring-json-version "0.5.0")
 (def ^:private ^:const criterium-version "0.4.6")
 
-(defproject com.appsflyer/donkey "0.5.0"
+(defproject com.appsflyer/donkey "0.5.1-SNAPSHOT"
   :description "Clojure Server and Client"
   :url "https://github.com/AppsFlyer/donkey"
   :license {:name "APACHE LICENSE, VERSION 2.0"
@@ -42,8 +42,9 @@
   :target-path "target/%s"
   :jvm-opts ^:replace ["-Dclojure.compiler.direct-linking=true"]
   :global-vars {*warn-on-reflection* true}
-  :javac-options ["-target" "11" "-source" "11"]
-  :jar-exclusions [#"^.java"]
+  :javac-options ["-target" "11"]
+  :jar-exclusions [#"^.java" #".*logback.xml$" #".*coveralls_report.clj$" #"(?:^|/)public/"]
+  :uberjar-exclusions [#"^.java" #".*logback.xml$" #".*coveralls_report.clj$" #"(?:^|/)public/"]
   :dependencies [[io.vertx/vertx-web ~vertx-version]
                  [io.vertx/vertx-web-client ~vertx-version]
                  [io.vertx/vertx-dropwizard-metrics ~vertx-version]
@@ -56,14 +57,14 @@
                                           [io.vertx/vertx-junit5 ~vertx-version]
                                           [org.hamcrest/hamcrest-library ~hamcrest-version]
                                           [org.junit.jupiter/junit-jupiter ~junit-version]
-                                          [org.mockito/mockito-junit-jupiter ~mockito-version]
-                                          [ch.qos.logback/logback-classic ~logback-version :scope "provided"]
-                                          [criterium ~criterium-version :scope "provided"]
-                                          [ring/ring-core ~ring-core-version :scope "provided"]
-                                          [ring/ring-json ~ring-json-version :scope "provided"]]
+                                          [org.mockito/mockito-junit-jupiter ~mockito-version]]
                          :resource-paths ["src/test/resources"]
                          :plugins        [[lein-kibit "0.1.8"]
                                           [lein-cloverage "1.1.2"]]}
+             :provided  {:dependencies [[criterium ~criterium-version]
+                                        [ring/ring-core ~ring-core-version]
+                                        [ring/ring-json ~ring-json-version]
+                                        [ch.qos.logback/logback-classic ~logback-version]]}
              :benchmark {:dependencies [[ch.qos.logback/logback-classic ~logback-version]
                                         [criterium ~criterium-version]
                                         [ring/ring-core ~ring-core-version]
