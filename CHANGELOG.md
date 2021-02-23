@@ -1,3 +1,8 @@
+## v0.5.1
+
+- Enhancement. Added `follow-redirects` option when creating a client.
+- Removed logback.xml and other unnecessary files from the final jar.
+
 ## v0.5.0
 
 - Enhancement. Added support for returning `java.io.File` and Ring response
@@ -19,8 +24,7 @@
 
 ## v0.4.0
 
-- Debug mode is now set when creating a `Donkey` instance rather than creating
-  a `DonkeyServer` or `DonkeyClient`. This fixes issues where enabling debug
+- Debug mode is now set when creating a `Donkey` instance rather than creating a `DonkeyServer` or `DonkeyClient`. This fixes issues where enabling debug
   mode on the server / client and not on the other would sometimes disable debug
   mode for both.
 - Turned on Clojure spec assertions
