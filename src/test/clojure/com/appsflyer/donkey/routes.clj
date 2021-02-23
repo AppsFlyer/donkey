@@ -267,3 +267,8 @@
 (def serve-json-file
   {:path    "/hello/json"
    :handler (fn [_ res _] (res {:status 200 :body (File. "src/main/resources/public/hello.json")}))})
+
+(def redirects-to-root
+  {:path    "/redirect/to/root"
+   :handler (fn [_ respond _]
+              (respond {:status 302 :headers {"location" "/"}}))})

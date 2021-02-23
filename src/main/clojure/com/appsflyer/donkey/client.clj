@@ -1,5 +1,5 @@
 ;
-; Copyright 2020 AppsFlyer
+; Copyright 2020-2021 AppsFlyer
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License")
 ; you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@
            user-agent
            default-host
            default-port
+           follow-redirects
            max-redirects
            keep-alive
            keep-alive-timeout-seconds
@@ -56,6 +57,7 @@
            enable-user-agent false
            keep-alive        false
            debug             false
+           follow-redirects  true
            user-agent        "Donkey-Client"}}]
 
   (cond->
@@ -64,7 +66,8 @@
       (.setLogActivity ^boolean debug)
       (.setUserAgentEnabled ^boolean enable-user-agent)
       (.setUserAgent user-agent)
-      (.setKeepAlive ^boolean keep-alive))
+      (.setKeepAlive ^boolean keep-alive)
+      (.setFollowRedirects ^boolean follow-redirects))
     keep-alive-timeout-seconds (.setKeepAliveTimeout (int keep-alive-timeout-seconds))
     proxy-options (.setProxyOptions ^ProxyOptions (map->ProxyOptions proxy-options))
     default-host (.setDefaultHost ^String default-host)

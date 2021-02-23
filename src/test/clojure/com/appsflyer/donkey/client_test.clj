@@ -19,7 +19,9 @@
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [com.appsflyer.donkey.middleware.params :as params]
             [com.appsflyer.donkey.test-helper :as helper]
-            [com.appsflyer.donkey.routes :as routes])
+            [com.appsflyer.donkey.routes :as routes]
+            [com.appsflyer.donkey.core :as donkey]
+            [com.appsflyer.donkey.client :as client])
   (:import (io.netty.handler.codec.http HttpResponseStatus)
            (clojure.lang ExceptionInfo)
            (com.appsflyer.donkey.client.exception UnsupportedDataTypeException)
@@ -29,7 +31,8 @@
   [routes/root-200
    routes/echo-route
    routes/explicit-consumes-json
-   routes/explicit-produces-json])
+   routes/explicit-produces-json
+   routes/redirects-to-root])
 
 (use-fixtures :once
               helper/init-donkey
@@ -148,33 +151,16 @@
                                      :url    (str "http://localhost:" helper/DEFAULT-PORT)})]
       (is (= 200 (:status res))))))
 
-#_(deftest test-https-endpoint
-    (let [latch (CountDownLatch. 1)]
-      (->
-        (client/request helper/donkey-client {:host   "reqres.in"
-                                              :port   443
-                                              :ssl    true
-                                              :uri    "/api/users?page=2"
-                                              :method :get})
-        (request/submit)
-        (result/on-success (fn [res] (println res) (.countDown latch)))
-        (result/on-fail (fn [ex] (println ex) (.countDown latch))))
+(deftest test-follow-redirect
+  (testing "it should follow the redirect response from the server and return a 200 response"
+    (let [res @(helper/make-request {:method :get, :uri (:path routes/redirects-to-root)})]
+      (is (= 200 (:status res))))))
 
-      (.await latch 3 TimeUnit/SECONDS)))
+(deftest test-does-not-follow-redirect
+  (testing "it should return a 302 response"
+    (let [opts (assoc helper/default-client-options :follow-redirects false)]
+      (binding [helper/donkey-client (donkey/create-client helper/donkey-core opts)]
+        (let [res @(helper/make-request {:method :get, :uri (:path routes/redirects-to-root)})]
+          (is (= 302 (:status res)))
+          (client/stop helper/donkey-client))))))
 
-;(deftest test-json-file-upload
-;  (let [file-opts {"filename"   "upload-text.json"
-;                   "pathname"   (str (System/getProperty "user.dir") "/src/test/resources/upload-text.json")
-;                   "media-type" "application/json"
-;                   "upload-as"  "text"}]
-;    (let [res @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
-;      (let [body (parse-response-body res)]
-;        (is (.startsWith ^String (get-in body [:headers "content-type"]) "multipart/form-data")))))
-;
-;  (let [file-opts {"filename"   "donkey.png"
-;                   "pathname"   (str (System/getProperty "user.dir") "/src/test/resources/donkey.png")
-;                   "media-type" "image/png"
-;                   "upload-as"  "binary"}]
-;    (let [res @(helper/submit-multi-part-form {:method :post :uri "/echo"} {"my-file" file-opts})]
-;      (let [body (parse-response-body res)]
-;        (is (.startsWith ^String (get-in body [:headers "content-type"]) "multipart/form-data"))))))

@@ -260,7 +260,11 @@
       connection will be closed if no data was received. Can be overridden on
       per request basis. Defaults to forever.
 
+    :follow-redirects [boolean=true] Whether the client should follow 3xx
+      redirects returned by the server.
+
     :max-redirects [int=16] The maximum number of times to follow 3xx redirects.
+      Ignored if `:follow-redirects` is `false`.
 
     :user-agent-enabled [boolean=false] Indicates whether to include a 'User-Agent'
       header in the request.
