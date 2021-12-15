@@ -25,7 +25,7 @@
     <description>Clojure Server and Client</description>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2-SNAPSHOT</version>
     <packaging>clojure</packaging>
     <url>https://github.com/AppsFlyer/donkey</url>
     <inceptionYear>2020</inceptionYear>
@@ -80,12 +80,12 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.0.0</vertx.version>
-        <netty.version>4.1.49.Final</netty.version>
-        <clojure.version>1.10.1</clojure.version>
+        <vertx.version>4.2.2</vertx.version>
+        <netty.version>4.1.72.Final</netty.version>
+        <clojure.version>1.10.3</clojure.version>
         <clojure.spec.version>0.2.187</clojure.spec.version>
         <clojure.logging.version>1.1.0</clojure.logging.version>
-        <jsonista.version>0.3.0</jsonista.version>
+        <jsonista.version>0.3.5</jsonista.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <junit.version>5.7.0</junit.version>
