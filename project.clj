@@ -18,7 +18,7 @@
 (def ^:private ^:const vertx-version "4.2.2")
 (def ^:private ^:const junit-version "5.8.2")
 (def ^:private ^:const clojure-lang-version "1.10.3")
-(def ^:private ^:const clojure-spec-version "0.3.213")
+(def ^:private ^:const clojure-spec-version "0.3.218")
 (def ^:private ^:const clojure-logging-version "1.2.3")
 (def ^:private ^:const jsonista-version "0.3.5")
 (def ^:private ^:const slf4j-version "1.7.32")

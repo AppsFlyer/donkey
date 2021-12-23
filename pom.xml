@@ -83,7 +83,7 @@
         <vertx.version>4.2.2</vertx.version>
         <netty.version>4.1.72.Final</netty.version>
         <clojure.version>1.10.3</clojure.version>
-        <clojure.spec.version>0.3.214</clojure.spec.version>
+        <clojure.spec.version>0.3.218</clojure.spec.version>
         <clojure.logging.version>1.2.3</clojure.logging.version>
         <jsonista.version>0.3.5</jsonista.version>
         <slf4j.version>1.7.32</slf4j.version>
