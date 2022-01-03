@@ -15,7 +15,7 @@
 ;
 ;
 
-(def ^:private ^:const vertx-version "4.1.0")
+(def ^:private ^:const vertx-version "4.0.0")
 (def ^:private ^:const junit-version "5.8.2")
 (def ^:private ^:const clojure-lang-version "1.10.3")
 (def ^:private ^:const clojure-spec-version "0.3.218")
