@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.net.UnknownHostException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -201,7 +202,7 @@ class RingClientTest {
     
     client.send(request).onComplete(testContext.failing(
         ex -> testContext.verify(() -> {
-          assertTrue(ex.getMessage().contains("failed to resolve"));
+          assertInstanceOf(UnknownHostException.class,ex);
           responsesReceived.flag();
         })));
     
