@@ -1,5 +1,7 @@
 # Donkey
 
+<p align="center"><img src="https://user-images.githubusercontent.com/29622398/160290393-63e0ccba-d7ab-4853-89d1-7b524ac79178.png" width=350/></p>
+
 ![Donkey CI](https://github.com/AppsFlyer/donkey/workflows/Donkey%20CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/AppsFlyer/donkey/badge.svg?branch=master)](https://coveralls.io/github/AppsFlyer/donkey?branch=master)  
 [![Clojars Project](https://img.shields.io/clojars/v/com.appsflyer/donkey.svg)](https://clojars.org/com.appsflyer/donkey)
