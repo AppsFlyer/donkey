@@ -141,7 +141,7 @@
 (s/def ::default-host ::host)
 (s/def ::user-agent string?)
 (s/def ::enable-user-agent boolean?)
-(s/def ::proxy-type #{:http :sock4 :sock5})
+(s/def ::proxy-type #{:http :socks4 :socks5})
 (s/def ::proxy-options (s/keys :req-un [::host ::port ::proxy-type]))
 (s/def ::force-sni boolean?)
 (s/def ::ssl boolean?)
