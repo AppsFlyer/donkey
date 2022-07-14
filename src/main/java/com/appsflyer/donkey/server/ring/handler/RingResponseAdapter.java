@@ -19,6 +19,7 @@ package com.appsflyer.donkey.server.ring.handler;
 
 import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentMap;
+import clojure.lang.LazySeq;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
@@ -60,7 +61,11 @@ public final class RingResponseAdapter implements RingHandler {
     if (headers != null) {
       for (var obj : headers) {
         var pair = (IMapEntry) obj;
-        serverResponse.putHeader((CharSequence) pair.getKey(), (CharSequence) pair.getValue());
+        if (pair.getValue() instanceof clojure.lang.LazySeq)
+            serverResponse.putHeader((CharSequence) pair.getKey(),
+                                     (CharSequence) ((clojure.lang.LazySeq) pair.getValue()).first());
+        else
+            serverResponse.putHeader((CharSequence) pair.getKey(), (CharSequence) pair.getValue());
       }
     }
   }

@@ -67,7 +67,7 @@ Including the library in `pom.xml`
 <dependency>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.5.2</version>
+    <version>0.5.3-SNAPSHOT</version>
 </dependency>
 ```
 
