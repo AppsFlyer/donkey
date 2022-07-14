@@ -25,7 +25,7 @@ your PR.
   On a *_nix_ system, run the `dev-branch.sh` script to create a new development
   branch. For example:
   ```shell
-    ./dev-branch 0.3.1
+    ./dev-branch.sh 0.3.1
   ```
   The script will create a branch `0.3.1` and update the project to version
   `0.3.1-SNAPSHOT`. For those who work on a Windows system, you'll have to do
