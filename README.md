@@ -9,6 +9,8 @@
 Modern Clojure, Ring compliant, HTTP server and client, designed for ease of use
 and performance
 
+# Note: this project is no longer maintained.
+
 Table of Contents
 -----------------
 
