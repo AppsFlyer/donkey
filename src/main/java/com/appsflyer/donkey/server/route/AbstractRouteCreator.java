@@ -100,7 +100,7 @@ public abstract class AbstractRouteCreator implements RouteCreator {
   @Override
   public void addHandler(Route route, Handler<RoutingContext> handler, HandlerMode handlerMode) {
     if (handlerMode == HandlerMode.BLOCKING) {
-      route.blockingHandler(handler);
+      route.blockingHandler(handler,false);
     } else {
       route.handler(handler);
     }

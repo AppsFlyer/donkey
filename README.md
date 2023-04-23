@@ -54,13 +54,13 @@ TOC Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Including the library in `project.clj`
 
 ```clojure
-[com.appsflyer/donkey "0.5.2"]
+[com.appsflyer/donkey "0.5.3-SNAPSHOT"]
 ``` 
 
 Including the library in `deps.edn`
 
 ```clojure
-com.appsflyer/donkey {:mvn/version "0.5.2"}
+com.appsflyer/donkey {:mvn/version "0.5.3-SNAPSHOT"}
 ``` 
 
 Including the library in `pom.xml`
@@ -69,7 +69,7 @@ Including the library in `pom.xml`
 <dependency>
     <groupId>com.appsflyer</groupId>
     <artifactId>donkey</artifactId>
-    <version>0.5.2</version>
+    <version>0.5.3-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -1035,14 +1035,14 @@ when importing Donkey. For example:
 project.clj
 
 ```clojure
-:dependencies [com.appsflyer/donkey "0.5.2" :exclusions [io.dropwizard.metrics/metrics-core]]
+:dependencies [com.appsflyer/donkey "0.5.3-SNAPSHOT" :exclusions [io.dropwizard.metrics/metrics-core]]
 ```   
 
 deps.edn
 
 ```clojure
 {:deps
- {com.appsflyer/donkey {:mvn/version "0.5.2"
+ {com.appsflyer/donkey {:mvn/version "0.5.3-SNAPSHOT"
                        :exclusions [io.dropwizard.metrics/metrics-core]}}}
 ```
 
